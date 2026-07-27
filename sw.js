@@ -1,14 +1,15 @@
 /* Retro Football Manager SV — offline cache for GitHub Pages / WebView APK */
-const CACHE_VERSION = 'rfm-sv-offline-v5';
+const CACHE_VERSION = 'rfm-sv-offline-v6';
 const CORE_ASSETS = [
   './',
   './manager.html'
 ];
+const OPTIONAL_ASSETS = ['./music/menu.mp3', './music/menu.ogg'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_VERSION)
-      .then(cache => cache.addAll(CORE_ASSETS.map(url => new Request(url, { cache: 'reload' }))))
+      .then(cache => cache.addAll(CORE_ASSETS.map(url => new Request(url, { cache: 'reload' }))).then(() => Promise.all(OPTIONAL_ASSETS.map(u => fetch(u).then(r => r.ok && cache.put(u, r)).catch(() => null)))))
       .then(() => self.skipWaiting())
   );
 });
@@ -24,7 +25,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
   if (event.data && event.data.type === 'CACHE_NOW') {
-    event.waitUntil(caches.open(CACHE_VERSION).then(cache => cache.addAll(CORE_ASSETS)));
+    event.waitUntil(caches.open(CACHE_VERSION).then(cache => cache.addAll(CORE_ASSETS).then(() => Promise.all(OPTIONAL_ASSETS.map(u => fetch(u).then(r => r.ok && cache.put(u, r)).catch(() => null))))));
   }
 });
 
