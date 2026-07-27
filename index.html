@@ -146,6 +146,19 @@ body.device-tablet .tab{font-size:9px;padding:10px 9px}.device-tablet main{paddi
 
 </style>
 </head>
+<audio id="bg-music" src="./audio.mp3" loop preload="auto"></audio>
+
+<script>
+  // Script para iniciar la música al primer toque o clic del usuario
+  document.addEventListener('click', function() {
+    var music = document.getElementById('bg-music');
+    if (music.paused) {
+      music.play().catch(function(error) {
+        console.log("El navegador bloqueó la reproducción automática hasta interactuar.");
+      });
+    }
+  }, { once: true });
+</script>
 <body>
 <div class="crt-lines"></div>
 <div class="crt-vig"></div>
