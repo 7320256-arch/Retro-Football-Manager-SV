@@ -153,6 +153,32 @@ body.device-tablet .tab{font-size:9px;padding:10px 9px}.device-tablet main{paddi
 .tutorial-step{border-left:4px solid var(--green);padding:8px;background:rgba(70,226,43,.06);margin:8px 0}.halftime-box{border:1px solid var(--amber);background:#1e1704;padding:10px;border-radius:6px;margin-top:8px}
 @media(max-width:700px){.cal-grid{gap:3px}.cal-day{min-height:62px;font-size:13px;padding:4px}.decor-grid{grid-template-columns:1fr}.avatar-face{width:58px;height:58px}}
 
+/* --- Mobile anti-saturation pass --- */
+body.device-phone #app{height:100dvh}
+body.device-phone .nav{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;white-space:nowrap;gap:4px;padding:4px 6px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+body.device-phone .tab{flex:0 0 auto;min-width:78px;font-size:7px;padding:9px 7px;border:1px solid var(--line);border-radius:5px;border-bottom:1px solid var(--line)}
+body.device-phone .tab.go{position:sticky;right:0;z-index:55;min-width:96px;margin-left:6px;box-shadow:-8px 0 12px rgba(0,0,0,.45)}
+body.device-phone .topbar{max-height:42vh;overflow:auto}
+body.device-phone .topbtns{width:100%;justify-content:flex-end}
+body.device-phone .panel-title{font-size:9px;line-height:1.45}
+body.device-phone .offer{padding:9px;margin-bottom:7px}
+body.device-phone .next-card{flex-wrap:wrap}
+body.device-phone .tbl{min-width:680px}.device-phone .scroll{max-width:100%}
+body.device-phone #view-dashboard .g3{grid-template-columns:1fr}
+body.device-phone .finance-strip{grid-template-columns:1fr}
+body.device-phone .cal-grid{grid-template-columns:repeat(7,minmax(42px,1fr));font-size:12px}
+body.device-phone .cal-day{min-height:58px;overflow:hidden}
+body.device-phone .modal{padding:8px}.device-phone .modal-card{max-height:92vh;width:100%;font-size:17px}
+body.device-phone .decor-grid{grid-template-columns:1fr 1fr}
+@media(max-width:430px){body.device-phone .stats{grid-template-columns:1fr 1fr}.device-phone .stat .v{font-size:9px}.device-phone .decor-grid{grid-template-columns:1fr}.device-phone .btn{width:auto}.device-phone .club-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+@media(max-width:700px){
+  .nav{flex-wrap:nowrap!important;overflow-x:auto;overflow-y:hidden;white-space:nowrap;gap:4px;padding:4px 6px;-webkit-overflow-scrolling:touch}
+  .tab{flex:0 0 auto!important;min-width:78px;font-size:7px!important;padding:9px 7px!important;border:1px solid var(--line);border-radius:5px;border-bottom:1px solid var(--line)}
+  .tab.go{position:sticky;right:0;z-index:55;min-width:96px;margin-left:6px;box-shadow:-8px 0 12px rgba(0,0,0,.45)}
+  main{padding:8px!important}.panel{padding:10px}.topbar{gap:7px;padding:6px 7px}.stats{width:100%;margin-left:0;display:grid;grid-template-columns:repeat(2,1fr)}
+}
+
 </style>
 </head>
 <body>
@@ -614,8 +640,15 @@ function genSponsorOffers(lvl){
 function initCopa(ids){return{active:true,alive:ids.slice(),round:0,current:null,playedWeeks:[],history:[],champion:null};}
 function fin(t,tipo,monto,detalle){if(!G.finanzas)G.finanzas=[];if(!G.regional)G.regional=initRegionalWorld();if(G.centroCup===undefined)G.centroCup=null;if(!G.transferNews)G.transferNews=[];if(!G.regionalNews)G.regionalNews=[];normalizeBudget('Ajuste económico de actualización');G.finanzas.unshift({temp:G.temporada,j:G.jornadaActual,tipo,monto,detalle});if(G.finanzas.length>80)G.finanzas.length=80;}
 function applyRealRosterUpdates(){if(G.realRosterV4)return;['ALI','FAS','AGU','FIR','INT'].forEach(id=>{if(G.clubes[id]){G.clubes[id].plantilla=clubSquad(id,G.clubes[id].tier);}});G.realRosterV4=true;if(G.clubes[G.userClubId])G.tactics.alineacion=bestXI(userClub().plantilla,G.tactics.formacion||'4-4-2').map(p=>p.id);}
+function repairState(){
+  if(!G)return;
+  G.noticias=(G.noticias||[]).map(n=>Object.assign({j:G.jornadaActual||1,tipo:'info',cat:'club',time:`${G.temporada||2026} ${G.campania||''} · J${G.jornadaActual||1}`},n));
+  G.transferNews=G.transferNews||[];G.regionalNews=G.regionalNews||[];G.finanzas=G.finanzas||[];G.achievements=G.achievements||[];
+  if(G.centroCup&&G.centroCup.teams){G.centroCup.teams.forEach(t=>{if(!t.plantilla)t.plantilla=t.sv&&G.clubes[t.id]?G.clubes[t.id].plantilla:centroVirtualSquad(t.rating||68);if(!t.color)t.color=t.sv&&G.clubes[t.id]?G.clubes[t.id].color:'#0b6b8f';});}
+  ['mercado','agentOffers'].forEach(k=>{(G[k]||[]).forEach(p=>{if(!p.id)p.id=uid();if(p.comision==null)p.comision=Math.round((p.precio||p.valorMercado||10000)*0.08);if(!p.nacionalidad)p.nacionalidad='El Salvador';if(!p.equipoOrigen)p.equipoOrigen=p.libre?'Libre':'Mercado';});});
+}
 function migrateState(){
-  if(!G||!G.clubes)return;
+  if(!G||!G.clubes)return;repairState();
   applyRealRosterUpdates();
   Object.values(G.clubes).forEach(c=>{if(!c.estadio)c.estadio=initStadium(c.id,c.nivel,c.estadioPropio,c.ciudad);c.plantilla.forEach(p=>{if(p.moral==null)p.moral=60+rnd(31);if(p.contrato==null)p.contrato=1+rnd(3);if(p.quiereIrse==null)p.quiereIrse=false;if(!p.nacionalidad)p.nacionalidad='El Salvador';if(!p.equipoOrigen)p.equipoOrigen=c.nombre||'Libre';if(!p.stats)p.stats={goles:0,asistencias:0,atajadas:0,pj:0};});});
   if(!G.sponsorOffers)G.sponsorOffers=genSponsorOffers(userClub().nivel);
@@ -892,20 +925,23 @@ function endSeason(){
   const evalObj=evaluateSeasonObjectives(G.objetivo,pos,userClub());
   const met=evalObj.sportMet;
   G.objetivo.objetivos=evalObj.items;
-  const playoff=(lvl===1)?simulatePrimeraPlayoff(sorted):null;
-  const champ=playoff?G.clubes[playoff.champion]:sorted[0];const titulo=champ.id===G.userClubId;
+  const primeraSorted=sortedDivision(1);
+  const primeraPlayoff=primeraSorted.length?simulatePrimeraPlayoff(primeraSorted):null;
+  const primeraChampion=primeraPlayoff?G.clubes[primeraPlayoff.champion]:(primeraSorted[0]||sorted[0]);
+  const playoff=(lvl===1)?primeraPlayoff:null;
+  const champ=(lvl===1)?primeraChampion:sorted[0];const titulo=champ.id===G.userClubId;
   G.objetivo.met=met;
   pushNews(`📋 Objetivos: ${evalObj.completed}/${evalObj.total} cumplidos.`,evalObj.completed>=Math.ceil(evalObj.total*0.66)?'bueno':'malo');
   if(G.sponsor&&met){G.budget+=G.sponsor.obj;fin('Patrocinador','ingreso',G.sponsor.obj,'Bono por objetivo deportivo');pushNews(`🤝 Bono de patrocinador por objetivo deportivo: ${money(G.sponsor.obj)}.`,'bueno');}
   if(met){G.confianza=Math.min(100,G.confianza+10+evalObj.completed*3);G.reputacion=Math.min(100,G.reputacion+5);}
   else{G.confianza=Math.max(0,G.confianza-18-(evalObj.total-evalObj.completed)*3);}
-  if(playoff)pushNews(`🏁 Liguilla Primera: ${playoff.rows[playoff.rows.length-1]}.`, 'gol');
+  if(primeraPlayoff)pushNews(`🏁 Liguilla Primera: ${primeraPlayoff.rows[primeraPlayoff.rows.length-1]}.`, 'gol');
   if(titulo){G.reputacion=Math.min(100,G.reputacion+15);G.confianza=Math.min(100,G.confianza+10);pushNews(`🏆 ¡${champ.nombre} CAMPEÓN de ${DIV_NAMES[lvl]} ${G.temporada}!`,'gol');}
   else{pushNews(`🏆 Campeón ${DIV_NAMES[lvl]}: ${champ.nombre}.`,'info');}
   const prize=leaguePrize(lvl,pos);G.budget+=prize;fin('Liga','ingreso',prize,`Premio por posición ${pos}° en ${DIV_NAMES[lvl]}`);pushNews(`💵 Premio de liga por ${pos}° lugar: ${money(prize)}.`, 'bueno');G.managerWallet=(G.managerWallet||0)+G.salarioDT;pushNews(`👔 Sueldo personal del DT recibido: ${money(G.salarioDT)}.`, 'info');normalizeBudget('Cierre financiero de campaña');
   if(titulo)unlockAchievement('champ_'+lvl+'_'+G.campania,`Campeón de ${DIV_NAMES[lvl]}`,`Ganaste ${DIV_NAMES[lvl]} en ${G.campania}`);if(G.copa&&G.copa.champion===G.userClubId)unlockAchievement('copa_presidente','Copa Presidente','Ganaste la Copa Presidente');
-  if(lvl===1){G.champions=G.champions||{};if((G.campania||'Apertura')==='Apertura')G.champions.apertura=champ.id;else{G.champions.clausura=champ.id;playSupercopa(G.champions.apertura,G.champions.clausura);}}
-  simulateRegionalCampaign();G.centroCup=initCentroCup(buildCentroParticipants(sorted,champ.id));pushRegionalNews('Clasificados definidos para la próxima Copa Centroamericana.');
+  G.champions=G.champions||{};if((G.campania||'Apertura')==='Apertura')G.champions.apertura=primeraChampion.id;else{G.champions.clausura=primeraChampion.id;playSupercopa(G.champions.apertura,G.champions.clausura);}
+  simulateRegionalCampaign();G.centroCup=initCentroCup(buildCentroParticipants(primeraSorted,primeraChampion.id));pushRegionalNews('Clasificados definidos para la próxima Copa Centroamericana.');
   const goleador=topPlayerStat('goles'),asistente=topPlayerStat('asistencias'),arquero=topPlayerStat('atajadas');
   if(goleador&&((goleador.p.stats&&goleador.p.stats.goles)||0)>0)pushNews(`🥇 Goleador de campaña: ${goleador.p.nombre} (${goleador.club.nombre}) · ${goleador.p.stats.goles} goles.`,'gol');
   if(asistente&&((asistente.p.stats&&asistente.p.stats.asistencias)||0)>0)pushNews(`🎯 Mejor asistidor: ${asistente.p.nombre} · ${asistente.p.stats.asistencias} asistencias.`,'bueno');
@@ -933,7 +969,7 @@ function endSeason(){
   G.calendarios={1:roundRobinFull(G.divisiones[1]),2:roundRobinFull(G.divisiones[2]),3:roundRobinFull(G.divisiones[3])};
   G.tactics.alineacion=bestXI(userClub().plantilla,G.tactics.formacion).map(p=>p.id);
   // 5) capturar resultado de la temporada (antes de pisar el objetivo) + nuevo objetivo
-  const seasonRes={pos,lvl,met,titulo,promoted,relegated,desc:G.objetivo.desc,season:endedSeason,campania:endedCampania,objCompleted:evalObj.completed,objTotal:evalObj.total,club:G.clubes[G.userClubId].nombre,playoff:playoff?{champion:G.clubes[playoff.champion].nombre,rows:playoff.rows}:null,repechaje:G.repechajes&&G.repechajes[0]?G.repechajes[0].rows:null};
+  const seasonRes={pos,lvl,met,titulo,promoted,relegated,desc:G.objetivo.desc,season:endedSeason,campania:endedCampania,objCompleted:evalObj.completed,objTotal:evalObj.total,club:G.clubes[G.userClubId].nombre,playoff:primeraPlayoff?{champion:G.clubes[primeraPlayoff.champion].nombre,rows:primeraPlayoff.rows}:null,repechaje:G.repechajes&&G.repechajes[0]?G.repechajes[0].rows:null};
   G.objetivo=setObjectiveFor(userClub(),G.divisiones);
   // 6) ¿despido?
   const fired=G.confianza<=0;
@@ -1330,6 +1366,8 @@ function switchView(v){if((SIM||LIVE)&&v!=='partido'&&!(LIVE&&LIVE.phase==='half
   document.querySelector('main').scrollTop=0;}
 function renderAll(){renderTopbar();switchView(CUR);}
 
+function installErrorGuard(){if(window._rfmErr)return;window._rfmErr=true;window.addEventListener('error',e=>{console.error(e.error||e.message);try{toast('Error controlado: revisa la acción e intenta de nuevo');}catch(_){};});window.addEventListener('unhandledrejection',e=>{console.error(e.reason);try{toast('Error de proceso controlado');}catch(_){};});}
+
 /* ---------- TUTORIAL + MÚSICA ---------- */
 let TUTORIAL_IDX=0;
 const TUTORIAL_STEPS=[
@@ -1430,8 +1468,9 @@ function registerOfflineSupport(){
   }
 }
 window.addEventListener('beforeunload',autoSave);
+installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a220845bcb700b08',t:'MTc4NTIwNjQwNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a22099365fa464ac',t:'MTc4NTIwNzI1OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
