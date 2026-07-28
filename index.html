@@ -455,7 +455,7 @@ function newGameState(userClubId,managerName){
     estadio:clubes[userClubId].estadio,
     agentOffers:genAgentOffers(clubes[userClubId].nivel),inboxOffers:[],
     device:(localStorage.getItem('rfm_device')||'pc'),
-    training:{intensidad:'Normal',enfoque:'Equilibrado'},
+    training:{intensidad:'Normal',enfoque:'Equilibrado'},weekPrep:{week:1,recovery:false,train1:false,train2:false,concentration:false,bonusAtk:0,bonusDef:0,focus:0},
     matchMode:'league',
     copa:initCopa(Object.keys(clubes)),
     finanzas:[],
@@ -560,7 +560,7 @@ function migrateState(){
   if(!G.objetivo||!G.objetivo.tipo||/Liguilla|Top 4|Pelear ascenso/i.test(G.objetivo.desc||''))G.objetivo=setObjectiveFor(userClub(),G.divisiones);
   if(G.sponsor&&G.sponsor.base==null){G.sponsor=null;G.sponsorOffers=genSponsorOffers(userClub().nivel);}
   if(G.managerWallet==null)G.managerWallet=0;if(!G.avatar)G.avatar={items:[]};if(!G.achievements)G.achievements=[];if(!G.campania)G.campania='Apertura';if(!G.supercopas)G.supercopas=[];if(!G.champions)G.champions={};if(!G.training)G.training={intensidad:'Normal',enfoque:'Equilibrado'};if(!G.agentOffers)G.agentOffers=genAgentOffers(userClub().nivel);if(!G.inboxOffers)G.inboxOffers=[];if(!G.device)G.device=localStorage.getItem('rfm_device')||'pc';applyDevice(G.device);
-  if(G.tactics){if(!G.tactics.presion)G.tactics.presion='Media';if(!G.tactics.ritmo)G.tactics.ritmo='Normal';}if(!G.copa||!G.copa.groups)G.copa=initCopa(Object.keys(G.clubes));
+  if(!G.weekPrep||G.weekPrep.week!==G.jornadaActual)G.weekPrep={week:G.jornadaActual,recovery:false,train1:false,train2:false,concentration:false,bonusAtk:0,bonusDef:0,focus:0};if(G.tactics){if(!G.tactics.presion)G.tactics.presion='Media';if(!G.tactics.ritmo)G.tactics.ritmo='Normal';}if(!G.copa||!G.copa.groups)G.copa=initCopa(Object.keys(G.clubes));
   if(!G.matchMode)G.matchMode='league';
   if(!G.finanzas)G.finanzas=[];normalizeBudget('Ajuste económico de actualización');
   if(G.meta)G.meta.v=4;
@@ -602,7 +602,7 @@ function teamPower(equipo,xiIds,ment){const xi=xiIds.map(id=>equipo.plantilla.fi
     else if(p.posicion==='MED'){off+=a.ataque*1.0;def+=a.defensa*1.0;}
     else if(p.posicion==='DEF'){off+=a.ataque*0.3;def+=a.defensa*1.2;}
     else if(p.posicion==='POR'){def+=a.porteria*3.0;}
-  });off*=m.atk*pr.atk*rt.atk;def*=m.def*pr.def*rt.def;
+  });off*=m.atk*pr.atk*rt.atk;def*=m.def*pr.def*rt.def;if(equipo.id===G.userClubId&&G.weekPrep){off*=1+(G.weekPrep.bonusAtk||0)*0.015;def*=1+(G.weekPrep.bonusDef||0)*0.015;}
   const avgE=xi.length?xi.reduce((s,p)=>s+p.energia,0)/xi.length:100;const energyUse=(equipo.id===G.userClubId?(pr.energy*rt.energy):1);const fat=0.62+0.38*(avgE/100)/energyUse;
   return{off:Math.max(40,Math.round(off*fat)),def:Math.max(40,Math.round(def*fat))};}
 function teamRating(e){const xi=bestXI(e.plantilla,'4-4-2');return xi.length?Math.round(xi.reduce((s,p)=>s+p.media,0)/xi.length):50;}
@@ -614,8 +614,14 @@ function matchProb(user,opp,isHome){
 }
 
 /* ---------- MARKET ---------- */
-function genMarket(n){const o=[];for(let i=0;i<n;i++){const pos=pick(POS);const tier=pick([1,2,2,3,3,4]);const p=genPlayer(pos,tier);p.precio=Math.round(p.valorMercado*(0.85+Math.random()*0.4));p.comision=Math.round(p.precio*(0.06+Math.random()*0.09));p.equipoOrigen=pick(['FAS','Alianza','Águila','Firpo','Metapán','Dragón','Platense','Limeño','Club regional']);o.push(p);}o.push(...genReleasedMarket(Math.min(3,n)));return o.sort((a,b)=>b.media-a.media);}
-function genAgentOffers(lvl){const n=4;const arr=[];for(let i=0;i<n;i++){const p=genPlayer(pick(POS),pick([lvl,lvl+1,2,3].map(x=>clamp(x,1,5))));p.ofrecido=true;p.equipoOrigen=pick(['Libre','Reserva de club','Club extranjero','Representante']);p.precio=Math.round(p.valorMercado*(0.65+Math.random()*0.35));p.comision=Math.round(p.precio*(0.10+Math.random()*0.10));arr.push(p);}return arr.sort((a,b)=>b.media-a.media);}
+function boostMarketPlayer(p,boost){['ataque','defensa','fisico','porteria'].forEach(k=>p.atributos[k]=clamp(p.atributos[k]+boost,1,95));p.media=calcMedia(p);p.salario=Math.round((p.media*p.media*0.82+p.media*12)/10)*10;p.valorMercado=Math.round(p.media*p.media*38*ageFactor(p.edad));return p;}
+function genMarket(n){const o=[];const origins=['FAS','Alianza','Águila','Firpo','Metapán','Dragón','Platense','Limeño','Once Deportivo','Club regional','Reserva nacional'];
+  for(let i=0;i<n;i++){const pos=pick(POS);const tier=pick([1,2,2,2,3,3,3,4,4,5]);let p=genPlayer(pos,tier);if(Math.random()<0.22)p=boostMarketPlayer(p,4+rnd(7));if(Math.random()<0.18){p.edad=18+rnd(5);p.valorMercado=Math.round(p.valorMercado*1.15);}p.precio=Math.round(p.valorMercado*(0.78+Math.random()*0.48));p.comision=Math.round(p.precio*(0.05+Math.random()*0.10));p.equipoOrigen=pick(origins);o.push(p);}
+  // Talentos/regionales inventados para que el mercado no sea siempre igual ni inaccesible.
+  for(let i=0;i<3;i++){let p=boostMarketPlayer(genPlayer(pick(POS),pick([2,3,3,4])),3+rnd(8));p.equipoOrigen=pick(['Academia SV','Reserva departamental','Libre','Club regional']);p.nacionalidad=pick(NACIONALIDADES);p.precio=Math.round(p.valorMercado*(0.70+Math.random()*0.38));p.comision=Math.round(p.precio*(0.06+Math.random()*0.08));o.push(p);}
+  o.push(...genReleasedMarket(Math.min(4,n)));return o.sort((a,b)=>b.media-a.media);
+}
+function genAgentOffers(lvl){const n=6;const arr=[];for(let i=0;i<n;i++){const baseTier=pick([lvl,lvl,lvl+1,2,3,4].map(x=>clamp(x,1,5)));let p=genPlayer(pick(POS),baseTier);if(Math.random()<0.30)p=boostMarketPlayer(p,3+rnd(8));p.ofrecido=true;p.equipoOrigen=pick(['Libre','Reserva de club','Club extranjero','Representante','Academia regional']);p.precio=Math.round(p.valorMercado*(0.62+Math.random()*0.45));p.comision=Math.round(p.precio*(0.08+Math.random()*0.12));arr.push(p);}return arr.sort((a,b)=>b.media-a.media);}
 
 /* ---------- MATCH ENGINE ---------- */
 const TXT={
@@ -711,6 +717,18 @@ function applyTrainingWeek(){
 }
 
 
+function resetWeekPrep(){G.weekPrep={week:G.jornadaActual,recovery:false,train1:false,train2:false,concentration:false,bonusAtk:0,bonusDef:0,focus:0};}
+function ensureWeekPrep(){if(!G.weekPrep||G.weekPrep.week!==G.jornadaActual)resetWeekPrep();return G.weekPrep;}
+function prepComplete(){const w=ensureWeekPrep();return !!(w.train1&&w.train2&&w.concentration);}
+function prepMissing(){const w=ensureWeekPrep(),m=[];if(!w.train1)m.push('Entrenamiento 1');if(!w.train2)m.push('Entrenamiento 2');if(!w.concentration)m.push('Concentración');return m;}
+function prepTag(done){return done?'<span class="tag green">✓</span>':'<span class="tag red">●</span>';}
+function applyManualTraining(slot,focus){const w=ensureWeekPrep();if(w[slot]){toast('Actividad ya completada');return;}const tr=G.training||{intensidad:'Normal',enfoque:'Equilibrado'};focus=focus||tr.enfoque;const effort={Descanso:.4,Normal:1,Intenso:1.55}[tr.intensidad]||1;const fatigue={Descanso:1,Normal:5,Intenso:10}[tr.intensidad]||5;const inj={Descanso:.001,Normal:.004,Intenso:.011}[tr.intensidad]||.004;let improved=[];
+  userClub().plantilla.forEach(p=>{if(p.lesionado)return;p.energia=clamp(p.energia-fatigue+rnd(3),0,100);p.moral=clamp((p.moral||60)+(tr.intensidad==='Descanso'?1:0)-(tr.intensidad==='Intenso'&&p.energia<45?1:0),0,100);if(Math.random()<inj*(p.energia<50?2:1)){p.lesionado=true;p.lesionJor=1+rnd(2);return;}if(Math.random()<(0.025*effort+(p.edad<=23?.015:0))){let ks=focus==='Ataque'?['ataque']:focus==='Defensa'?['defensa']:focus==='Físico'?['fisico']:['ataque','defensa','fisico'];const k=pick(ks);p.atributos[k]=clamp(p.atributos[k]+1,1,95);p.media=calcMedia(p);p.valorMercado=Math.round(p.media*p.media*40*ageFactor(p.edad));improved.push(p.nombre.split(' ').slice(-1)[0]);}});
+  w[slot]=true;if(focus==='Ataque')w.bonusAtk+=1;if(focus==='Defensa')w.bonusDef+=1;if(focus==='Equilibrado'){w.bonusAtk+=.5;w.bonusDef+=.5;}if(focus==='Físico')w.focus+=1;pushNews(`🏋 ${slot==='train1'?'Entrenamiento 1':'Entrenamiento 2'} completado (${focus}). ${improved.length?'Mejoran: '+improved.slice(0,3).join(', '):'Trabajo de preparación realizado.'}`,'bueno');autoSave();renderAll();}
+function doRecovery(){const w=ensureWeekPrep();if(w.recovery){toast('Recuperación ya completada');return;}userClub().plantilla.forEach(p=>{p.energia=clamp(p.energia+10+rnd(8),0,100);p.moral=clamp((p.moral||60)+1,0,100);});w.recovery=true;pushNews('🧊 Recuperación completada: el plantel gana energía.', 'bueno');autoSave();renderAll();}
+function doConcentration(level){const w=ensureWeekPrep();if(w.concentration){toast('Concentración ya completada');return;}const cfg={Basica:{c:2500,m:2,b:1},Media:{c:6500,m:4,b:2},Premium:{c:14000,m:7,b:3}}[level]||{c:2500,m:2,b:1};if(G.budget<cfg.c){if(level==='Basica'){cfg.c=0;cfg.m=1;cfg.b=.5;}else{toast('No alcanza para concentración');return;}}G.budget-=cfg.c;fin('Plantel','gasto',-cfg.c,'Concentración '+level);userClub().plantilla.forEach(p=>p.moral=clamp((p.moral||60)+cfg.m,0,100));w.concentration=true;w.bonusAtk+=cfg.b*.35;w.bonusDef+=cfg.b*.35;pushNews(`🏨 Concentración ${level} completada. Moral +${cfg.m}.`, 'bueno');autoSave();renderAll();}
+function simulatePreparation(){const w=ensureWeekPrep();if(!w.recovery)doRecovery();if(!w.train1)applyManualTraining('train1',G.training.enfoque);if(!w.train2)applyManualTraining('train2',G.training.enfoque);if(!w.concentration)doConcentration('Basica');toast('Semana preparada automáticamente');}
+function prepPanelHTML(){const w=ensureWeekPrep(),miss=prepMissing();return`<div class="offer"><b class="amber">Preparación semana ${G.jornadaActual}</b><br>${prepTag(w.recovery)} Recuperación · ${prepTag(w.train1)} Entreno 1 · ${prepTag(w.train2)} Entreno 2 · ${prepTag(w.concentration)} Concentración<br><small>${miss.length?'Falta: '+miss.join(', '):'Partido desbloqueado.'}</small><div style="margin-top:8px"><button class="btn btn-sm" onclick="doRecovery()">🧊 Recuperar</button> <button class="btn btn-sm" onclick="applyManualTraining('train1')">Entreno 1</button> <button class="btn btn-sm" onclick="applyManualTraining('train2')">Entreno 2</button> <button class="btn btn-a btn-sm" onclick="doConcentration('Basica')">Concentración básica</button> <button class="btn btn-p btn-sm" onclick="simulatePreparation()">⚙ Simular preparación</button></div></div>`;}
 function applyTabla(team,gf,ga){const t=team.tabla;t.pj++;t.gf+=gf;t.gc+=ga;t.dg=t.gf-t.gc;
   if(gf>ga){t.pts+=3;t.pg++;team.forma.unshift('G');}else if(gf<ga){t.pp++;team.forma.unshift('P');}else{t.pts+=1;t.pe++;team.forma.unshift('E');}
   if(team.forma.length>5)team.forma.length=5;}
@@ -740,7 +758,7 @@ function finishJornada(userGF,userGA,matchLogs){
   fin('Liga', 'ingreso', gate, `Taquilla ${isHome?'local':'visita'} vs ${oppEco.nombre}`);if(bonus)fin('Liga','ingreso',bonus,'Premio por resultado');if(tv)fin('TV','ingreso',tv,'Derechos de transmisión');if(sp)fin('Patrocinador','ingreso',sp,G.sponsor.nombre);fin('Plantilla','gasto',-wage,'Nómina de la fecha');if(stadCost)fin('Estadio','gasto',-stadCost,u.estadio&&u.estadio.propio?'Mantenimiento':'Alquiler');
   // recuperación + entrenamiento semanal + fatiga/lesiones de partido
   u.plantilla.forEach(p=>{if(p.lesionado){p.lesionJor--;if(p.lesionJor<=0){p.lesionado=false;p.lesionJor=0;}}p.energia=clamp(p.energia+(p.lesionado?16:28),0,100);});
-  applyTrainingWeek();
+  // entrenamientos manuales ya se aplicaron durante la semana
   G.tactics.alineacion.map(id=>u.plantilla.find(p=>p.id===id)).filter(Boolean).forEach(p=>{if(!p.lesionado){p.energia=clamp(p.energia-rnd(8)-Math.round(6*((PRESIONES[G.tactics.presion||'Media'].energy+RITMOS[G.tactics.ritmo||'Normal'].energy)/2)),0,100);if(Math.random()<0.025){p.lesionado=true;p.lesionJor=1+rnd(3);}}});
   // noticias
   const oppName=(()=>{const m=G.calendarios[lvl][jor-1].find(x=>x.h===G.userClubId||x.a===G.userClubId);const oid=m.h===G.userClubId?m.a:m.h;return G.clubes[oid].nombre;})();
@@ -750,7 +768,7 @@ function finishJornada(userGF,userGA,matchLogs){
   const inj=u.plantilla.filter(p=>p.lesionado);if(inj.length)pushNews(`🩹 Lesionados: ${inj.map(p=>p.nombre.split(' ').slice(-1)[0]+' ('+p.lesionJor+'f)').join(', ')}.`,'malo');
   if(jor%4===0){G.mercado.splice(0,2);G.mercado.push(...genMarket(2));}simulateWorldNews();
   if(G.jornadaActual>=TOTAL_JORNADAS){renderAll();endSeason();}
-  else{maybeGenerateRivalOffer();checkPlayerUnrest();G.jornadaActual++;maybePrepareCupEvent();autoSave();renderAll();showJornadaSummary(jor,userGF,userGA,net);}
+  else{maybeGenerateRivalOffer();checkPlayerUnrest();G.jornadaActual++;resetWeekPrep();maybePrepareCupEvent();autoSave();renderAll();showJornadaSummary(jor,userGF,userGA,net);}
 }
 
 function penaltyScore(team){const xi=bestXI(team.plantilla,'4-4-2');const gk=xi.find(p=>p.posicion==='POR');const shooters=xi.filter(p=>p.posicion!=='POR').sort((a,b)=>b.atributos.ataque-a.atributos.ataque).slice(0,5);const atk=shooters.reduce((s,p)=>s+p.atributos.ataque+(p.moral||60)*0.12,0)/Math.max(1,shooters.length);return atk+(gk?gk.atributos.porteria*0.18:10)+Math.random()*18;}
@@ -847,7 +865,7 @@ function endSeason(){
   const uc=G.clubes[G.userClubId];const libres=uc.plantilla.filter(p=>p.contrato<=0&&(p.quiereIrse||p.moral<55));
   if(libres.length){uc.plantilla=uc.plantilla.filter(p=>!libres.includes(p));libres.forEach(p=>pushNews(`📄 ${p.nombre} se fue libre al terminar contrato.`, 'malo'));}
   G.mercado=genMarket(10);G.agentOffers=genAgentOffers(userClub().nivel);G.inboxOffers=[];
-  const endedSeason=G.temporada,endedCampania=(G.campania||'Apertura');advanceCampaign();G.jornadaActual=1;G.finished=false;G.matchMode='league';G.copa=initCopa(Object.keys(G.clubes));G.sponsor=null;G.sponsorOffers=genSponsorOffers(userClub().nivel);
+  const endedSeason=G.temporada,endedCampania=(G.campania||'Apertura');advanceCampaign();G.jornadaActual=1;resetWeekPrep();G.finished=false;G.matchMode='league';G.copa=initCopa(Object.keys(G.clubes));G.sponsor=null;G.sponsorOffers=genSponsorOffers(userClub().nivel);
   // 4) regenerar calendarios
   G.calendarios={1:roundRobinFull(G.divisiones[1]),2:roundRobinFull(G.divisiones[2]),3:roundRobinFull(G.divisiones[3])};
   G.tactics.alineacion=bestXI(userClub().plantilla,G.tactics.formacion).map(p=>p.id);
@@ -1016,7 +1034,7 @@ function renderDashboard(){
     nx=`<div class="next-card">${badgeHTML(u,true)}<div class="center"><div class="pxl" style="font-size:9px;color:var(--dim)">${G.matchMode==='cup'?'COPA PRESIDENTE':'FECHA '+G.jornadaActual} · ${isHome?'LOCAL':'VISITANTE'}</div><div class="pxl" style="font-size:13px;color:var(--cyan)">VS</div></div>${badgeHTML(opp,true)}</div>
       <div class="center"><div class="pxl" style="font-size:11px;color:var(--cyan)">${opp.nombre}</div><div class="muted">${opp.ciudad} · Rating ${teamRating(opp)}</div><div style="margin-top:5px">${tag}</div>
       <div style="margin-top:7px"><span class="pill good">G ${pr.win}%</span> <span class="pill">E ${pr.draw}%</span> <span class="pill bad">P ${pr.loss}%</span></div></div>
-      <div class="center" style="margin-top:10px"><button class="btn btn-p" onclick="switchView('partido')">▶ Ir al Partido</button></div>`;}}
+      <div class="center" style="margin-top:10px"><button class="btn btn-p" onclick="switchView(prepComplete()?'partido':'entreno')">${prepComplete()?'▶ Ir al Partido':'🔒 Preparar semana'}</button></div>`;}}
   $('dash-next').innerHTML=nx;
   $('dash-pos').innerHTML=`<div class="center"><div class="pxl" style="font-size:30px;color:var(--amber)">${pos}<span style="font-size:13px">°</span></div><div class="muted">de 12 en ${DIV_NAMES[lvl]}</div></div><hr class="sep">${tabla.slice(0,5).map((e,i)=>`<div style="display:flex;justify-content:space-between;font-size:16px;${e.id===G.userClubId?'color:var(--green)':''}"><span>${i+1}. ${e.nombre}</span><b>${e.tabla.pts}</b></div>`).join('')}`;
   const sig=financeSignal(),proj=financeProjection(3);
@@ -1155,7 +1173,8 @@ function renderFinanzas(){const u=userClub();const est=estimateNextBalance();con
 function setTraining(k,v){G.training=G.training||{};G.training[k]=v;autoSave();renderEntreno();toast('Plan actualizado');}
 function renderEntreno(){const tr=G.training||{intensidad:'Normal',enfoque:'Equilibrado'};const injured=userClub().plantilla.filter(p=>p.lesionado);
   const btns=(k,vals)=>vals.map(v=>`<button class="btn btn-sm ${tr[k]===v?'btn-p':''}" onclick="setTraining('${k}','${v}')">${v}</button>`).join(' ');
-  $('entreno-panel').innerHTML=`<div class="panel-title">🏋 Días de Entrenamiento</div><div class="grid g2"><div><p class="muted">Intensidad semanal</p>${btns('intensidad',['Descanso','Normal','Intenso'])}<hr class="sep"><p class="muted">Enfoque</p>${btns('enfoque',['Equilibrado','Ataque','Defensa','Físico'])}</div><div><div class="offer"><b class="amber">Plan actual</b><br>Intensidad: ${tr.intensidad}<br>Enfoque: ${tr.enfoque}<br><small>Descanso recupera energía y moral. Intenso mejora más, pero sube el riesgo de lesión.</small></div><div class="offer"><b>Lesionados</b><br>${injured.length?injured.map(p=>`${esc(p.nombre)} (${p.lesionJor}f)`).join('<br>'):'<span class="green">Sin lesionados</span>'}</div></div></div>`;}
+  const w=ensureWeekPrep();
+  $('entreno-panel').innerHTML=`<div class="panel-title">🏋 Semana de Preparación</div>${prepPanelHTML()}<div class="grid g2"><div><p class="muted">Intensidad para entrenos manuales</p>${btns('intensidad',['Descanso','Normal','Intenso'])}<hr class="sep"><p class="muted">Enfoque de entrenamiento</p>${btns('enfoque',['Equilibrado','Ataque','Defensa','Físico'])}<hr class="sep"><div class="offer"><b>Concentración avanzada</b><br><small>Mejora moral y bonificación de partido, pero cuesta más.</small><div style="margin-top:7px"><button class="btn btn-sm" onclick="doConcentration('Basica')">Básica</button> <button class="btn btn-a btn-sm" onclick="doConcentration('Media')">Media</button> <button class="btn btn-p btn-sm" onclick="doConcentration('Premium')">Premium</button></div></div></div><div><div class="offer"><b class="amber">Plan actual</b><br>Intensidad: ${tr.intensidad}<br>Enfoque: ${tr.enfoque}<br>Bonus partido: Ataque +${((w.bonusAtk||0)*1.5).toFixed(1)}% · Defensa +${((w.bonusDef||0)*1.5).toFixed(1)}%<br><small>Completá dos entrenamientos y concentración para desbloquear el partido.</small></div><div class="offer"><b>Lesionados</b><br>${injured.length?injured.map(p=>`${esc(p.nombre)} (${p.lesionJor}f)`).join('<br>'):'<span class="green">Sin lesionados</span>'}</div></div></div>`;}
 const MONTHS_AP=['Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MONTHS_CL=['Enero','Febrero','Marzo','Abril','Mayo'];
 function campaignMonths(){return (G.campania||'Apertura')==='Apertura'?MONTHS_AP:MONTHS_CL;}
@@ -1164,7 +1183,7 @@ function calendarEventFor(day){const week=Math.floor((day-1)/7)+1,dow=(day-1)%7;
 function renderCalendario(){const panel=$('calendario-panel');const months=campaignMonths();const curDay=currentCalendarDay();const monthIndex=clamp(Math.floor((curDay-1)/28),0,months.length-1),start=monthIndex*28+1;let cells='';
   for(let i=0;i<28;i++){const day=start+i,ev=calendarEventFor(day),today=(Math.abs(day-curDay)<7&&ev.dow===6);cells+=`<div class="cal-day ${ev.type} ${today?'today':''}"><div class="num">${i+1}</div><b>${ev.txt}</b><br><small>${ev.type==='train'?(G.training.intensidad+' · '+G.training.enfoque):ev.type==='match'?('Semana '+ev.week):'Recuperación'}</small></div>`;}
   const upcoming=financeProjection(3).map((x,i)=>`<div class="offer"><b>Semana ${G.jornadaActual+i}</b> · ${esc(x.detail)}<br><span class="${x.net>=0?'green':'red'}">Balance estimado ${x.net>=0?'+':''}${money(x.net)}</span></div>`).join('');
-  panel.innerHTML=`<div class="panel-title">📅 Calendario — ${G.temporada} ${G.campania||'Apertura'} · ${months[monthIndex]}</div><p><small>El calendario organiza semanas con entrenamiento, descanso, Copa y partido. La intensidad de entreno mejora atributos, pero también consume energía.</small></p><div class="cal-grid"><div class="center muted">L</div><div class="center muted">M</div><div class="center muted">X</div><div class="center muted">J</div><div class="center muted">V</div><div class="center muted">S</div><div class="center muted">D</div>${cells}</div><hr class="sep"><div class="panel-title">Próximos partidos y finanzas</div>${upcoming}`;}
+  panel.innerHTML=`<div class="panel-title">📅 Calendario — ${G.temporada} ${G.campania||'Apertura'} · ${months[monthIndex]}</div><p><small>El calendario organiza semanas con entrenamiento, descanso, Copa y partido. La intensidad de entreno mejora atributos, pero también consume energía.</small></p>${prepPanelHTML()}<div class="cal-grid"><div class="center muted">L</div><div class="center muted">M</div><div class="center muted">X</div><div class="center muted">J</div><div class="center muted">V</div><div class="center muted">S</div><div class="center muted">D</div>${cells}</div><hr class="sep"><div class="panel-title">Próximos partidos y finanzas</div>${upcoming}`;}
 function renderCopa(){const c=G.copa;const cur=c&&c.current;const champion=c&&c.champion?G.clubes[c.champion].nombre:null;
   const curRows=cur?cur.fixtures.map(f=>`<tr><td>${f.group?('Grupo '+f.group):''}</td><td>${esc(G.clubes[f.h].nombre)}</td><td class="center">${f.gh==null?'vs':(f.gh+'-'+f.ga+(f.pen||''))}</td><td>${esc(G.clubes[f.a].nombre)}</td></tr>`).join(''):'<tr><td colspan="4" class="muted center">No hay ronda activa ahora.</td></tr>';
   const groups=(c.groups||[]).map(gr=>`<div class="offer"><b class="amber">Grupo ${gr.name}</b><table class="tbl"><tbody>${sortedCupGroup(gr).map((r,i)=>{const t=r.t;return`<tr class="${r.id===G.userClubId?'me':''}"><td>${i+1}. ${esc(G.clubes[r.id].nombre)}</td><td class="center">${t.pj}</td><td class="center"><b>${t.pts}</b></td><td class="center ${t.dg>=0?'green':'red'}">${t.dg>=0?'+':''}${t.dg}</td></tr>`;}).join('')}</tbody></table></div>`).join('');
@@ -1203,9 +1222,10 @@ function renderMatchCard(c,o){const{min,sU,sR,homeEq,awayEq,isHome,live,btns,log
 function renderMatch(){const panel=$('match-panel');if(LIVE){renderLive();return;}if(G.finished){panel.innerHTML='<div class="panel-title">🏁 Temporada finalizada</div>';return;}
   const m=userNextMatch();if(!m){panel.innerHTML='<p class="muted">No hay partido.</p>';return;}
   const opp=G.clubes[m.h===G.userClubId?m.a:m.h];const isHome=m.h===G.userClubId;ensureValidXI();
+  if(!prepComplete()){panel.innerHTML=`<div class="panel-title">🔒 Partido bloqueado — Preparación pendiente</div><p>Próximo rival: <b class="cyan">${esc(opp.nombre)}</b></p>${prepPanelHTML()}<div class="center"><button class="btn btn-p" onclick="simulatePreparation();switchView('partido')">⚙ Simular preparación y desbloquear</button></div>`;return;}
   renderMatchCard(panel,{min:0,sU:0,sR:0,homeEq:isHome?userClub():opp,awayEq:isHome?opp:userClub(),isHome,live:false,btns:true,logs:[{min:0,msg:`Listo. ${userClub().nombre} (${teamRating(userClub())}) vs ${opp.nombre} (${teamRating(opp)}).`,t:'info'}]});}
-function playLive(){if(SIM)return;if(LIVE&&LIVE.phase==='halftime'){toast('Estás en descanso: continuá el 2T');return;}abortSim();const m=userNextMatch();if(!m)return;const opp=G.clubes[m.h===G.userClubId?m.a:m.h];const isHome=m.h===G.userClubId;startLiveSim(isHome?userClub():opp,isHome?opp:userClub(),isHome);}
-function playQuick(){if(SIM||LIVE){toast('Ya hay un partido en curso');return;}const m=userNextMatch();if(!m)return;const opp=G.clubes[m.h===G.userClubId?m.a:m.h];const isHome=m.h===G.userClubId;const r=quickSim(isHome?userClub():opp,isHome?opp:userClub());const gf=isHome?r.gh:r.ga,ga=isHome?r.ga:r.gh;if(G.matchMode==='cup')finishCupMatch(gf,ga,[{min:0,msg:'Simulación rápida de copa.',t:'info'}]);else finishJornada(gf,ga,[{min:0,msg:'Simulación rápida.',t:'info'}]);}
+function playLive(){if(SIM)return;if(!prepComplete()){toast('Completa la preparación semanal antes de jugar');switchView('entreno');return;}if(LIVE&&LIVE.phase==='halftime'){toast('Estás en descanso: continuá el 2T');return;}abortSim();const m=userNextMatch();if(!m)return;const opp=G.clubes[m.h===G.userClubId?m.a:m.h];const isHome=m.h===G.userClubId;startLiveSim(isHome?userClub():opp,isHome?opp:userClub(),isHome);}
+function playQuick(){if(!prepComplete()){toast('Completa la preparación semanal antes de jugar');switchView('entreno');return;}if(SIM||LIVE){toast('Ya hay un partido en curso');return;}const m=userNextMatch();if(!m)return;const opp=G.clubes[m.h===G.userClubId?m.a:m.h];const isHome=m.h===G.userClubId;const r=quickSim(isHome?userClub():opp,isHome?opp:userClub());const gf=isHome?r.gh:r.ga,ga=isHome?r.ga:r.gh;if(G.matchMode==='cup')finishCupMatch(gf,ga,[{min:0,msg:'Simulación rápida de copa.',t:'info'}]);else finishJornada(gf,ga,[{min:0,msg:'Simulación rápida.',t:'info'}]);}
 
 function switchView(v){if((SIM||LIVE)&&v!=='partido'&&!(LIVE&&LIVE.phase==='halftime'&&v==='tactica')){toast('Partido en vivo: solo puedes ajustar táctica en el descanso');return;}if(!SIM)abortSim();CUR=v;document.querySelectorAll('.view').forEach(s=>s.classList.add('hidden'));
   const sec=$('view-'+v);if(sec)sec.classList.remove('hidden');
@@ -1312,5 +1332,5 @@ window.addEventListener('beforeunload',autoSave);
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a21fa0df2a5ac113',t:'MTc4NTE5NzA4Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
