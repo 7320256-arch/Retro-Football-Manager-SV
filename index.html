@@ -1412,14 +1412,14 @@ function startMusic(showToast,fromUser){
   localStorage.setItem('rfm_music','1');
   if(!a.src){const i=randomMusicIndex();if(i<0){if(showToast)toast('No encontré canciones. Subí menu.mp3 y menu2.mp3');return;}setMusicTrack(i);}
   a.volume=Number(localStorage.getItem('rfm_music_vol')||0.35);
-  a.play().then(()=>{if(showToast)toast('Música: '+MUSIC_PLAYLIST[MUSIC_INDEX]);}).catch(err=>{
+  a.play().then(()=>{if(showToast)toast('Música activada');}).catch(err=>{
     // En Android/WebView el autoplay con sonido puede ser bloqueado hasta el primer toque.
     if(!fromUser){armMusicUnlock();if(showToast)toast('Toca la pantalla para activar música');}
     else if(showToast)toast('No pude reproducir. Revisa que exista '+MUSIC_PLAYLIST[MUSIC_INDEX]);
   });
 }
 function toggleMusic(){initMusicPlayer();const a=$('bg-music');if(!a){toast('Música no disponible');return;}if(a.paused){if(!a.src)setMusicTrack(randomMusicIndex());startMusic(true,true);}else{a.pause();localStorage.setItem('rfm_music','0');toast('Música pausada');}}
-function nextMusicTrack(manual,fromError){initMusicPlayer();const wasWanted=wantsMusic();const i=randomMusicIndex();if(i<0){if(manual)toast('No hay más canciones disponibles');return;}setMusicTrack(i);if(manual||wasWanted)startMusic(manual&&!fromError,true);}
+function nextMusicTrack(manual,fromError){initMusicPlayer();const wasWanted=wantsMusic();const i=randomMusicIndex();if(i<0){if(manual)toast('No hay más canciones disponibles');return;}setMusicTrack(i);if(manual||wasWanted)startMusic(false,true);if(manual&&!fromError)toast('Música cambiada');}
 function tryResumeMusic(){initMusicPlayer();if(wantsMusic()){setMusicTrack(randomMusicIndex());startMusic(false,false);}}
 
 
@@ -1472,5 +1472,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a22099365fa464ac',t:'MTc4NTIwNzI1OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
