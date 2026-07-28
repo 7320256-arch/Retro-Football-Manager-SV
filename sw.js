@@ -1,13 +1,18 @@
-/* Retro Football Manager SV — offline cache for GitHub Pages / WebView APK */
-const CACHE_VERSION = 'rfm-sv-pwa-v10';
+/* Retro Football Manager SV — PWA Service Worker
+   Robust version for GitHub Pages + PWABuilder.
+   Important: this SW never fails installation just because an optional file is missing. */
+
+const CACHE_VERSION = 'rfm-sv-pwa-v11';
+
 const CORE_ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192.png',
   './icon-512.png'
 ];
+
 const OPTIONAL_ASSETS = [
+  './icon-192.png',
   './menu.mp3',
   './menu2.mp3',
   './menu3.mp3',
@@ -17,65 +22,99 @@ const OPTIONAL_ASSETS = [
   './menu2.ogg'
 ];
 
+async function safeCacheAdd(cache, url) {
+  try {
+    const response = await fetch(url, { cache: 'reload' });
+    if (response && response.ok) {
+      await cache.put(url, response.clone());
+    }
+  } catch (err) {
+    // Do not fail install if GitHub Pages has not published a file yet.
+    console.warn('[SW] Could not cache:', url, err);
+  }
+}
+
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_VERSION)
-      .then(cache => cache.addAll(CORE_ASSETS.map(url => new Request(url, { cache: 'reload' }))).then(() => Promise.all(OPTIONAL_ASSETS.map(u => fetch(u).then(r => r.ok && cache.put(u, r)).catch(() => null)))))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_VERSION);
+    await Promise.all([...CORE_ASSETS, ...OPTIONAL_ASSETS].map(url => safeCacheAdd(cache, url)));
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(key => key !== CACHE_VERSION).map(key => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
-  if (event.data && event.data.type === 'CACHE_NOW') {
-    event.waitUntil(caches.open(CACHE_VERSION).then(cache => cache.addAll(CORE_ASSETS).then(() => Promise.all(OPTIONAL_ASSETS.map(u => fetch(u).then(r => r.ok && cache.put(u, r)).catch(() => null))))));
+  if (!event.data) return;
+
+  if (event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+
+  if (event.data.type === 'CACHE_NOW') {
+    event.waitUntil((async () => {
+      const cache = await caches.open(CACHE_VERSION);
+      await Promise.all([...CORE_ASSETS, ...OPTIONAL_ASSETS].map(url => safeCacheAdd(cache, url)));
+    })());
   }
 });
 
 async function networkFirst(request) {
   const cache = await caches.open(CACHE_VERSION);
+
   try {
     const fresh = await fetch(request);
-    if (fresh && fresh.ok) cache.put(request, fresh.clone());
+    if (fresh && fresh.ok) {
+      cache.put(request, fresh.clone()).catch(() => {});
+    }
     return fresh;
-  } catch (e) {
+  } catch (err) {
     const cached = await cache.match(request);
     if (cached) return cached;
-    const fallback = await cache.match('./index.html');
+
+    const fallback = await cache.match('./index.html') || await cache.match('./');
     if (fallback) return fallback;
-    throw e;
+
+    return new Response('Retro Football Manager SV no está disponible sin conexión todavía. Abre el juego una vez con internet para guardarlo offline.', {
+      status: 503,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+    });
   }
 }
 
 async function staleWhileRevalidate(request) {
   const cache = await caches.open(CACHE_VERSION);
   const cached = await cache.match(request);
-  const freshPromise = fetch(request).then(response => {
-    if (response && (response.ok || response.type === 'opaque')) cache.put(request, response.clone());
-    return response;
-  }).catch(() => null);
-  return cached || freshPromise || fetch(request);
+
+  const freshPromise = fetch(request)
+    .then(response => {
+      if (response && (response.ok || response.type === 'opaque')) {
+        cache.put(request, response.clone()).catch(() => {});
+      }
+      return response;
+    })
+    .catch(() => null);
+
+  return cached || freshPromise || new Response('', { status: 204 });
 }
 
 self.addEventListener('fetch', event => {
-  const req = event.request;
-  if (req.method !== 'GET') return;
+  const request = event.request;
+  if (request.method !== 'GET') return;
 
-  const accept = req.headers.get('accept') || '';
-  const isNavigation = req.mode === 'navigate' || accept.includes('text/html');
+  const accept = request.headers.get('accept') || '';
+  const isNavigation = request.mode === 'navigate' || accept.includes('text/html');
 
   if (isNavigation) {
-    event.respondWith(networkFirst(req));
+    event.respondWith(networkFirst(request));
     return;
   }
 
-  event.respondWith(staleWhileRevalidate(req));
+  event.respondWith(staleWhileRevalidate(request));
 });
