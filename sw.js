@@ -2,7 +2,7 @@
    Robust version for GitHub Pages + PWABuilder.
    Important: this SW never fails installation just because an optional file is missing. */
 
-const CACHE_VERSION = 'rfm-sv-pwa-v11';
+const CACHE_VERSION = 'rfm-sv-pwa-v12';
 
 const CORE_ASSETS = [
   './',
@@ -12,7 +12,6 @@ const CORE_ASSETS = [
 ];
 
 const OPTIONAL_ASSETS = [
-  './icon-192.png',
   './menu.mp3',
   './menu2.mp3',
   './menu3.mp3',
