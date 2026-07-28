@@ -690,6 +690,7 @@ function migrateState(){
   if(!G.matchMode)G.matchMode='league';
   if(!G.finanzas)G.finanzas=[];if(!G.regional)G.regional=initRegionalWorld();if(G.centroCup===undefined)G.centroCup=null;if(!G.transferNews)G.transferNews=[];if(!G.regionalNews)G.regionalNews=[];normalizeBudget('Ajuste económico de actualización');
   if(G.meta)G.meta.v=4;
+  validateGameState(false);
 }
 
 /* ---------- FIXTURE ---------- */
@@ -993,7 +994,7 @@ function renderHallOfFame(){const h=hallStats();return`<div class="panel-title">
 function renderChampionHistory(){const rows=(G.championHistory||[]).slice(0,30).map(x=>`<tr><td>${x.temp} ${esc(x.campania||'')}</td><td>${esc(x.comp)}</td><td class="gold">${esc(x.champion)}</td><td class="muted">${esc(x.extra||'')}</td></tr>`).join('')||'<tr><td colspan="4" class="muted center">Sin campeones registrados todavía.</td></tr>';return`<div class="panel-title">🏆 Historial de campeones</div><div class="scroll" style="max-height:300px"><table class="tbl"><thead><tr><th>Campaña</th><th>Competición</th><th>Campeón</th><th>Detalle</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
 function repairGame(show){
   try{
-    abortSim();LIVE=null;if(G){repairState();migrateState();ensureValidXI();if(!G.calendarios||!G.calendarios[1])G.calendarios={1:roundRobinFull(G.divisiones[1]),2:roundRobinFull(G.divisiones[2]),3:roundRobinFull(G.divisiones[3])};if(!G.weekPrep)resetWeekPrep();if(G.matchMode!=='centro'&&G.matchMode!=='cup')G.matchMode='league';autoSave();renderAll();}
+    abortSim();LIVE=null;if(G){repairState();migrateState();ensureValidXI();if(!G.calendarios||!G.calendarios[1])G.calendarios={1:roundRobinFull(G.divisiones[1]),2:roundRobinFull(G.divisiones[2]),3:roundRobinFull(G.divisiones[3])};if(!G.weekPrep)resetWeekPrep();if(G.matchMode!=='centro'&&G.matchMode!=='cup')G.matchMode='league';validateGameState(show);autoSave();renderAll();}
     if(show)toast('Partida revisada y reparada');
   }catch(e){console.error(e);if(show)toast('No se pudo reparar completamente');}
 }
@@ -1002,7 +1003,7 @@ function helpHTML(){return`<div class="modal-title">📘 Manual rápido</div>
   <div class="offer"><b class="amber">Semana</b><br>Antes de jugar completá 2 entrenamientos y concentración. Recuperación es opcional pero ayuda a energía. Simular preparación sirve si querés avanzar rápido.</div>
   <div class="offer"><b class="cyan">Táctica</b><br>Presión Alta y Ritmo Directo aumentan ataque pero cansan. Presión Baja y Ritmo Pausado protegen energía y defensa. En vivo podés cambiar al descanso.</div>
   <div class="offer"><b class="green">Finanzas</b><br>Presupuesto operativo es dinero usable. Reserva institucional es dinero que la directiva guarda para evitar economías rotas. Vigilá nómina, estadio y proyección a 3 fechas.</div>
-  <div class="offer"><b class="gold">Competiciones</b><br>Primera tiene liguilla Top 8. Copa Presidente incluye las 3 divisiones. Copa Centroamericana es el torneo regional mayor y clasifica por rendimiento.</div>
+  <div class="offer"><b class="gold">Competiciones</b><br>Primera tiene liguilla Top 8. Copa Presidente incluye las 3 divisiones. Copa Centroamericana es el torneo regional mayor y clasifica por rendimiento.</div><div class="offer"><b class="cyan">Integridad</b><br>El juego valida guardados y corrige dinero, jugadores o datos imposibles. Las partidas alteradas pueden quedar no elegibles para rankings futuros.</div>
   <div class="center"><button class="btn btn-p" onclick="closeModal();startTutorial(true)">Ver tutorial paso a paso</button> <button class="btn" onclick="repairGame(true)">🔧 Reparar partida</button> <button class="btn" onclick="closeModal()">Cerrar</button></div>`;}
 function openHelpCenter(){openModal(helpHTML());}
 
@@ -1263,7 +1264,7 @@ function renderCarrera(){
     </div>
     <hr class="sep"><div class="panel-title">📜 Historial de temporadas</div>
     <table class="tbl"><thead><tr><th class="center">Campaña</th><th>Club</th><th class="center">Div</th><th class="center">Pos</th><th class="center">Obj</th><th class="center">Logro</th></tr></thead><tbody>${hist}</tbody></table>
-    <hr class="sep">${renderHallOfFame()}<hr class="sep">${renderChampionHistory()}<hr class="sep">${renderAchievements()}<p style="margin-top:10px"><small>💡 Si tu <b>confianza</b> cae a 0, te despiden. Si destacás, clubes más grandes te ofrecen trabajo. Ganá reputación subiendo de categoría y conquistando títulos. Los objetivos ya no son fijos: cambian por división, nivel del club y expectativa de directiva.</small></p>`;
+    <hr class="sep">${renderSecurityPanel()}<hr class="sep">${renderHallOfFame()}<hr class="sep">${renderChampionHistory()}<hr class="sep">${renderAchievements()}<p style="margin-top:10px"><small>💡 Si tu <b>confianza</b> cae a 0, te despiden. Si destacás, clubes más grandes te ofrecen trabajo. Ganá reputación subiendo de categoría y conquistando títulos. Los objetivos ya no son fijos: cambian por división, nivel del club y expectativa de directiva.</small></p>`;
 }
 
 function renderSquad(){const u=userClub();const XI=new Set(G.tactics.alineacion);
@@ -1531,11 +1532,62 @@ function tryResumeMusic(){initMusicPlayer();if(wantsMusic()){setMusicTrack(rando
 
 
 
+/* ---------- SECURITY / ANTI-CHEAT LOCAL ---------- */
+const SECURITY_VERSION=1;
+const SECURITY_SALT=['rfm','sv','career','arena','2026'].join('_');
+function stableStringify(o){
+  if(o===null||typeof o!=='object')return JSON.stringify(o);
+  if(Array.isArray(o))return'['+o.map(stableStringify).join(',')+']';
+  return'{'+Object.keys(o).filter(k=>!k.startsWith('_')).sort().map(k=>JSON.stringify(k)+':'+stableStringify(o[k])).join(',')+'}';
+}
+function hashString(str){let h1=0xdeadbeef^str.length,h2=0x41c6ce57^str.length;for(let i=0,ch;i<str.length;i++){ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return (4294967296*(2097151&h2)+(h1>>>0)).toString(36);}
+function signPayload(payload){return hashString(SECURITY_SALT+'|'+SECURITY_VERSION+'|'+stableStringify(payload));}
+function makeSaveEnvelope(payload){return{__rfmSave:SECURITY_VERSION,ts:Date.now(),payload,sig:signPayload(payload)};}
+function readSaveObject(raw){
+  const parsed=JSON.parse(raw);
+  if(parsed&&parsed.__rfmSave&&parsed.payload){
+    const ok=parsed.sig===signPayload(parsed.payload);
+    parsed.payload._signatureStatus=ok?'valid':'invalid';
+    if(!ok){parsed.payload.security=parsed.payload.security||{};parsed.payload.security.tampered=true;parsed.payload.security.invalidReason='Firma de guardado inválida';}
+    return parsed.payload;
+  }
+  if(parsed&&parsed.clubes){parsed._signatureStatus='legacy';parsed.security=parsed.security||{};parsed.security.legacy=true;return parsed;}
+  return parsed;
+}
+function expectedValue(p){return Math.round((p.media||calcMedia(p))*(p.media||calcMedia(p))*45*ageFactor(p.edad||25));}
+function validatePlayer(p,clubName,issues){
+  if(!p.id)p.id=uid(); if(!p.atributos)p.atributos={ataque:40,defensa:40,fisico:40,porteria:10};
+  ['ataque','defensa','fisico','porteria'].forEach(k=>{const old=Number(p.atributos[k]||1);p.atributos[k]=clamp(old,1,99);if(old!==p.atributos[k])issues.push(`Atributo corregido: ${p.nombre||'jugador'} ${k}`);});
+  p.edad=clamp(Number(p.edad||24),15,45);p.energia=clamp(Number(p.energia==null?100:p.energia),0,100);p.moral=clamp(Number(p.moral==null?60:p.moral),0,100);p.contrato=clamp(Number(p.contrato==null?2:p.contrato),0,6);
+  if(!POS.includes(p.posicion)){p.posicion='MED';issues.push(`Posición inválida corregida en ${p.nombre||clubName}`);} 
+  const mediaReal=calcMedia(p);if(Math.abs((p.media||mediaReal)-mediaReal)>3)issues.push(`Media recalculada: ${p.nombre}`);p.media=mediaReal;
+  if(!p.personalidad)p.personalidad=pick(PERSONALIDADES);if(!p.potencial||p.potencial<p.media)p.potencial=calcPotential(p);p.potencial=clamp(Number(p.potencial),p.media,96);
+  if(!p.stats)p.stats={goles:0,asistencias:0,atajadas:0,pj:0};['goles','asistencias','atajadas','pj'].forEach(k=>p.stats[k]=clamp(Number(p.stats[k]||0),0,999));
+  if(!p.nacionalidad)p.nacionalidad='El Salvador';if(!p.equipoOrigen)p.equipoOrigen=clubName||'Libre';
+  const minSal=Math.round((p.media*p.media*0.40)/10)*10,maxSal=Math.round((p.media*p.media*2.8+p.media*120)/10)*10;const sal=Number(p.salario||0);if(sal<minSal||sal>maxSal){p.salario=clamp(sal||minSal,minSal,maxSal);issues.push(`Salario ajustado: ${p.nombre}`);} 
+  const ev=expectedValue(p);if(!p.valorMercado||p.valorMercado>ev*4||p.valorMercado<ev*0.15){p.valorMercado=Math.round(ev*ageFactor(p.edad));issues.push(`Valor de mercado ajustado: ${p.nombre}`);} 
+}
+function validateGameState(show){
+  if(!G||!G.clubes)return{ok:false,issues:['Sin partida']};
+  const issues=[];G.security=G.security||{};
+  G.temporada=clamp(Number(G.temporada||2026),2026,2200);G.jornadaActual=clamp(Number(G.jornadaActual||1),1,TOTAL_JORNADAS);
+  G.reputacion=clamp(Number(G.reputacion||50),0,100);G.confianza=clamp(Number(G.confianza||50),0,100);G.managerWallet=clamp(Number(G.managerWallet||0),0,99999999);
+  Object.values(G.clubes).forEach(c=>{if(!c.plantilla)c.plantilla=[];if(c.plantilla.length>32){c.plantilla.length=32;issues.push(`Plantilla recortada: ${c.nombre}`);}c.plantilla.forEach(p=>validatePlayer(p,c.nombre,issues));c.tabla=c.tabla||emptyTabla();if(!c.estadio)c.estadio=initStadium(c.id,c.nivel,c.estadioPropio,c.ciudad);});
+  ['mercado','agentOffers'].forEach(k=>{G[k]=G[k]||[];G[k].forEach(p=>{validatePlayer(p,p.equipoOrigen||'Mercado',issues);p.precio=clamp(Number(p.precio||p.valorMercado),0,expectedValue(p)*5);p.comision=clamp(Number(p.comision||0),0,Math.max(1,p.precio));});});
+  [1,2,3].forEach(l=>{G.divisiones[l]=G.divisiones[l]||[];G.divisiones[l]=G.divisiones[l].filter(id=>G.clubes[id]);if(G.divisiones[l].length!==12)issues.push(`División ${l} tiene ${G.divisiones[l].length} clubes`);});
+  if(!G.calendarios||!G.calendarios[1]){G.calendarios={1:roundRobinFull(G.divisiones[1]),2:roundRobinFull(G.divisiones[2]),3:roundRobinFull(G.divisiones[3])};issues.push('Calendario regenerado');}
+  const cap=budgetSoftCap(userClub().nivel);if(Number(G.budget||0)>cap*2){normalizeBudget('Control anti-trampa por presupuesto excesivo');issues.push('Presupuesto excesivo normalizado');}G.budget=clamp(Number(G.budget||0),-5000000,cap*2);
+  const sig=G._signatureStatus;if(sig==='invalid'){issues.push('Firma de guardado inválida');G.security.tampered=true;}
+  G.security.lastCheck=Date.now();G.security.issues=issues.slice(0,20);G.security.valid=!G.security.tampered&&issues.length===0;G.security.rankEligible=G.security.valid;
+  if(show)toast(issues.length?`Revisión: ${issues.length} ajustes`:'Partida válida');return{ok:G.security.valid,issues};
+}
+function renderSecurityPanel(){const sec=G.security||{};const issues=(sec.issues||[]).slice(0,6);return`<div class="panel-title">🛡 Integridad de partida</div><div class="offer"><b class="${sec.valid?'green':'amber'}">${sec.valid?'Partida validada':'Partida local / revisada'}</b><br><small>${sec.rankEligible?'Elegible para rankings futuros':'No elegible para rankings futuros si se detectaron cambios manuales.'}</small>${issues.length?'<hr class="sep"><small>'+issues.map(esc).join('<br>')+'</small>':''}<div style="margin-top:7px"><button class="btn btn-sm" onclick="repairGame(true)">🔧 Reparar / validar</button></div></div>`;}
+
 /* ---------- STORAGE ---------- */
-function autoSave(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(G));}catch(e){}}
-function loadSave(){try{const s=localStorage.getItem(SAVE_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
-function exportSave(){if(!G)return;const b=new Blob([JSON.stringify(G,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`partida_${G.userClubId}_${G.temporada}.json`;a.click();toast('Partida exportada');}
-function importSave(ev){const f=ev.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!d.clubes||!d.userClubId)throw 0;G=d;migrateState();if(!maybePrepareCentroEvent())maybePrepareCupEvent();autoSave();renderAll();switchView('dashboard');toast('Partida cargada');}catch(e){toast('Archivo inválido');}};rd.readAsText(f);ev.target.value='';}
+function autoSave(){try{if(G)validateGameState(false);localStorage.setItem(SAVE_KEY,JSON.stringify(makeSaveEnvelope(G)));}catch(e){console.error(e);}}
+function loadSave(){try{const s=localStorage.getItem(SAVE_KEY);return s?readSaveObject(s):null;}catch(e){return null;}}
+function exportSave(){if(!G)return;validateGameState(false);const b=new Blob([JSON.stringify(makeSaveEnvelope(G),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`partida_${G.userClubId}_${G.temporada}.json`;a.click();toast('Partida exportada');}
+function importSave(ev){const f=ev.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=readSaveObject(rd.result);if(!d.clubes||!d.userClubId)throw 0;G=d;migrateState();if(!maybePrepareCentroEvent())maybePrepareCupEvent();autoSave();renderAll();switchView('dashboard');toast(G.security&&G.security.tampered?'Partida cargada con advertencia':'Partida cargada');}catch(e){toast('Archivo inválido');}};rd.readAsText(f);ev.target.value='';}
 function confirmNewGame(){openModal(`<div class="modal-title">⟳ ¿Nueva partida?</div><p>Se borrará el avance actual.</p><div class="center" style="margin-top:10px"><button class="btn btn-d" onclick="hardReset()">Sí, empezar de nuevo</button> <button class="btn" onclick="closeModal()">Cancelar</button></div>`);}
 function hardReset(){closeModal();localStorage.removeItem(SAVE_KEY);G=null;showIntro();}
 
@@ -1579,5 +1631,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a225a5280c7bb15a',t:'MTc4NTI2MDE3Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a225ccf94eacdaae',t:'MTc4NTI2MTgwNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
