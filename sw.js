@@ -1,17 +1,17 @@
 /* Retro Football Manager SV — offline cache for GitHub Pages / WebView APK */
-const CACHE_VERSION = 'rfm-sv-offline-v7';
+const CACHE_VERSION = 'rfm-sv-offline-v8';
 const CORE_ASSETS = [
   './',
   './manager.html'
 ];
 const OPTIONAL_ASSETS = [
-  './music/menu.mp3',
-  './music/menu2.mp3',
-  './music/menu3.mp3',
-  './music/menu4.mp3',
-  './music/menu5.mp3',
-  './music/menu.ogg',
-  './music/menu2.ogg'
+  './menu.mp3',
+  './menu2.mp3',
+  './menu3.mp3',
+  './menu4.mp3',
+  './menu5.mp3',
+  './menu.ogg',
+  './menu2.ogg'
 ];
 
 self.addEventListener('install', event => {
