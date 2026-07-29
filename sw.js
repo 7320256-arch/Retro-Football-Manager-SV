@@ -1,119 +1,39 @@
-/* Retro Football Manager SV — PWA Service Worker
-   Robust version for GitHub Pages + PWABuilder.
-   Important: this SW never fails installation just because an optional file is missing. */
-
-const CACHE_VERSION = 'rfm-sv-pwa-v12';
-
-const CORE_ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon-512.png'
+/* Retro Football Manager SV — minimal PWABuilder-safe Service Worker */
+const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v1';
+const APP_SHELL = [
+  '/Retro-Football-Manager-SV/',
+  '/Retro-Football-Manager-SV/index.html',
+  '/Retro-Football-Manager-SV/manifest.json',
+  '/Retro-Football-Manager-SV/icon-512.png'
 ];
-
-const OPTIONAL_ASSETS = [
-  './menu.mp3',
-  './menu2.mp3',
-  './menu3.mp3',
-  './menu4.mp3',
-  './menu5.mp3',
-  './menu.ogg',
-  './menu2.ogg'
-];
-
-async function safeCacheAdd(cache, url) {
-  try {
-    const response = await fetch(url, { cache: 'reload' });
-    if (response && response.ok) {
-      await cache.put(url, response.clone());
-    }
-  } catch (err) {
-    // Do not fail install if GitHub Pages has not published a file yet.
-    console.warn('[SW] Could not cache:', url, err);
-  }
-}
 
 self.addEventListener('install', event => {
-  event.waitUntil((async () => {
-    const cache = await caches.open(CACHE_VERSION);
-    await Promise.all([...CORE_ASSETS, ...OPTIONAL_ASSETS].map(url => safeCacheAdd(cache, url)));
-    await self.skipWaiting();
-  })());
+  event.waitUntil(
+    caches.open(CACHE_VERSION)
+      .then(cache => Promise.all(APP_SHELL.map(url => fetch(url).then(r => r.ok ? cache.put(url, r.clone()) : null).catch(() => null))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys.filter(key => key !== CACHE_VERSION).map(key => caches.delete(key)));
-    await self.clients.claim();
-  })());
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
 });
-
-self.addEventListener('message', event => {
-  if (!event.data) return;
-
-  if (event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-
-  if (event.data.type === 'CACHE_NOW') {
-    event.waitUntil((async () => {
-      const cache = await caches.open(CACHE_VERSION);
-      await Promise.all([...CORE_ASSETS, ...OPTIONAL_ASSETS].map(url => safeCacheAdd(cache, url)));
-    })());
-  }
-});
-
-async function networkFirst(request) {
-  const cache = await caches.open(CACHE_VERSION);
-
-  try {
-    const fresh = await fetch(request);
-    if (fresh && fresh.ok) {
-      cache.put(request, fresh.clone()).catch(() => {});
-    }
-    return fresh;
-  } catch (err) {
-    const cached = await cache.match(request);
-    if (cached) return cached;
-
-    const fallback = await cache.match('./index.html') || await cache.match('./');
-    if (fallback) return fallback;
-
-    return new Response('Retro Football Manager SV no está disponible sin conexión todavía. Abre el juego una vez con internet para guardarlo offline.', {
-      status: 503,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
-    });
-  }
-}
-
-async function staleWhileRevalidate(request) {
-  const cache = await caches.open(CACHE_VERSION);
-  const cached = await cache.match(request);
-
-  const freshPromise = fetch(request)
-    .then(response => {
-      if (response && (response.ok || response.type === 'opaque')) {
-        cache.put(request, response.clone()).catch(() => {});
-      }
-      return response;
-    })
-    .catch(() => null);
-
-  return cached || freshPromise || new Response('', { status: 204 });
-}
 
 self.addEventListener('fetch', event => {
-  const request = event.request;
-  if (request.method !== 'GET') return;
+  if (event.request.method !== 'GET') return;
 
-  const accept = request.headers.get('accept') || '';
-  const isNavigation = request.mode === 'navigate' || accept.includes('text/html');
-
-  if (isNavigation) {
-    event.respondWith(networkFirst(request));
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/Retro-Football-Manager-SV/index.html'))
+    );
     return;
   }
 
-  event.respondWith(staleWhileRevalidate(request));
+  event.respondWith(
+    caches.match(event.request).then(cached => cached || fetch(event.request).catch(() => new Response('', { status: 204 })))
+  );
 });

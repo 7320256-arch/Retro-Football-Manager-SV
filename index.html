@@ -4,16 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#070b07">
+<link rel="manifest" href="/Retro-Football-Manager-SV/manifest.json">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FM El Salvador">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="application-name" content="Retro Football Manager SV">
+<link rel="icon" type="image/png" sizes="512x512" href="/Retro-Football-Manager-SV/icon-512.png">
+<link rel="apple-touch-icon" href="/Retro-Football-Manager-SV/icon-512.png">
 <title>⚽ Retro Football Manager SV — Modo Carrera</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#070b07;--bg2:#0c130c;--panel:#0e1a10;--panel2:#112316;
+  --bg:#050805;--bg2:#0a100a;--panel:#0d1810;--panel2:#102015;
   --line:#1d3a23;--line2:#28532f;
-  --ink:#cdecc4;--ink2:#9fd29a;--dim:#5e7d5c;--dim2:#3f5a3d;
-  --green:#46e22b;--green-d:#2fa01d;--amber:#ffcc33;--amber-d:#caa017;
+  --ink:#c6e3be;--ink2:#96c992;--dim:#668064;--dim2:#405a3f;
+  --green:#3fd12a;--green-d:#2b931d;--amber:#ffcc33;--amber-d:#caa017;
   --cyan:#3fd0ff;--red:#ff5a4d;--gold:#ffe14d;--magenta:#ff5ec7;
   --font-pixel:'Press Start 2P','Courier New',monospace;
   --font-term:'VT323','Courier New',monospace;
@@ -183,6 +190,32 @@ body.device-phone .decor-grid{grid-template-columns:1fr 1fr}
 .penalty-log{max-height:180px;overflow:auto;background:#04100a;border:1px solid var(--line2);padding:8px;border-radius:4px;margin-top:8px}
 .subs-pill{display:inline-block;border:1px solid var(--cyan);color:var(--cyan);padding:3px 8px;border-radius:999px;margin-top:5px}
 
+/* --- Visual comfort / readability update --- */
+body.no-crt .crt-lines,body.no-crt .crt-vig{display:none!important}
+body.no-crt{letter-spacing:.15px}
+.tbl tbody tr:nth-child(even) td{background:rgba(63,209,42,.035)}
+.tbl tbody tr:hover td{background:rgba(63,209,42,.105)!important;box-shadow:inset 0 0 0 9999px rgba(255,255,255,.012)}
+.scroll{overflow-x:auto;max-width:100%}
+.tbl{min-width:760px}
+#view-clasificacion .tbl,#view-stats .tbl,#view-noticias .tbl,#view-copa .tbl,#view-centro .tbl{min-width:650px}
+.btn,.tab,.div-tab,.club-pick{touch-action:manipulation}
+@media(hover:none){.tbl tr:hover td{background:inherit}.btn:hover{border-color:var(--line2);color:var(--ink2)}}
+/* Mobile: bottom navigation, larger touch targets, less visual congestion */
+@media(max-width:700px){
+  #app{height:100dvh}.topbar{padding:6px 7px;gap:7px}.topbtns .btn-sm{min-width:42px;min-height:40px}
+  .nav{position:fixed!important;left:0;right:0;bottom:0;top:auto!important;z-index:900;background:#071007;border-top:2px solid var(--line2);border-bottom:none;display:flex;flex-wrap:nowrap!important;overflow-x:auto;overflow-y:hidden;white-space:nowrap;padding:6px 7px 8px;box-shadow:0 -8px 24px rgba(0,0,0,.55)}
+  .tab{min-height:44px;min-width:86px;display:flex;align-items:center;justify-content:center;flex:0 0 auto!important;font-size:7px!important;padding:8px 8px!important;border:1px solid var(--line2)!important;border-radius:6px!important;border-bottom:1px solid var(--line2)!important;background:rgba(13,24,16,.9)}
+  .tab.go{position:sticky;right:0;z-index:902;min-width:104px;margin-left:5px;box-shadow:-10px 0 16px rgba(0,0,0,.6)}
+  main{padding:8px 8px 76px!important}.panel{padding:10px}.grid,.g2,.g3{grid-template-columns:1fr!important}
+  .btn{min-height:44px;font-size:18px}.btn-sm{min-height:38px;font-size:16px;padding:7px 10px}
+  select,input{min-height:42px;font-size:18px}.panel-title{font-size:9px;line-height:1.45}
+  .tbl{min-width:760px;font-size:15px}.tbl th{font-size:8px}.tbl td{padding:6px 7px}.scroll{border:1px solid rgba(63,209,42,.08);border-radius:4px}
+  .pitch{min-height:500px;padding:10px;gap:12px}.line{gap:5px;flex-wrap:wrap}.chip{min-width:58px;padding:6px 5px}.chip .nm{font-size:13px}
+  .next-card{flex-wrap:wrap}.score-big{font-size:24px}.ticker{height:210px}
+  .cal-grid{grid-template-columns:repeat(7,minmax(44px,1fr));gap:3px}.cal-day{min-height:66px;font-size:13px;padding:4px;overflow:hidden}
+  .modal{padding:8px}.modal-card{max-height:92vh;padding:12px}.club-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
 </style>
 </head>
 <body>
@@ -221,7 +254,7 @@ body.device-phone .decor-grid{grid-template-columns:1fr 1fr}
       <div class="stat"><div class="k">Temp/Fecha</div><div id="hd-round" class="v cyan">2026 · 1/22</div></div>
     </div>
     <div class="topbtns">
-      <button class="btn btn-sm" onclick="toggleMusic()" title="Música ON/OFF">🎵</button><button class="btn btn-sm" onclick="nextMusicTrack(true)" title="Siguiente canción">⏭</button><button class="btn btn-sm" onclick="openHelpCenter()" title="Ayuda">?</button><button class="btn btn-sm" onclick="repairGame(true)" title="Reparar partida">🔧</button><button class="btn btn-sm" onclick="exportSave()" title="Descargar partida">⬇</button>
+      <button class="btn btn-sm" onclick="toggleMusic()" title="Música ON/OFF">🎵</button><button class="btn btn-sm" onclick="nextMusicTrack(true)" title="Siguiente canción">⏭</button><button class="btn btn-sm" onclick="toggleCRT()" title="Activar/desactivar CRT">CRT</button><button class="btn btn-sm" onclick="openHelpCenter()" title="Ayuda">?</button><button class="btn btn-sm" onclick="repairGame(true)" title="Reparar partida">🔧</button><button class="btn btn-sm" onclick="exportSave()" title="Descargar partida">⬇</button>
       <label class="btn btn-sm" title="Cargar partida">⬆<input type="file" accept=".json,application/json" id="imp-file" hidden onchange="importSave(event)"></label>
       <button class="btn btn-sm btn-d" onclick="confirmNewGame()">⟳</button>
     </div>
@@ -1476,6 +1509,10 @@ function renderAll(){renderTopbar();switchView(CUR);}
 function emergencyResetLive(){try{if(SIM){clearInterval(SIM);SIM=null;}if(LIVE&&LIVE.phase!=='halftime'){LIVE=null;}G.matchMode=G.matchMode||'league';}catch(e){}}
 function installErrorGuard(){if(window._rfmErr)return;window._rfmErr=true;window.addEventListener('error',e=>{console.error(e.error||e.message);emergencyResetLive();try{toast('Error controlado: se reinició el estado del partido');renderAll();}catch(_){};});window.addEventListener('unhandledrejection',e=>{console.error(e.reason);emergencyResetLive();try{toast('Error de proceso controlado');renderAll();}catch(_){};});}
 
+/* ---------- VISUAL PREFERENCES ---------- */
+function applyVisualPrefs(){try{document.body.classList.toggle('no-crt',localStorage.getItem('rfm_crt_off')==='1');}catch(e){}}
+function toggleCRT(){const off=localStorage.getItem('rfm_crt_off')==='1';localStorage.setItem('rfm_crt_off',off?'0':'1');applyVisualPrefs();toast(off?'CRT activado':'CRT desactivado: texto más nítido');}
+
 /* ---------- TUTORIAL + MÚSICA ---------- */
 let TUTORIAL_IDX=0;
 const TUTORIAL_STEPS=[
@@ -1596,6 +1633,7 @@ let PICK_DIV=3,PICK_CLUB=null,PICK_DEVICE=localStorage.getItem('rfm_device')||'p
 function applyDevice(d){PICK_DEVICE=d||'pc';document.body.classList.remove('device-phone','device-tablet','device-pc');document.body.classList.add('device-'+PICK_DEVICE);try{localStorage.setItem('rfm_device',PICK_DEVICE);}catch(e){}if(G)G.device=PICK_DEVICE;}
 function pickDevice(d){applyDevice(d);document.querySelectorAll('#device-chooser .div-tab').forEach(b=>b.classList.toggle('active',b.dataset.device===PICK_DEVICE));toast('Interfaz: '+(PICK_DEVICE==='phone'?'Teléfono':PICK_DEVICE==='tablet'?'Tablet':'PC'));}
 function showIntro(){
+  applyVisualPrefs();
   $('app').classList.add('hidden');$('intro').classList.remove('hidden');applyDevice(PICK_DEVICE);
   document.querySelectorAll('#device-chooser .div-tab').forEach(b=>b.classList.toggle('active',b.dataset.device===PICK_DEVICE));
   const dt=$('intro-divs');dt.innerHTML=[1,2,3].map(l=>`<button class="div-tab ${l===PICK_DIV?'active':''}" onclick="pickDiv(${l})">${DIV_NAMES[l]}</button>`).join('');
@@ -1614,22 +1652,39 @@ function pickClub(id){PICK_CLUB=id;document.querySelectorAll('.club-pick').forEa
 function promptDT(){if(!PICK_CLUB){toast('Elegí un club primero');return;}const nm=prompt('Nombre del Director Técnico:','DT')||'DT';startGame(PICK_CLUB,nm);}
 function startGame(clubId,nm){applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);G.device=PICK_DEVICE;pushNews(`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>startTutorial(false),400);tryResumeMusic();}
 
-function boot(){const s=loadSave();if(s&&s.clubes&&s.userClubId&&s.meta&&(s.meta.v===2||s.meta.v===3||s.meta.v===4)){G=s;migrateState();if(!maybePrepareCentroEvent())maybePrepareCupEvent();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>startTutorial(false),500);tryResumeMusic();}else showIntro();}
+function boot(){applyVisualPrefs();const s=loadSave();if(s&&s.clubes&&s.userClubId&&s.meta&&(s.meta.v===2||s.meta.v===3||s.meta.v===4)){G=s;migrateState();if(!maybePrepareCentroEvent())maybePrepareCupEvent();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>startTutorial(false),500);tryResumeMusic();}else showIntro();}
+function ensureManifestLink(){
+  let link=document.querySelector('link[rel="manifest"]');
+  if(!link){link=document.createElement('link');link.rel='manifest';document.head.appendChild(link);}
+  link.setAttribute('href','/Retro-Football-Manager-SV/manifest.json');
+  return link.href;
+}
+function checkManifestForPWA(){
+  try{
+    ensureManifestLink();
+    fetch('/Retro-Football-Manager-SV/manifest.json',{cache:'no-store'})
+      .then(r=>r.ok?r.json():Promise.reject(new Error('manifest '+r.status)))
+      .then(m=>{window.RFM_MANIFEST_OK=!!(m&&m.name&&m.short_name);})
+      .catch(e=>{window.RFM_MANIFEST_OK=false;console.warn('PWA manifest no detectado:',e);});
+  }catch(e){console.warn('No se pudo verificar manifest',e);}
+}
 function updateOnlineIndicator(){const el=$('offline-indicator');if(!el)return;if(navigator.onLine){el.textContent='✅ Online';el.classList.add('online');el.classList.remove('hidden');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.add('hidden'),1400);}else{el.textContent='📡 Modo offline';el.classList.remove('online');el.classList.remove('hidden');}}
 function registerOfflineSupport(){
+  ensureManifestLink();checkManifestForPWA();
   updateOnlineIndicator();window.addEventListener('online',updateOnlineIndicator);window.addEventListener('offline',updateOnlineIndicator);
   if(navigator.serviceWorker&&navigator.serviceWorker.register){
-    navigator.serviceWorker.register('./sw.js').then(reg=>{
+    navigator.serviceWorker.register('/Retro-Football-Manager-SV/sw.js',{scope:'/Retro-Football-Manager-SV/'}).then(reg=>{
+      window.RFM_SW_OK=true;
       if(reg.waiting)reg.waiting.postMessage({type:'SKIP_WAITING'});
       reg.addEventListener('updatefound',()=>{const nw=reg.installing;if(nw)nw.addEventListener('statechange',()=>{if(nw.state==='installed'&&navigator.serviceWorker.controller)toast('Actualización descargada para uso offline');});});
       return navigator.serviceWorker.ready;
-    }).then(()=>{try{navigator.serviceWorker.controller&&navigator.serviceWorker.controller.postMessage({type:'CACHE_NOW'});}catch(e){}}).catch(()=>{});
-  }
+    }).then(()=>{try{navigator.serviceWorker.controller&&navigator.serviceWorker.controller.postMessage({type:'CACHE_NOW'});}catch(e){}}).catch(e=>{window.RFM_SW_OK=false;console.warn('Service Worker no registrado:',e);});
+  }else{window.RFM_SW_OK=false;}
 }
 window.addEventListener('beforeunload',autoSave);
 installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a225ccf94eacdaae',t:'MTc4NTI2MTgwNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
