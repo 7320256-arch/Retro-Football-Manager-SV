@@ -496,6 +496,7 @@ const TOTAL_JORNADAS=22;
 /* ---------- ESTADO ---------- */
 let G=null;
 const SAVE_KEY='rfm_sv_save_v2';
+const GAME_VERSION='1.0';
 const FORMACIONES={'Libre':{def:0,med:0,del:0,l:'XI Libre (sin esquema)'},'4-4-2':{def:4,med:4,del:2,l:'4-4-2 Equilibrada'},'4-3-3':{def:4,med:3,del:3,l:'4-3-3 Ofensiva'},'3-5-2':{def:3,med:5,del:2,l:'3-5-2 Control'},'5-3-2':{def:5,med:3,del:2,l:'5-3-2 Muralla'},'4-2-3-1':{def:4,med:5,del:1,l:'4-2-3-1 Moderna'}};
 const MENTALIDADES={'Defensiva':{atk:0.80,def:1.20},'Contraataque':{atk:1.05,def:1.05},'Equilibrada':{atk:1.0,def:1.0},'Ofensiva':{atk:1.20,def:0.85}};
 const PRESIONES={'Baja':{atk:.96,def:1.04,energy:.92},'Media':{atk:1,def:1,energy:1},'Alta':{atk:1.07,def:.96,energy:1.18}};
@@ -1037,7 +1038,7 @@ function helpHTML(){return`<div class="modal-title">📘 Manual rápido</div>
   <div class="offer"><b class="cyan">Táctica</b><br>Presión Alta y Ritmo Directo aumentan ataque pero cansan. Presión Baja y Ritmo Pausado protegen energía y defensa. En vivo podés cambiar al descanso.</div>
   <div class="offer"><b class="green">Finanzas</b><br>Presupuesto operativo es dinero usable. Reserva institucional es dinero que la directiva guarda para evitar economías rotas. Vigilá nómina, estadio y proyección a 3 fechas.</div>
   <div class="offer"><b class="gold">Competiciones</b><br>Primera tiene liguilla Top 8. Copa Presidente incluye las 3 divisiones. Copa Centroamericana es el torneo regional mayor y clasifica por rendimiento.</div><div class="offer"><b class="cyan">Integridad</b><br>El juego valida guardados y corrige dinero, jugadores o datos imposibles. Las partidas alteradas pueden quedar no elegibles para rankings futuros.</div>
-  <div class="center"><button class="btn btn-p" onclick="closeModal();startTutorial(true)">Ver tutorial paso a paso</button> <button class="btn" onclick="repairGame(true)">🔧 Reparar partida</button> <button class="btn" onclick="closeModal()">Cerrar</button></div>`;}
+  <div class="center"><button class="btn btn-p" onclick="closeModal();startTutorial(true)">Ver tutorial paso a paso</button> <button class="btn btn-a" onclick="sendFeedback()">📧 Enviar feedback</button> <button class="btn" onclick="repairGame(true)">🔧 Reparar partida</button> <button class="btn" onclick="closeModal()">Cerrar</button></div>`;}
 function openHelpCenter(){openModal(helpHTML());}
 
 function leaguePrize(lvl,pos){const base={1:170000,2:65000,3:26000}[lvl];const min={1:28000,2:12000,3:5000}[lvl];const ratio=(12-pos)/11;return Math.round(min+(base-min)*Math.max(0,ratio));}
@@ -1258,6 +1259,7 @@ function renderDashboard(){
     <div style="font-size:16px;display:flex;justify-content:space-between"><span class="muted">Nómina semanal</span><b class="red">${money(weeklyWage())}</b></div>
     <div style="font-size:16px;display:flex;justify-content:space-between"><span class="muted">Patrocinador</span><b class="cyan">${G.sponsor?esc(G.sponsor.nombre):'Sin firmar'}</b></div>
     <div style="font-size:16px;display:flex;justify-content:space-between"><span class="muted">11 promedio</span><b class="amber">${teamRating(u)}</b></div>
+    <div style="font-size:16px;display:flex;justify-content:space-between"><span class="muted">Versión</span><b class="gold">v${GAME_VERSION}</b></div>
     <hr class="sep"><div class="muted" style="font-size:14px">OBJETIVOS ${G.temporada} ${(G.campania||'Apertura')} <span class="tag ${G.objetivo.prioridad==='alta'?'red':G.objetivo.prioridad==='baja'?'green':'amber'}">${(G.objetivo.prioridad||'media').toUpperCase()}</span></div>${renderObjectivesMini(G.objetivo)}`;
   let nx='';
   if(G.finished){nx='<p class="center">Temporada finalizada.</p>';}
@@ -1509,6 +1511,57 @@ function renderAll(){renderTopbar();switchView(CUR);}
 function emergencyResetLive(){try{if(SIM){clearInterval(SIM);SIM=null;}if(LIVE&&LIVE.phase!=='halftime'){LIVE=null;}G.matchMode=G.matchMode||'league';}catch(e){}}
 function installErrorGuard(){if(window._rfmErr)return;window._rfmErr=true;window.addEventListener('error',e=>{console.error(e.error||e.message);emergencyResetLive();try{toast('Error controlado: se reinició el estado del partido');renderAll();}catch(_){};});window.addEventListener('unhandledrejection',e=>{console.error(e.reason);emergencyResetLive();try{toast('Error de proceso controlado');renderAll();}catch(_){};});}
 
+/* ---------- LAUNCH v1.0 + FEEDBACK ---------- */
+function feedbackContext(){
+  const u=G?userClub():null;
+  return [
+    'Hola, quiero reportar algo o sugerir una mejora para Retro Football Manager SV.',
+    '',
+    'Tipo de reporte: [Bug / Sugerencia / Balance / Interfaz / Otro]',
+    'Mensaje:',
+    '',
+    '',
+    '--- Datos automáticos ---',
+    'Versión: v'+GAME_VERSION,
+    'DT: '+(G?G.managerName:'Sin partida'),
+    'Club: '+(u?u.nombre:'Sin club'),
+    'División: '+(u?DIV_NAMES[u.nivel]:'—'),
+    'Campaña: '+(G?(G.temporada+' '+(G.campania||'')):'—'),
+    'Jornada: '+(G?G.jornadaActual:'—'),
+    'Vista: '+(typeof CUR!=='undefined'?CUR:'—'),
+    'Dispositivo: '+(G?(G.device||PICK_DEVICE||'—'):'—'),
+    'Conexión: '+(navigator.onLine?'Online':'Offline'),
+    'Integridad: '+(G&&G.security?(G.security.rankEligible?'válida':'revisada/no elegible'):'sin revisar')
+  ].join('\n');
+}
+function sendFeedback(){
+  const to='cseuropa1890@gmail.com';
+  const subject=`Feedback Retro Football Manager SV v${GAME_VERSION}`;
+  const body=feedbackContext();
+  if(!navigator.onLine){openModal(`<div class="modal-title">📧 Feedback sin conexión</div><p>Necesitás internet para enviar el correo. Cuando tengas conexión, escribí a:</p><p class="center"><b class="cyan">${to}</b></p><hr class="sep"><pre style="white-space:pre-wrap;font-family:var(--font-term);font-size:16px">${esc(body)}</pre><div class="center"><button class="btn" onclick="closeModal()">Cerrar</button></div>`);return;}
+  const mailto=`mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href=mailto;
+  setTimeout(()=>openModal(`<div class="modal-title">📧 Enviar feedback</div><p>Si no se abrió tu correo automáticamente, escribí a:</p><p class="center"><b class="cyan">${to}</b></p><p class="muted">Asunto sugerido: ${esc(subject)}</p><div class="center"><button class="btn btn-p" onclick="closeModal()">Entendido</button></div>`),650);
+}
+function showLaunchModal(kind){
+  const key=kind==='existing'?'rfm_launch_v1_existing':'rfm_launch_v1_new';
+  if(localStorage.getItem(key)==='1')return false;
+  localStorage.setItem(key,'1');
+  const isExisting=kind==='existing';
+  const title=isExisting?'🎉 Gracias por jugar la beta — v1.0 oficial':'🎉 Bienvenido a Retro Football Manager SV v1.0';
+  const intro=isExisting?
+    'Gracias por acompañar el desarrollo desde las primeras pruebas. Esta versión 1.0 es el primer lanzamiento oficial construido con el feedback de quienes ya estaban jugando.':
+    'Bienvenido a la primera versión oficial. Tomá un club salvadoreño, construí tu proyecto, prepará semanas, fichá, entrená y competí por títulos nacionales y centroamericanos.';
+  openModal(`<div class="modal-title">${title}</div>
+    <p>${intro}</p>
+    <div class="offer"><b class="gold">Retro Football Manager SV v${GAME_VERSION}</b><br>
+    <small>Incluye modo carrera con Apertura/Clausura, 3 divisiones, ascensos y repechajes, Copa Presidente, Supercopa, Copa Centroamericana, mundo regional, mercado con scouting y potencial, entrenamientos manuales, finanzas, estadio, música, offline, avatar y logros.</small></div>
+    <div class="offer"><b class="green">Tu opinión importa</b><br><small>Si encontrás un error o tenés una idea, podés enviarme feedback por correo desde el Centro de Ayuda o desde este mensaje.</small></div>
+    <div class="center"><button class="btn btn-p" onclick="closeModal();startTutorial(true)">📘 Ver tutorial</button> <button class="btn btn-a" onclick="sendFeedback()">📧 Enviar feedback</button> <button class="btn" onclick="closeModal()">▶ Comenzar</button></div>`);
+  if(G)pushNews(`🎉 Retro Football Manager SV v${GAME_VERSION} oficial disponible. ¡Gracias por jugar!`,'gol','club');
+  return true;
+}
+
 /* ---------- VISUAL PREFERENCES ---------- */
 function applyVisualPrefs(){try{document.body.classList.toggle('no-crt',localStorage.getItem('rfm_crt_off')==='1');}catch(e){}}
 function toggleCRT(){const off=localStorage.getItem('rfm_crt_off')==='1';localStorage.setItem('rfm_crt_off',off?'0':'1');applyVisualPrefs();toast(off?'CRT activado':'CRT desactivado: texto más nítido');}
@@ -1650,9 +1703,9 @@ function G_division_static(lvl){return DEF.filter(d=>d[0]===lvl).map(d=>d[1]);}
 function staticClub(id){const d=DEF.find(x=>x[1]===id);return{id:d[1],nombre:d[2],ciudad:d[3],color:d[4],tier:d[5],estadioPropio:d[6]};}
 function pickClub(id){PICK_CLUB=id;document.querySelectorAll('.club-pick').forEach(el=>el.style.outline='');event.currentTarget.style.outline='2px solid var(--green)';}
 function promptDT(){if(!PICK_CLUB){toast('Elegí un club primero');return;}const nm=prompt('Nombre del Director Técnico:','DT')||'DT';startGame(PICK_CLUB,nm);}
-function startGame(clubId,nm){applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);G.device=PICK_DEVICE;pushNews(`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>startTutorial(false),400);tryResumeMusic();}
+function startGame(clubId,nm){applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);G.device=PICK_DEVICE;pushNews(`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(!showLaunchModal('new'))startTutorial(false);},400);tryResumeMusic();}
 
-function boot(){applyVisualPrefs();const s=loadSave();if(s&&s.clubes&&s.userClubId&&s.meta&&(s.meta.v===2||s.meta.v===3||s.meta.v===4)){G=s;migrateState();if(!maybePrepareCentroEvent())maybePrepareCupEvent();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>startTutorial(false),500);tryResumeMusic();}else showIntro();}
+function boot(){applyVisualPrefs();const s=loadSave();if(s&&s.clubes&&s.userClubId&&s.meta&&(s.meta.v===2||s.meta.v===3||s.meta.v===4)){G=s;migrateState();if(!maybePrepareCentroEvent())maybePrepareCupEvent();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(!showLaunchModal('existing'))startTutorial(false);},500);tryResumeMusic();}else showIntro();}
 function ensureManifestLink(){
   let link=document.querySelector('link[rel="manifest"]');
   if(!link){link=document.createElement('link');link.rel='manifest';document.head.appendChild(link);}
@@ -1686,5 +1739,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a228a8fdf8316380',t:'MTc4NTI5MTc5MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
