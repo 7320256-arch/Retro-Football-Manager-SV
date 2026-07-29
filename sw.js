@@ -1,5 +1,5 @@
 /* Retro Football Manager SV — minimal PWABuilder-safe Service Worker */
-const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v1';
+const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v2';
 const APP_SHELL = [
   '/Retro-Football-Manager-SV/',
   '/Retro-Football-Manager-SV/index.html',
@@ -18,7 +18,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE_VERSION && !k.startsWith('rfm-music-offline')).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

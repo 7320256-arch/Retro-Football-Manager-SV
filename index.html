@@ -1038,7 +1038,8 @@ function helpHTML(){return`<div class="modal-title">📘 Manual rápido</div>
   <div class="offer"><b class="cyan">Táctica</b><br>Presión Alta y Ritmo Directo aumentan ataque pero cansan. Presión Baja y Ritmo Pausado protegen energía y defensa. En vivo podés cambiar al descanso.</div>
   <div class="offer"><b class="green">Finanzas</b><br>Presupuesto operativo es dinero usable. Reserva institucional es dinero que la directiva guarda para evitar economías rotas. Vigilá nómina, estadio y proyección a 3 fechas.</div>
   <div class="offer"><b class="gold">Competiciones</b><br>Primera tiene liguilla Top 8. Copa Presidente incluye las 3 divisiones. Copa Centroamericana es el torneo regional mayor y clasifica por rendimiento.</div><div class="offer"><b class="cyan">Integridad</b><br>El juego valida guardados y corrige dinero, jugadores o datos imposibles. Las partidas alteradas pueden quedar no elegibles para rankings futuros.</div>
-  <div class="center"><button class="btn btn-p" onclick="closeModal();startTutorial(true)">Ver tutorial paso a paso</button> <button class="btn btn-a" onclick="sendFeedback()">📧 Enviar feedback</button> <button class="btn" onclick="repairGame(true)">🔧 Reparar partida</button> <button class="btn" onclick="closeModal()">Cerrar</button></div>`;}
+  <div class="offer"><b class="gold">Música offline</b><br>Con internet, tocá <b>Guardar música offline</b> para que las canciones se guarden en este dispositivo. Así el juego puede sonar aunque después no tengas conexión.</div>
+  <div class="center"><button class="btn btn-p" onclick="closeModal();startTutorial(true)">Ver tutorial paso a paso</button> <button class="btn btn-a" onclick="downloadOfflineMusic()">🎵 Guardar música offline</button> <button class="btn btn-a" onclick="sendFeedback()">📧 Enviar feedback</button> <button class="btn" onclick="repairGame(true)">🔧 Reparar partida</button> <button class="btn" onclick="closeModal()">Cerrar</button></div>`;}
 function openHelpCenter(){openModal(helpHTML());}
 
 function leaguePrize(lvl,pos){const base={1:170000,2:65000,3:26000}[lvl];const min={1:28000,2:12000,3:5000}[lvl];const ratio=(12-pos)/11;return Math.round(min+(base-min)*Math.max(0,ratio));}
@@ -1557,7 +1558,8 @@ function showLaunchModal(kind){
     <div class="offer"><b class="gold">Retro Football Manager SV v${GAME_VERSION}</b><br>
     <small>Incluye modo carrera con Apertura/Clausura, 3 divisiones, ascensos y repechajes, Copa Presidente, Supercopa, Copa Centroamericana, mundo regional, mercado con scouting y potencial, entrenamientos manuales, finanzas, estadio, música, offline, avatar y logros.</small></div>
     <div class="offer"><b class="green">Tu opinión importa</b><br><small>Si encontrás un error o tenés una idea, podés enviarme feedback por correo desde el Centro de Ayuda o desde este mensaje.</small></div>
-    <div class="center"><button class="btn btn-p" onclick="closeModal();startTutorial(true)">📘 Ver tutorial</button> <button class="btn btn-a" onclick="sendFeedback()">📧 Enviar feedback</button> <button class="btn" onclick="closeModal()">▶ Comenzar</button></div>`);
+    <div class="offer"><b class="gold">Recomendado para jugar sin conexión</b><br><small>Antes de quedarte offline, tocá <b>Guardar música offline</b>. El juego guardará las canciones disponibles en este dispositivo.</small></div>
+    <div class="center"><button class="btn btn-p" onclick="closeModal();startTutorial(true)">📘 Ver tutorial</button> <button class="btn btn-a" onclick="downloadOfflineMusic()">🎵 Guardar música offline</button> <button class="btn btn-a" onclick="sendFeedback()">📧 Enviar feedback</button> <button class="btn" onclick="closeModal()">▶ Comenzar</button></div>`);
   if(G)pushNews(`🎉 Retro Football Manager SV v${GAME_VERSION} oficial disponible. ¡Gracias por jugar!`,'gol','club');
   return true;
 }
@@ -1580,14 +1582,36 @@ const TUTORIAL_STEPS=[
   {v:'copa',t:'9. Copa Presidente',d:'Participan clubes de Primera, Segunda y Tercera. Hay grupos y eliminatorias. Da premios, prestigio y puede clasificar al mundo internacional en futuras campañas.'},
   {v:'centro',t:'10. Copa Centroamericana',d:'Es el torneo regional mayor. Clasifican clubes salvadoreños y de Guatemala, Honduras, Costa Rica, Panamá y Nicaragua. Ganarla aumenta mucho tu reputación.'},
   {v:'noticias',t:'11. Noticias y mundo regional',d:'Aquí ves boletín deportivo, marco de fichajes, campeones centroamericanos, ranking regional y tablas de otras ligas. Sirve para entender el mercado y tus futuros rivales.'},
-  {v:'carrera',t:'12. Carrera, avatar y logros',d:'Tu sueldo de DT es personal, no del club. Comprá decoraciones para tu avatar y revisá logros: ascensos, títulos, copas y éxitos regionales.'}
+  {v:'dashboard',t:'12. Música y modo offline',d:'El juego puede funcionar sin conexión después de abrirlo con internet. Para que la música también suene offline, abrí el Centro de Ayuda y tocá Guardar música offline cuando tengas conexión.'},
+  {v:'carrera',t:'13. Carrera, avatar y logros',d:'Tu sueldo de DT es personal, no del club. Comprá decoraciones para tu avatar y revisá logros: ascensos, títulos, copas y éxitos regionales.'}
 ];
-function startTutorial(force){if(!force&&localStorage.getItem('rfm_tutorial_done_v3')==='1')return;TUTORIAL_IDX=0;showTutorialStep();}
+function startTutorial(force){if(!force&&localStorage.getItem('rfm_tutorial_done_v4')==='1')return;TUTORIAL_IDX=0;showTutorialStep();}
 function showTutorialStep(){const st=TUTORIAL_STEPS[TUTORIAL_IDX];if(!st)return finishTutorial();switchView(st.v);openModal(`<div class="modal-title">📘 Tutorial ${TUTORIAL_IDX+1}/${TUTORIAL_STEPS.length}</div><div class="tutorial-step"><b class="green">${esc(st.t)}</b><p>${esc(st.d)}</p></div><div class="center"><button class="btn" onclick="skipTutorial()">Saltar</button> <button class="btn btn-p" onclick="nextTutorial()">${TUTORIAL_IDX===TUTORIAL_STEPS.length-1?'Finalizar':'Siguiente'} ▶</button></div>`);}
 function nextTutorial(){TUTORIAL_IDX++;if(TUTORIAL_IDX>=TUTORIAL_STEPS.length)finishTutorial();else showTutorialStep();}
 function skipTutorial(){finishTutorial();}
-function finishTutorial(){localStorage.setItem('rfm_tutorial_done_v3','1');closeModal();toast('Tutorial completado');}
+function finishTutorial(){localStorage.setItem('rfm_tutorial_done_v4','1');closeModal();toast('Tutorial completado');}
 const MUSIC_PLAYLIST=['menu.mp3','menu2.mp3','menu3.mp3','menu4.mp3','menu5.mp3'];
+const MUSIC_CACHE='rfm-music-offline-v1';
+async function offlineMusicStatus(){
+  if(!('caches' in window))return{available:false,count:0,total:MUSIC_PLAYLIST.length};
+  const cache=await caches.open(MUSIC_CACHE);let count=0;
+  for(const track of MUSIC_PLAYLIST){const hit=await cache.match(track);if(hit)count++;}
+  return{available:true,count,total:MUSIC_PLAYLIST.length};
+}
+async function downloadOfflineMusic(){
+  if(!navigator.onLine){toast('Necesitás internet para guardar música offline');return;}
+  if(!('caches' in window)){toast('Este dispositivo no permite caché de música');return;}
+  toast('Guardando música offline...');
+  const cache=await caches.open(MUSIC_CACHE);let ok=0,fail=0;
+  for(const track of MUSIC_PLAYLIST){
+    try{const r=await fetch(track,{cache:'reload'});if(r&&r.ok){await cache.put(track,r.clone());ok++;}else fail++;}
+    catch(e){fail++;}
+  }
+  localStorage.setItem('rfm_music_offline_count',String(ok));localStorage.setItem('rfm_music_offline_date',String(Date.now()));
+  if(ok)toast(`Música offline lista: ${ok}/${MUSIC_PLAYLIST.length}`);else toast('No se pudo guardar música. Revisa los MP3 y la conexión.');
+  if(fail&&ok)pushNews(`🎵 Música offline: se guardaron ${ok} canciones; ${fail} no estaban disponibles.`,'info','club');
+}
+
 const MUSIC_BAD=new Set();
 let MUSIC_INDEX=-1;
 let MUSIC_UNLOCK_ARMED=false;
@@ -1739,5 +1763,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a228a8fdf8316380',t:'MTc4NTI5MTc5MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
