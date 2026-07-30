@@ -704,7 +704,7 @@ function newGameState(userClubId,managerName){
     training:{intensidad:'Normal',enfoque:'Equilibrado'},weekPrep:{week:1,recovery:false,train1:false,train2:false,concentration:false,bonusAtk:0,bonusDef:0,focus:0},
     matchMode:'league',
     copa:initCopa(Object.keys(clubes)),centroCup:null,
-    regional:initRegionalWorld(),transferNews:[],regionalNews:[],
+    regional:initRegionalWorld(),transferNews:[],regionalNews:[],rankingOnline:[],
     finanzas:[],
     tactics,clubes,divisiones:divs,
     calendarios:{1:roundRobinFull(divs[1]),2:roundRobinFull(divs[2]),3:roundRobinFull(divs[3])},
@@ -816,7 +816,7 @@ function migrateState(){
   if(!G.dtContract)G.dtContract={campaignsLeft:4,lastRaise:0};if(G.dtContract.campaignsLeft==null)G.dtContract.campaignsLeft=2;if(!G.careerId)G.careerId=uid()+Date.now().toString(36);if(G.managerWallet==null)G.managerWallet=0;if(!G.avatar)G.avatar={items:[]};if(!G.achievements)G.achievements=[];if(!G.championHistory)G.championHistory=[];if(!G.hall)G.hall={};if(!G.campania)G.campania='Apertura';if(!G.supercopas)G.supercopas=[];if(!G.champions)G.champions={};if(!G.training)G.training={intensidad:'Normal',enfoque:'Equilibrado'};if(!G.agentOffers)G.agentOffers=genAgentOffers(userClub().nivel);if(!G.inboxOffers)G.inboxOffers=[];if(!G.device)G.device=localStorage.getItem('rfm_device')||'pc';applyDevice(G.device);
   if(!G.weekPrep||G.weekPrep.week!==G.jornadaActual)G.weekPrep={week:G.jornadaActual,recovery:false,train1:false,train2:false,concentration:false,bonusAtk:0,bonusDef:0,focus:0};if(G.tactics){if(!G.tactics.presion)G.tactics.presion='Media';if(!G.tactics.ritmo)G.tactics.ritmo='Normal';}if(!G.copa||!G.copa.groups)G.copa=initCopa(Object.keys(G.clubes));
   if(!G.matchMode)G.matchMode='league';
-  if(!G.finanzas)G.finanzas=[];if(!G.regional)G.regional=initRegionalWorld();if(G.centroCup===undefined)G.centroCup=null;if(!G.transferNews)G.transferNews=[];if(!G.regionalNews)G.regionalNews=[];normalizeBudget('Ajuste económico de actualización');
+  if(!G.finanzas)G.finanzas=[];if(!G.rankingOnline)G.rankingOnline=[];if(!G.regional)G.regional=initRegionalWorld();if(G.centroCup===undefined)G.centroCup=null;if(!G.transferNews)G.transferNews=[];if(!G.regionalNews)G.regionalNews=[];normalizeBudget('Ajuste económico de actualización');
   if(G.meta)G.meta.v=4;
   validateGameState(false);
 }
@@ -1767,11 +1767,41 @@ function firebaseDBReady(){return !!(window.RFM_FIREBASE_READY&&window.RFM_FIREB
 function onlineId(){let id=localStorage.getItem('rfm_online_id');if(!id){id='u_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10);localStorage.setItem('rfm_online_id',id);}return id.replace(/[.#$/\[\]]/g,'_');}
 function onlineUserId(){const auth=window.RFM_FIREBASE_AUTH;return (auth&&auth.currentUser&&auth.currentUser.uid)||onlineId();}
 function onlineRankingId(){return (onlineUserId()+'_'+(G&&G.careerId?G.careerId:'career')).replace(/[.#$/\[\]]/g,'_');}
-function onlineProfile(){const u=G?userClub():null;return{userId:onlineUserId(),managerName:G?G.managerName:'Visitante',club:u?u.nombre:'Menú inicial',division:u?DIV_NAMES[u.nivel]:'—',version:GAME_VERSION,device:(G&&(G.device||PICK_DEVICE))||PICK_DEVICE||'pc',online:true,lastSeen:window.RFM_DB.serverTimestamp()};}
+function onlineProfile(){const u=G?userClub():null;return{userId:onlineUserId(),managerName:G?G.managerName:'Visitante',club:u?u.nombre:'Menú inicial',division:u?DIV_NAMES[u.nivel]:'—',version:GAME_VERSION,device:(G&&(G.device||PICK_DEVICE))||PICK_DEVICE||'pc',online:true,lastActive:Date.now(),lastSeen:window.RFM_DB.serverTimestamp()};}
 function managerScore(){const h=hallStats?hallStats():{titles:0,promotions:0,relegations:0,achievements:0,campaigns:0,centroTitles:0,copaTitles:0};return Math.max(0,Math.round((G.reputacion||0)*10+h.titles*350+h.promotions*250+h.centroTitles*1200+h.copaTitles*600+h.achievements*50+h.campaigns*25-h.relegations*200));}
-function rankingPayload(){const u=userClub();const h=hallStats();return{userId:onlineUserId(),careerId:G.careerId||'career',managerName:G.managerName||'DT',club:u.nombre,division:DIV_NAMES[u.nivel],season:G.temporada,campaign:G.campania||'Apertura',version:GAME_VERSION,reputation:G.reputacion||0,score:managerScore(),titles:h.titles||0,promotions:h.promotions||0,centroTitles:h.centroTitles||0,copaTitles:h.copaTitles||0,achievements:h.achievements||0,campaigns:h.campaigns||0,valid:!(G.security&&G.security.rankEligible===false),lastSeen:window.RFM_DB.serverTimestamp()};}
+function rankingPayload(){const u=userClub();const h=hallStats();return{userId:onlineUserId(),careerId:G.careerId||'career',managerName:G.managerName||'DT',club:u.nombre,division:DIV_NAMES[u.nivel],season:G.temporada,campaign:G.campania||'Apertura',version:GAME_VERSION,reputation:G.reputacion||0,score:managerScore(),titles:h.titles||0,promotions:h.promotions||0,centroTitles:h.centroTitles||0,copaTitles:h.copaTitles||0,achievements:h.achievements||0,campaigns:h.campaigns||0,valid:!(G.security&&G.security.rankEligible===false),lastActive:Date.now(),lastSeen:window.RFM_DB.serverTimestamp()};}
 let RFM_LAST_RANK_PUSH=0,RFM_SYNCING_ONLINE=false;
 function submitRanking(){try{if(!G||!firebaseDBReady())return;const db=window.RFM_FIREBASE_DB,F=window.RFM_DB;F.set(F.ref(db,'ranking/'+onlineRankingId()),rankingPayload()).catch(e=>console.warn('ranking write failed',e));}catch(e){console.warn(e);}}
+function rankingLastActive(r){
+  if(!r)return 0;
+  if(typeof r.lastActive==='number')return r.lastActive;
+  if(typeof r.lastSeen==='number')return r.lastSeen;
+  if(typeof r.updatedAt==='number')return r.updatedAt;
+  return 0;
+}
+let RFM_PURGING_RANKING=false;
+function purgarRankingInactivo(diasLimite=15,refresh=false){
+  if(RFM_PURGING_RANKING)return;
+  RFM_PURGING_RANKING=true;
+  try{
+    const limite=Date.now()-(diasLimite*24*60*60*1000);
+    const activos=[],inactivos=[];
+    (RFM_RANKING||[]).forEach(r=>{
+      const last=rankingLastActive(r);
+      if(last&&last<limite)inactivos.push(r);else activos.push(r);
+    });
+    if(inactivos.length){
+      RFM_RANKING=activos.sort((a,b)=>(b.score||0)-(a.score||0));
+      if(G)G.rankingOnline=RFM_RANKING;
+      if(firebaseDBReady()){
+        const db=window.RFM_FIREBASE_DB,F=window.RFM_DB;
+        inactivos.forEach(r=>{if(r.rankKey)F.remove(F.ref(db,'ranking/'+r.rankKey)).catch(e=>console.warn('ranking purge failed',e));});
+      }
+      try{autoSave();}catch(e){}
+      if(refresh&&CUR==='noticias')setTimeout(()=>renderNoticias(),50);
+    }else if(G){G.rankingOnline=RFM_RANKING;}
+  }catch(e){console.warn('purga ranking falló',e);}finally{setTimeout(()=>{RFM_PURGING_RANKING=false;},250);}
+}
 function syncOnlineNow(force){
   if(RFM_SYNCING_ONLINE)return;
   RFM_SYNCING_ONLINE=true;
@@ -1804,9 +1834,9 @@ function startOnlineServices(){
   clearInterval(RFM_RANK_INTERVAL);RFM_RANK_INTERVAL=setInterval(submitRanking,120000);
   submitRanking();
   try{RFM_UNSUB_PRESENCE&&RFM_UNSUB_PRESENCE();RFM_UNSUB_PRESENCE=F.onValue(F.ref(db,'presencia'),snap=>{const now=Date.now();let count=0;snap.forEach(ch=>{const v=ch.val()||{};const seen=typeof v.lastSeen==='number'?v.lastSeen:now;if(v.online!==false&&now-seen<120000)count++;});RFM_ONLINE_COUNT=count;if(G)renderTopbar();scheduleNoticiasRender();},err=>{console.warn('presence read failed',err);});}catch(e){console.warn(e);}
-  try{RFM_UNSUB_RANKING&&RFM_UNSUB_RANKING();const q=F.query(F.ref(db,'ranking'),F.orderByChild('score'),F.limitToLast(50));RFM_UNSUB_RANKING=F.onValue(q,snap=>{const arr=[];snap.forEach(ch=>{const v=ch.val();if(v)arr.push(Object.assign({rankKey:ch.key},v));});RFM_RANKING=arr.sort((a,b)=>(b.score||0)-(a.score||0));scheduleNoticiasRender();},err=>{console.warn('ranking read failed',err);});}catch(e){console.warn(e);}
+  try{setTimeout(()=>purgarRankingInactivo(15,false),2000);RFM_UNSUB_RANKING&&RFM_UNSUB_RANKING();const q=F.query(F.ref(db,'ranking'),F.orderByChild('score'),F.limitToLast(50));RFM_UNSUB_RANKING=F.onValue(q,snap=>{const arr=[];snap.forEach(ch=>{const v=ch.val();if(v)arr.push(Object.assign({rankKey:ch.key},v));});RFM_RANKING=arr.sort((a,b)=>(b.score||0)-(a.score||0));purgarRankingInactivo(15,false);scheduleNoticiasRender();},err=>{console.warn('ranking read failed',err);});}catch(e){console.warn(e);}
 }
-function renderOnlineRanking(){const rows=(RFM_RANKING||[]).slice(0,50).map((r,i)=>`<tr><td class="center">${i+1}</td><td>${esc(r.managerName||'DT')} ${r.valid===false?'<span class="tag amber">REV</span>':''}</td><td>${esc(r.club||'—')}<br><small>${esc(r.division||'')} · ${r.season||''} ${esc(r.campaign||'')}</small></td><td class="center amber">${r.score||0}</td><td class="center">${r.titles||0}</td></tr>`).join('')||'<tr><td colspan="5" class="muted center">Ranking online sin datos por ahora.</td></tr>';return`<div class="panel-title">🌐 Ranking online de DTs</div><table class="tbl"><thead><tr><th>#</th><th>DT</th><th>Club</th><th class="center">Puntos</th><th class="center">Títulos</th></tr></thead><tbody>${rows}</tbody></table>`;}
+function renderOnlineRanking(){purgarRankingInactivo(15,false);const rows=(RFM_RANKING||[]).slice(0,50).map((r,i)=>`<tr><td class="center">${i+1}</td><td>${esc(r.managerName||'DT')} ${r.valid===false?'<span class="tag amber">REV</span>':''}</td><td>${esc(r.club||'—')}<br><small>${esc(r.division||'')} · ${r.season||''} ${esc(r.campaign||'')}</small></td><td class="center amber">${r.score||0}</td><td class="center">${r.titles||0}</td></tr>`).join('')||'<tr><td colspan="5" class="muted center">Ranking online sin datos por ahora.</td></tr>';return`<div class="panel-title">🌐 Ranking online de DTs</div><table class="tbl"><thead><tr><th>#</th><th>DT</th><th>Club</th><th class="center">Puntos</th><th class="center">Títulos</th></tr></thead><tbody>${rows}</tbody></table>`;}
 
 /* ---------- VISUAL PREFERENCES ---------- */
 function applyVisualPrefs(){try{document.body.classList.toggle('no-crt',localStorage.getItem('rfm_crt_off')==='1');}catch(e){}}
