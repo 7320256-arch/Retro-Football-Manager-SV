@@ -237,6 +237,12 @@ body.no-crt{letter-spacing:.15px}
   .nav{z-index:1100!important}.tab.go{z-index:1110!important}.live-mini{z-index:1150!important}
 }
 
+/* --- UI hotfix: stable match scoreboard + touch-scroll top tools --- */
+.match-scoreboard{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;width:100%}
+.match-scoreboard>div{min-width:0;overflow:hidden}.match-scoreboard .pxl{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.match-scoreboard .badge{margin:0 auto}.match-scoreboard .score{white-space:nowrap;flex:0 0 auto;text-align:center}
+.topbtns{overflow-x:auto;overflow-y:hidden;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;max-width:100%;padding-bottom:2px}.topbtns::-webkit-scrollbar{display:none}.topbtns .btn,.topbtns label.btn{flex:0 0 auto;min-width:40px;min-height:38px;display:inline-flex;align-items:center;justify-content:center}
+@media(max-width:700px){.match-scoreboard{grid-template-columns:minmax(0,1fr) minmax(72px,auto) minmax(0,1fr);gap:6px}.match-scoreboard .score-big{font-size:22px!important;padding:0 6px!important}.match-scoreboard .pxl{font-size:8px!important}.topbtns{max-width:48vw!important;justify-content:flex-start!important}.topbtns .btn,.topbtns label.btn{min-width:44px;min-height:40px}}
+
 </style>
 </head>
 <body>
@@ -1660,7 +1666,7 @@ function renderMatchCard(c,o){const{min,sU,sR,homeEq,awayEq,isHome,live,btns,log
   const decision=phase==='decision'&&LIVE&&LIVE.decision?`<div class="decision-box"><b class="cyan">${esc(LIVE.decision.title)}</b><p>${esc(LIVE.decision.txt)}</p><button class="btn btn-p" onclick="chooseLiveDecision('attack')">Arriesgar</button><button class="btn" onclick="chooseLiveDecision('balance')">Equilibrar</button><button class="btn btn-a" onclick="chooseLiveDecision('defend')">Proteger</button></div>`:'';
   c.innerHTML=`<div class="panel-title">${comp} — ${DIV_NAMES[u.nivel]}</div>
     <div class="panel" style="background:#04100a"><div class="center muted pxl" style="font-size:9px">${lab}</div>
-    <div class="next-card" style="padding:13px 0">
+    <div class="match-scoreboard" style="padding:13px 0">
       <div class="center" style="flex:1">${badgeHTML(u)}<div class="pxl" style="font-size:10px;color:var(--green);margin-top:4px">${u.nombre}</div><span class="tag amber">${isHome?'LOCAL':'VISIT.'}</span></div>
       <div class="score score-big" style="padding:0 14px">${sU} : ${sR}</div>
       <div class="center" style="flex:1">${badgeHTML(isHome?awayEq:homeEq)}<div class="pxl" style="font-size:10px;color:var(--cyan);margin-top:4px">${(isHome?awayEq:homeEq).nombre}</div><span class="tag amber">${isHome?'VISIT.':'LOCAL'}</span></div>
@@ -2012,5 +2018,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a234698a58160da2',t:'MTc4NTQxNTAyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
