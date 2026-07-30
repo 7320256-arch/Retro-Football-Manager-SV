@@ -1465,12 +1465,23 @@ function userNextMatch(){
   const lvl=userClub().nivel;const j=G.calendarios[lvl][G.jornadaActual-1];return j?j.find(m=>m.h===G.userClubId||m.a===G.userClubId):null;
 }
 
+function changeManagerName(){
+  if(!G)return;
+  const old=G.managerName||'DT';
+  const nm=(prompt('Nuevo nombre del Director Técnico:',old)||old).trim().slice(0,24);
+  if(!nm){toast('Nombre inválido');return;}
+  if(nm===old){toast('Sin cambios');return;}
+  G.managerName=nm;
+  pushNews(`👔 El Director Técnico ahora figura como ${nm}.`,'info','club');
+  updatePresence();submitRanking();autoSave();renderAll();toast('Nombre de DT actualizado');
+}
+
 function renderCarrera(){
   const u=userClub();
   const hist=G.historia.length?G.historia.map(h=>`<tr><td class="center">${h.t} ${(h.campania||'').slice(0,3)}</td><td>${esc(h.club)}</td><td class="center">${DIV_NAMES[h.nivel]}</td><td class="center">${h.pos}°</td><td class="center">${h.met?'<span class="green">✓</span>':'<span class="red">✗</span>'} <small>${h.objCompleted!=null?`${h.objCompleted}/${h.objTotal}`:''}</small></td><td class="center">${h.titulo?'<span class="gold">🏆</span>':''}${h.promoted?'<span class="green">⬆</span>':''}${h.relegated?'<span class="red">⬇</span>':''}</td></tr>`).join(''):'<tr><td colspan="6" class="muted center">Aún sin historial.</td></tr>';
   $('carrera-panel').innerHTML=`<div class="panel-title">⭐ Trayectoria del Director Técnico</div>
     <div class="grid g3">
-      <div><div class="muted" style="font-size:14px">DT</div><div class="pxl" style="font-size:13px;color:var(--green)">${esc(G.managerName)}</div></div>
+      <div><div class="muted" style="font-size:14px">DT</div><div class="pxl" style="font-size:13px;color:var(--green)">${esc(G.managerName)}</div><button class="btn btn-sm" style="margin-top:6px" onclick="changeManagerName()">✎ Cambiar nombre</button></div>
       <div><div class="muted" style="font-size:14px">Reputación</div><div class="rep-stars">${repStars(G.reputacion)}</div><div class="muted" style="font-size:13px">${G.reputacion}/100</div></div>
       <div><div class="muted" style="font-size:14px">Sueldo anual</div><div class="amber bold">${money(G.salarioDT)}</div></div>
     </div>
@@ -1802,6 +1813,12 @@ function purgarRankingInactivo(diasLimite=15,refresh=false){
     }else if(G){G.rankingOnline=RFM_RANKING;}
   }catch(e){console.warn('purga ranking falló',e);}finally{setTimeout(()=>{RFM_PURGING_RANKING=false;},250);}
 }
+function purgarRankingAuto(){
+  const first=!localStorage.getItem('rfm_rank_purge_5_once_v155');
+  purgarRankingInactivo(first?5:15,false);
+  if(first)localStorage.setItem('rfm_rank_purge_5_once_v155','1');
+}
+
 function syncOnlineNow(force){
   if(RFM_SYNCING_ONLINE)return;
   RFM_SYNCING_ONLINE=true;
@@ -1834,7 +1851,7 @@ function startOnlineServices(){
   clearInterval(RFM_RANK_INTERVAL);RFM_RANK_INTERVAL=setInterval(submitRanking,120000);
   submitRanking();
   try{RFM_UNSUB_PRESENCE&&RFM_UNSUB_PRESENCE();RFM_UNSUB_PRESENCE=F.onValue(F.ref(db,'presencia'),snap=>{const now=Date.now();let count=0;snap.forEach(ch=>{const v=ch.val()||{};const seen=typeof v.lastSeen==='number'?v.lastSeen:now;if(v.online!==false&&now-seen<120000)count++;});RFM_ONLINE_COUNT=count;if(G)renderTopbar();scheduleNoticiasRender();},err=>{console.warn('presence read failed',err);});}catch(e){console.warn(e);}
-  try{setTimeout(()=>purgarRankingInactivo(15,false),2000);RFM_UNSUB_RANKING&&RFM_UNSUB_RANKING();const q=F.query(F.ref(db,'ranking'),F.orderByChild('score'),F.limitToLast(50));RFM_UNSUB_RANKING=F.onValue(q,snap=>{const arr=[];snap.forEach(ch=>{const v=ch.val();if(v)arr.push(Object.assign({rankKey:ch.key},v));});RFM_RANKING=arr.sort((a,b)=>(b.score||0)-(a.score||0));purgarRankingInactivo(15,false);scheduleNoticiasRender();},err=>{console.warn('ranking read failed',err);});}catch(e){console.warn(e);}
+  try{setTimeout(()=>purgarRankingInactivo(15,false),2000);RFM_UNSUB_RANKING&&RFM_UNSUB_RANKING();const q=F.query(F.ref(db,'ranking'),F.orderByChild('score'),F.limitToLast(50));RFM_UNSUB_RANKING=F.onValue(q,snap=>{const arr=[];snap.forEach(ch=>{const v=ch.val();if(v)arr.push(Object.assign({rankKey:ch.key},v));});RFM_RANKING=arr.sort((a,b)=>(b.score||0)-(a.score||0));purgarRankingAuto();scheduleNoticiasRender();},err=>{console.warn('ranking read failed',err);});}catch(e){console.warn(e);}
 }
 function renderOnlineRanking(){purgarRankingInactivo(15,false);const rows=(RFM_RANKING||[]).slice(0,50).map((r,i)=>`<tr><td class="center">${i+1}</td><td>${esc(r.managerName||'DT')} ${r.valid===false?'<span class="tag amber">REV</span>':''}</td><td>${esc(r.club||'—')}<br><small>${esc(r.division||'')} · ${r.season||''} ${esc(r.campaign||'')}</small></td><td class="center amber">${r.score||0}</td><td class="center">${r.titles||0}</td></tr>`).join('')||'<tr><td colspan="5" class="muted center">Ranking online sin datos por ahora.</td></tr>';return`<div class="panel-title">🌐 Ranking online de DTs</div><table class="tbl"><thead><tr><th>#</th><th>DT</th><th>Club</th><th class="center">Puntos</th><th class="center">Títulos</th></tr></thead><tbody>${rows}</tbody></table>`;}
 
@@ -2071,5 +2088,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2378f17fb052439',t:'MTc4NTQ0ODAxNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
