@@ -1633,7 +1633,6 @@ function renderCentro(){const panel=$('centro-panel'),c=G.centroCup;
 
 function setNewsFilter(f){NEWS_FILTER=f;renderNoticias();}
 function renderNoticias(){
-  startOnlineServices();updatePresence();submitRanking();
   const panel=$('noticias-panel');
   const filtered=(G.noticias||[]).filter(n=>NEWS_FILTER==='all'||(n.cat||'club')===NEWS_FILTER);
   const news=filtered.slice(0,30).map(n=>`<div class="news ${n.t}"><span class="tag ${n.cat==='mercado'?'green':n.cat==='regional'?'cyan':'amber'}">${esc(n.cat||'club')}</span> <span class="muted">${esc(n.time||('J'+n.j))}</span> ${esc(n.t)}</div>`).join('')||'<p class="muted">Sin noticias para este filtro.</p>';
@@ -1686,7 +1685,7 @@ function playQuick(){if(!prepComplete()){toast('Completa la preparación semanal
 function switchView(v){if(isLiveRunning()&&isCriticalView(v)){toast(v==='tactica'?'Táctica solo en el descanso':'Esta sección está bloqueada durante el partido en vivo');return;}if(!SIM)abortSim();CUR=v;document.querySelectorAll('.view').forEach(s=>s.classList.add('hidden'));
   const sec=$('view-'+v);if(sec)sec.classList.remove('hidden');
   document.querySelectorAll('.tab').forEach(t=>{const on=t.dataset.v===v&&!t.classList.contains('go');t.classList.toggle('active',on);});
-  if(v==='dashboard')renderDashboard();if(v==='carrera')renderCarrera();if(v==='plantilla')renderSquad();if(v==='tactica')renderTactics();if(v==='mercado')renderMarket();if(v==='finanzas')renderFinanzas();if(v==='entreno')renderEntreno();if(v==='calendario')renderCalendario();if(v==='copa')renderCopa();if(v==='centro')renderCentro();if(v==='stats')renderStats();if(v==='noticias')renderNoticias();if(v==='clasificacion'){VIEW_DIV=userClub().nivel;renderTable();}if(v==='partido')renderMatch();
+  if(v==='dashboard')renderDashboard();if(v==='carrera')renderCarrera();if(v==='plantilla')renderSquad();if(v==='tactica')renderTactics();if(v==='mercado')renderMarket();if(v==='finanzas')renderFinanzas();if(v==='entreno')renderEntreno();if(v==='calendario')renderCalendario();if(v==='copa')renderCopa();if(v==='centro')renderCentro();if(v==='stats')renderStats();if(v==='noticias'){syncOnlineNow(true);renderNoticias();}if(v==='clasificacion'){VIEW_DIV=userClub().nivel;renderTable();}if(v==='partido')renderMatch();
   document.querySelector('main').scrollTop=0;renderLiveMini();}
 function renderAll(){renderTopbar();switchView(CUR);renderLiveMini();}
 
@@ -1769,8 +1768,27 @@ function onlineRankingId(){return (onlineUserId()+'_'+(G&&G.careerId?G.careerId:
 function onlineProfile(){const u=G?userClub():null;return{userId:onlineUserId(),managerName:G?G.managerName:'Visitante',club:u?u.nombre:'Menú inicial',division:u?DIV_NAMES[u.nivel]:'—',version:GAME_VERSION,device:(G&&(G.device||PICK_DEVICE))||PICK_DEVICE||'pc',online:true,lastSeen:window.RFM_DB.serverTimestamp()};}
 function managerScore(){const h=hallStats?hallStats():{titles:0,promotions:0,relegations:0,achievements:0,campaigns:0,centroTitles:0,copaTitles:0};return Math.max(0,Math.round((G.reputacion||0)*10+h.titles*350+h.promotions*250+h.centroTitles*1200+h.copaTitles*600+h.achievements*50+h.campaigns*25-h.relegations*200));}
 function rankingPayload(){const u=userClub();const h=hallStats();return{userId:onlineUserId(),careerId:G.careerId||'career',managerName:G.managerName||'DT',club:u.nombre,division:DIV_NAMES[u.nivel],season:G.temporada,campaign:G.campania||'Apertura',version:GAME_VERSION,reputation:G.reputacion||0,score:managerScore(),titles:h.titles||0,promotions:h.promotions||0,centroTitles:h.centroTitles||0,copaTitles:h.copaTitles||0,achievements:h.achievements||0,campaigns:h.campaigns||0,valid:!(G.security&&G.security.rankEligible===false),lastSeen:window.RFM_DB.serverTimestamp()};}
+let RFM_LAST_RANK_PUSH=0,RFM_SYNCING_ONLINE=false;
 function submitRanking(){try{if(!G||!firebaseDBReady())return;const db=window.RFM_FIREBASE_DB,F=window.RFM_DB;F.set(F.ref(db,'ranking/'+onlineRankingId()),rankingPayload()).catch(e=>console.warn('ranking write failed',e));}catch(e){console.warn(e);}}
+function syncOnlineNow(force){
+  if(RFM_SYNCING_ONLINE)return;
+  RFM_SYNCING_ONLINE=true;
+  try{
+    startOnlineServices();
+    if(firebaseDBReady()&&G){
+      updatePresence();
+      const now=Date.now();
+      if(force||now-RFM_LAST_RANK_PUSH>45000){RFM_LAST_RANK_PUSH=now;submitRanking();}
+    }
+  }catch(e){console.warn('online sync failed',e);}finally{setTimeout(()=>{RFM_SYNCING_ONLINE=false;},250);}
+}
 function updatePresence(){try{if(!firebaseDBReady())return;const db=window.RFM_FIREBASE_DB,F=window.RFM_DB;F.update(F.ref(db,'presencia/'+onlineUserId()),onlineProfile()).catch(e=>console.warn('presence update failed',e));}catch(e){console.warn(e);}}
+let RFM_NEWS_RENDER_TIMER=null;
+function scheduleNoticiasRender(){
+  if(CUR!=='noticias')return;
+  clearTimeout(RFM_NEWS_RENDER_TIMER);
+  RFM_NEWS_RENDER_TIMER=setTimeout(()=>{try{renderNoticias();}catch(e){console.warn(e);}},250);
+}
 function startOnlineServices(){
   if(RFM_ONLINE_STARTED)return;
   if(!navigator.onLine){RFM_ONLINE_COUNT=0;if(G)renderTopbar();return;}
@@ -1783,8 +1801,8 @@ function startOnlineServices(){
   clearInterval(RFM_ONLINE_INTERVAL);RFM_ONLINE_INTERVAL=setInterval(updatePresence,30000);
   clearInterval(RFM_RANK_INTERVAL);RFM_RANK_INTERVAL=setInterval(submitRanking,120000);
   submitRanking();
-  try{RFM_UNSUB_PRESENCE&&RFM_UNSUB_PRESENCE();RFM_UNSUB_PRESENCE=F.onValue(F.ref(db,'presencia'),snap=>{const now=Date.now();let count=0;snap.forEach(ch=>{const v=ch.val()||{};const seen=typeof v.lastSeen==='number'?v.lastSeen:now;if(v.online!==false&&now-seen<120000)count++;});RFM_ONLINE_COUNT=count;if(G)renderTopbar();if(CUR==='noticias')renderNoticias();},err=>{console.warn('presence read failed',err);});}catch(e){console.warn(e);}
-  try{RFM_UNSUB_RANKING&&RFM_UNSUB_RANKING();const q=F.query(F.ref(db,'ranking'),F.orderByChild('score'),F.limitToLast(50));RFM_UNSUB_RANKING=F.onValue(q,snap=>{const arr=[];snap.forEach(ch=>{const v=ch.val();if(v)arr.push(Object.assign({rankKey:ch.key},v));});RFM_RANKING=arr.sort((a,b)=>(b.score||0)-(a.score||0));if(CUR==='noticias')renderNoticias();},err=>{console.warn('ranking read failed',err);});}catch(e){console.warn(e);}
+  try{RFM_UNSUB_PRESENCE&&RFM_UNSUB_PRESENCE();RFM_UNSUB_PRESENCE=F.onValue(F.ref(db,'presencia'),snap=>{const now=Date.now();let count=0;snap.forEach(ch=>{const v=ch.val()||{};const seen=typeof v.lastSeen==='number'?v.lastSeen:now;if(v.online!==false&&now-seen<120000)count++;});RFM_ONLINE_COUNT=count;if(G)renderTopbar();scheduleNoticiasRender();},err=>{console.warn('presence read failed',err);});}catch(e){console.warn(e);}
+  try{RFM_UNSUB_RANKING&&RFM_UNSUB_RANKING();const q=F.query(F.ref(db,'ranking'),F.orderByChild('score'),F.limitToLast(50));RFM_UNSUB_RANKING=F.onValue(q,snap=>{const arr=[];snap.forEach(ch=>{const v=ch.val();if(v)arr.push(Object.assign({rankKey:ch.key},v));});RFM_RANKING=arr.sort((a,b)=>(b.score||0)-(a.score||0));scheduleNoticiasRender();},err=>{console.warn('ranking read failed',err);});}catch(e){console.warn(e);}
 }
 function renderOnlineRanking(){const rows=(RFM_RANKING||[]).slice(0,50).map((r,i)=>`<tr><td class="center">${i+1}</td><td>${esc(r.managerName||'DT')} ${r.valid===false?'<span class="tag amber">REV</span>':''}</td><td>${esc(r.club||'—')}<br><small>${esc(r.division||'')} · ${r.season||''} ${esc(r.campaign||'')}</small></td><td class="center amber">${r.score||0}</td><td class="center">${r.titles||0}</td></tr>`).join('')||'<tr><td colspan="5" class="muted center">Ranking online sin datos por ahora.</td></tr>';return`<div class="panel-title">🌐 Ranking online de DTs</div><table class="tbl"><thead><tr><th>#</th><th>DT</th><th>Club</th><th class="center">Puntos</th><th class="center">Títulos</th></tr></thead><tbody>${rows}</tbody></table>`;}
 
@@ -2019,5 +2037,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23719310b49cedc',t:'MTc4NTQ0MzE4Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2373035497d983f',t:'MTc4NTQ0NDEzMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
