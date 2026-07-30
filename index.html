@@ -590,6 +590,7 @@ const TOTAL_JORNADAS=22;
 let G=null;
 const SAVE_KEY='rfm_sv_save_v2';
 const GAME_VERSION='1.5.5';
+const BUILD_ID='1.5.5-full';
 const FORMACIONES={'Libre':{def:0,med:0,del:0,l:'XI Libre (sin esquema)'},'4-4-2':{def:4,med:4,del:2,l:'4-4-2 Equilibrada'},'4-3-3':{def:4,med:3,del:3,l:'4-3-3 Ofensiva'},'3-5-2':{def:3,med:5,del:2,l:'3-5-2 Control'},'5-3-2':{def:5,med:3,del:2,l:'5-3-2 Muralla'},'4-2-3-1':{def:4,med:5,del:1,l:'4-2-3-1 Moderna'}};
 const MENTALIDADES={'Defensiva':{atk:0.80,def:1.20},'Contraataque':{atk:1.05,def:1.05},'Equilibrada':{atk:1.0,def:1.0},'Ofensiva':{atk:1.20,def:0.85}};
 const PRESIONES={'Baja':{atk:.96,def:1.04,energy:.92},'Media':{atk:1,def:1,energy:1},'Alta':{atk:1.07,def:.96,energy:1.18}};
@@ -1212,7 +1213,7 @@ function repairGame(show){
     if(show)toast('Partida revisada y reparada');
   }catch(e){console.error(e);if(show)toast('No se pudo reparar completamente');}
 }
-function helpHTML(){return`<div class="modal-title">📘 Manual rápido</div>
+function helpHTML(){return`<div class="modal-title">📘 Manual rápido</div><div class="offer"><b class="gold">Versión v${GAME_VERSION}</b><br><small>Build: ${BUILD_ID}</small></div>
   <div class="offer"><b class="green">Objetivo del juego</b><br>Dirigís un club salvadoreño. Preparás semanas, gestionás plantilla, finanzas, mercado, estadio, competiciones nacionales y Copa Centroamericana.</div>
   <div class="offer"><b class="amber">Semana</b><br>Antes de jugar completá 2 entrenamientos y concentración. Recuperación es opcional pero ayuda a energía. Simular preparación sirve si querés avanzar rápido.</div>
   <div class="offer"><b class="cyan">Táctica</b><br>Presión Alta y Ritmo Directo aumentan ataque pero cansan. Presión Baja y Ritmo Pausado protegen energía y defensa. En vivo podés cambiar al descanso.</div>
@@ -1441,6 +1442,7 @@ function renderDashboard(){
     <div style="font-size:16px;display:flex;justify-content:space-between"><span class="muted">Patrocinador</span><b class="cyan">${G.sponsor?esc(G.sponsor.nombre):'Sin firmar'}</b></div>
     <div style="font-size:16px;display:flex;justify-content:space-between"><span class="muted">11 promedio</span><b class="amber">${teamRating(u)}</b></div>
     <div style="font-size:16px;display:flex;justify-content:space-between"><span class="muted">Versión</span><b class="gold">v${GAME_VERSION}</b></div>
+    <div style="font-size:16px;display:flex;justify-content:space-between"><span class="muted">Build</span><b class="cyan">${BUILD_ID}</b></div>
     <hr class="sep"><div class="muted" style="font-size:14px">OBJETIVOS ${G.temporada} ${(G.campania||'Apertura')} <span class="tag ${G.objetivo.prioridad==='alta'?'red':G.objetivo.prioridad==='baja'?'green':'amber'}">${(G.objetivo.prioridad||'media').toUpperCase()}</span></div>${renderObjectivesMini(G.objetivo)}`;
   let nx='';
   if(G.finished){nx='<p class="center">Temporada finalizada.</p>';}
@@ -2032,10 +2034,12 @@ function registerOfflineSupport(){
     }).then(()=>{try{navigator.serviceWorker.controller&&navigator.serviceWorker.controller.postMessage({type:'CACHE_NOW'});}catch(e){}}).catch(e=>{window.RFM_SW_OK=false;console.warn('Service Worker no registrado:',e);});
   }else{window.RFM_SW_OK=false;}
 }
+window.RFM_BUILD_COMPLETE=BUILD_ID;
+console.log('RFM build completo', window.RFM_BUILD_COMPLETE);
 window.addEventListener('beforeunload',autoSave);
 installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2373035497d983f',t:'MTc4NTQ0NDEzMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
