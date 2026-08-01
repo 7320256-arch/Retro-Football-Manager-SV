@@ -258,7 +258,7 @@ body.no-crt{letter-spacing:.15px}
 </head>
 <body>
 <div id="video-intro" class="hidden" aria-hidden="true">
-  <video id="intro-video" preload="auto" playsinline muted autoplay disablepictureinpicture controlslist="nodownload noplaybackrate"></video>
+  <video id="intro-video" preload="auto" playsinline autoplay disablepictureinpicture controlslist="nodownload noplaybackrate"></video>
   <button class="video-intro-skip" id="intro-skip-btn" type="button" aria-label="Saltar intro">SALTAR INTRO ✕</button>
 </div>
 <div class="crt-lines"></div>
@@ -2135,7 +2135,10 @@ function showVideoIntroOverlay(){
     url='intro.mp4';
   }
   v.src=url;
+  // Estrategia de audio: arrancamos muted para que el navegador no bloquee el autoplay.
+  // Apenas confirme que está reproduciendo (evento 'playing'), desmuteamos para que se escuche.
   v.muted=true;
+  v.volume=1.0;
   v.playsInline=true;
   v.setAttribute('playsinline','');
   v.setAttribute('webkit-playsinline','');
@@ -2153,6 +2156,14 @@ function showVideoIntroOverlay(){
   };
   v.onended=()=>{finishOnce();document.dispatchEvent(new CustomEvent('rfm-video-intro-done'));};
   v.onerror=()=>{showVideoIntroError('No se pudo cargar intro.mp4. Asegurate de subir el archivo junto a index.html y que sea un MP4 reproducible por el navegador.');};
+  // Apenas el video esté reproduciendo, desmuteamos para que se escuche el audio.
+  v.onplaying=()=>{
+    try{v.muted=false;v.volume=1.0;}catch(e){}
+  };
+  v.oncanplay=()=>{
+    // En algunos navegadores, desmuteamos también en canplay por si onplaying no se dispara.
+    try{if(v.paused===false){v.muted=false;v.volume=1.0;}}catch(e){}
+  };
   // Botón "Saltar intro".
   if(btn)btn.addEventListener('click',skipVideoIntro);
   // Intentar reproducir; si el navegador bloquea, mantenemos el botón visible.
@@ -2173,7 +2184,16 @@ function armVideoIntroUnlock(){
   RFM_INTRO_SKIP_ARMED=true;
   const unlock=()=>{
     const v=$('intro-video');
-    if(v&&v.paused){v.muted=true;v.play().catch(()=>{});}
+    if(v){
+      if(v.paused){
+        // Reproducimos muted primero para no perder el gesto, y desmutamos al toque.
+        v.muted=true;
+        v.play().then(()=>{try{v.muted=false;v.volume=1.0;}catch(e){}}).catch(()=>{});
+      }else{
+        // Ya está reproduciendo, desmutamos al toque del usuario (esto sí cuenta como gesto válido).
+        try{v.muted=false;v.volume=1.0;}catch(e){}
+      }
+    }
     ['pointerdown','touchstart','click','keydown'].forEach(ev=>document.removeEventListener(ev,unlock));
     RFM_INTRO_SKIP_ARMED=false;
   };
@@ -2313,5 +2333,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2476c77eb73cc79',t:'MTc4NTYxNDM3MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a24774739c1ecc72',t:'MTc4NTYxNDY5Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
