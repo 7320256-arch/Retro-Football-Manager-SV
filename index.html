@@ -297,7 +297,7 @@ body.no-crt{letter-spacing:.15px}
       <div class="stat"><div class="k">Online</div><div id="hd-online" class="v green">—</div></div>
     </div>
     <div class="topbtns">
-      <button class="btn btn-sm" onclick="toggleMusic()" title="Música ON/OFF">🎵</button><button class="btn btn-sm" onclick="nextMusicTrack(true)" title="Siguiente canción">⏭</button><button class="btn btn-sm" onclick="toggleCRT()" title="Activar/desactivar CRT">CRT</button><button class="btn btn-sm" onclick="openHelpCenter()" title="Ayuda">?</button><button class="btn btn-sm" onclick="repairGame(true)" title="Reparar partida">🔧</button><button class="btn btn-sm" onclick="exportSave()" title="Descargar partida">⬇</button>
+      <button class="btn btn-sm" onclick="toggleMusic()" title="Música ON/OFF">🎵</button><button class="btn btn-sm" onclick="nextMusicTrack(true)" title="Siguiente canción">⏭</button><button class="btn btn-sm" onclick="playIntroManually()" title="Ver intro de video">🎬</button><button class="btn btn-sm" onclick="toggleCRT()" title="Activar/desactivar CRT">CRT</button><button class="btn btn-sm" onclick="openHelpCenter()" title="Ayuda">?</button><button class="btn btn-sm" onclick="repairGame(true)" title="Reparar partida">🔧</button><button class="btn btn-sm" onclick="exportSave()" title="Descargar partida">⬇</button>
       <label class="btn btn-sm" title="Cargar partida">⬆<input type="file" accept=".json,application/json" id="imp-file" hidden onchange="importSave(event)"></label>
       <button class="btn btn-sm btn-d" onclick="confirmNewGame()">⟳</button>
     </div>
@@ -2082,6 +2082,7 @@ function hardReset(){closeModal();localStorage.removeItem(SAVE_KEY);G=null;showI
 /* ---------- VIDEO INTRO ---------- */
 let RFM_INTRO_VIDEO_HANDLED=false;
 let RFM_INTRO_SKIP_ARMED=false;
+let RFM_INTRO_WAS_PLAYING=false;
 function showVideoIntroError(reason){
   const box=$('video-intro');
   if(!box)return;
@@ -2098,14 +2099,14 @@ function startVideoIntro(){
   const v=$('intro-video');
   const btn=$('intro-skip-btn');
   if(!box||!v||RFM_INTRO_VIDEO_HANDLED)return;
-  if(localStorage.getItem('rfm_video_intro_seen')==='1')return;
+  if(sessionStorage.getItem('rfm_video_intro_seen')==='1')return;
   RFM_INTRO_VIDEO_HANDLED=true;
   // Si estamos offline y NO hay video en caché, saltamos la intro directo al menú
   // para que el jugador no se quede en un bucle de error.
   if(!navigator.onLine&&'caches'in window){
     caches.match('intro.mp4').then(hit=>{
       if(!hit){
-        localStorage.setItem('rfm_video_intro_seen','1');
+        sessionStorage.setItem('rfm_video_intro_seen','1');
         document.dispatchEvent(new CustomEvent('rfm-video-intro-done'));
         return;
       }
@@ -2123,6 +2124,8 @@ function showVideoIntroOverlay(){
   if(!box||!v)return;
   box.classList.remove('hidden');
   document.body.style.overflow='hidden';
+  // Pausamos la música del juego mientras se reproduce la intro para que no se solapen.
+  try{const a=$('bg-music');if(a&&!a.paused){a.pause();RFM_INTRO_WAS_PLAYING=true;}}catch(e){}
   // Construye la URL absoluta del video local (intro.mp4) en la misma carpeta que index.html.
   let url;
   try{
@@ -2144,7 +2147,9 @@ function showVideoIntroOverlay(){
     box.classList.add('hidden');
     document.body.style.overflow='';
     try{v.pause();v.removeAttribute('src');v.load();}catch(e){}
-    localStorage.setItem('rfm_video_intro_seen','1');
+    sessionStorage.setItem('rfm_video_intro_seen','1');
+    // Reanudamos la música si estaba sonando antes.
+    try{const a=$('bg-music');if(a&&RFM_INTRO_WAS_PLAYING){RFM_INTRO_WAS_PLAYING=false;a.play().catch(()=>{});}}catch(e){}
   };
   v.onended=()=>{finishOnce();document.dispatchEvent(new CustomEvent('rfm-video-intro-done'));};
   v.onerror=()=>{showVideoIntroError('No se pudo cargar intro.mp4. Asegurate de subir el archivo junto a index.html y que sea un MP4 reproducible por el navegador.');};
@@ -2181,8 +2186,36 @@ function skipVideoIntro(){
   box.classList.add('hidden');
   document.body.style.overflow='';
   try{if(v){v.pause();v.removeAttribute('src');v.load();}}catch(e){}
-  localStorage.setItem('rfm_video_intro_seen','1');
+  sessionStorage.setItem('rfm_video_intro_seen','1');
+  // Reanudamos la música si estaba sonando antes.
+  try{const a=$('bg-music');if(a&&RFM_INTRO_WAS_PLAYING){RFM_INTRO_WAS_PLAYING=false;a.play().catch(()=>{});}}catch(e){}
   document.dispatchEvent(new CustomEvent('rfm-video-intro-done'));
+}
+// Reproduce la intro manualmente desde el botón 🎬 Intro de la barra superior.
+// No se reproduce si ya está visible, si hay un partido en vivo, o si el video no existe.
+function playIntroManually(){
+  const box=$('video-intro');
+  if(!box)return;
+  if(!box.classList.contains('hidden'))return; // ya se está mostrando
+  if(typeof isLiveRunning==='function'&&isLiveRunning()){
+    toast('No podés ver la intro durante un partido en vivo');
+    return;
+  }
+  // Forzamos que la próxima vez que se llame startVideoIntro la muestre.
+  RFM_INTRO_VIDEO_HANDLED=false;
+  sessionStorage.removeItem('rfm_video_intro_seen');
+  // Cerramos cualquier modal abierto para que la intro quede limpia.
+  try{if(typeof closeModal==='function')closeModal();}catch(e){}
+  // Reutilizamos la lógica normal de intro.
+  startVideoIntro();
+  // Si después de 1.5s el video no se pudo cargar (archivo ausente), avisamos.
+  setTimeout(()=>{
+    const v=$('intro-video');
+    if(v&&(v.error||v.networkState===3)){
+      toast('No se encontró intro.mp4. Subilo a la raíz del repo junto a index.html.');
+      try{$('video-intro').classList.add('hidden');sessionStorage.setItem('rfm_video_intro_seen','1');document.dispatchEvent(new CustomEvent('rfm-video-intro-done'));}catch(e){}
+    }
+  },1500);
 }
 
 /* ---------- INTRO ---------- */
@@ -2227,7 +2260,7 @@ function boot(){
       showIntro();startOnlineServices();
     }
   };
-  if(localStorage.getItem('rfm_video_intro_seen')==='1'){
+  if(sessionStorage.getItem('rfm_video_intro_seen')==='1'){
     proceed();
   }else{
     const onVideoDone=()=>{document.removeEventListener('rfm-video-intro-done',onVideoDone);proceed();};
@@ -2235,7 +2268,7 @@ function boot(){
     startVideoIntro();
     // Plan B: si el video falla (archivo ausente / error), avanzamos igual.
     setTimeout(()=>{
-      if($('video-intro')&&!$('video-intro').classList.contains('hidden')&&localStorage.getItem('rfm_video_intro_seen')!=='1'){
+      if($('video-intro')&&!$('video-intro').classList.contains('hidden')&&sessionStorage.getItem('rfm_video_intro_seen')!=='1'){
         // si pasaron 3s y no se ocultó, puede ser error: mostrar error con botón Entrar
         const v=$('intro-video');
         if(v&&(v.error||v.networkState===3||v.readyState===0)){
@@ -2280,5 +2313,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a24757e57c950efd',t:'MTc4NTYxMzUyNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2476c77eb73cc79',t:'MTc4NTYxNDM3MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
