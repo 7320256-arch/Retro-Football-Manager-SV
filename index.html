@@ -122,6 +122,17 @@ main{flex:1;overflow:auto;padding:13px}
 .modal-card{background:var(--panel);border:2px solid var(--green);border-radius:8px;max-width:680px;width:100%;max-height:88vh;overflow:auto;padding:18px;box-shadow:0 0 40px rgba(70,226,43,.25)}
 .modal-title{font-family:var(--font-pixel);font-size:13px;color:var(--amber);margin-bottom:11px;text-shadow:0 0 8px rgba(255,204,51,.4)}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#08130a;border:1px solid var(--green);color:var(--green);padding:8px 16px;border-radius:4px;z-index:1500;font-size:17px;box-shadow:0 0 18px rgba(70,226,43,.4);animation:fade .2s}
+/* --- Video intro overlay --- */
+#video-intro{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:3000;flex-direction:column}
+#video-intro video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;outline:none}
+#video-intro.hidden{display:none !important}
+.video-intro-skip{position:absolute;top:14px;right:14px;z-index:3010;background:rgba(8,19,10,.78);border:1px solid var(--green);color:var(--green);padding:8px 14px;border-radius:4px;font-family:var(--font-pixel);font-size:10px;letter-spacing:.5px;cursor:pointer;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 0 14px rgba(70,226,43,.35);transition:.15s}
+.video-intro-skip:hover{background:rgba(8,19,10,.95);color:#fff;border-color:#fff;transform:translateY(-1px)}
+.video-intro-error{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;color:var(--green);font-family:var(--font-pixel);font-size:14px;padding:20px;text-align:center;background:radial-gradient(circle at 50% 50%,#04140a,#000);gap:14px}
+.video-intro-error small{color:var(--dim);font-size:12px;line-height:1.6;font-family:var(--font-term);max-width:520px}
+.video-intro-error button{margin-top:10px}
+@media(max-width:700px){.video-intro-skip{top:auto;bottom:18px;right:18px;font-size:9px;padding:9px 14px}}
+
 #intro{position:fixed;inset:0;background:#04100a;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:18px;overflow:auto;z-index:2000}
 #intro h1{font-family:var(--font-pixel);font-size:20px;color:var(--green);text-shadow:0 0 14px rgba(70,226,43,.6);margin:6px 0;text-align:center;line-height:1.5}
 #intro p{color:var(--dim);font-size:17px;margin-bottom:12px;text-align:center}
@@ -246,6 +257,10 @@ body.no-crt{letter-spacing:.15px}
 </style>
 </head>
 <body>
+<div id="video-intro" class="hidden" aria-hidden="true">
+  <video id="intro-video" preload="auto" playsinline muted autoplay disablepictureinpicture controlslist="nodownload noplaybackrate"></video>
+  <button class="video-intro-skip" id="intro-skip-btn" type="button" aria-label="Saltar intro">SALTAR INTRO ✕</button>
+</div>
 <div class="crt-lines"></div>
 <div class="crt-vig"></div>
 
@@ -2064,6 +2079,91 @@ function importSave(ev){const f=ev.target.files[0];if(!f)return;const rd=new Fil
 function confirmNewGame(){openModal(`<div class="modal-title">⟳ ¿Nueva partida?</div><p>Se borrará el avance actual.</p><div class="center" style="margin-top:10px"><button class="btn btn-d" onclick="hardReset()">Sí, empezar de nuevo</button> <button class="btn" onclick="closeModal()">Cancelar</button></div>`);}
 function hardReset(){closeModal();localStorage.removeItem(SAVE_KEY);G=null;showIntro();}
 
+/* ---------- VIDEO INTRO ---------- */
+let RFM_INTRO_VIDEO_HANDLED=false;
+let RFM_INTRO_SKIP_ARMED=false;
+function showVideoIntroError(reason){
+  const box=$('video-intro');
+  if(!box)return;
+  box.innerHTML=`<div class="video-intro-error">
+    <div>🎬 INTRO NO DISPONIBLE</div>
+    <small>${esc(reason||'No se encontró el archivo de video. El juego continuará con la música y el menú principal.')}</small>
+    <button class="btn btn-p" id="intro-skip-btn" type="button">Entrar al juego</button>
+  </div>`;
+  const btn=document.getElementById('intro-skip-btn');
+  if(btn)btn.addEventListener('click',skipVideoIntro);
+}
+function startVideoIntro(){
+  const box=$('video-intro');
+  const v=$('intro-video');
+  const btn=$('intro-skip-btn');
+  if(!box||!v||RFM_INTRO_VIDEO_HANDLED)return;
+  if(localStorage.getItem('rfm_video_intro_seen')==='1')return;
+  RFM_INTRO_VIDEO_HANDLED=true;
+  box.classList.remove('hidden');
+  document.body.style.overflow='hidden';
+  // Construye la URL absoluta del video local (intro.mp4) en la misma carpeta que index.html.
+  let url;
+  try{
+    const u=new URL('intro.mp4',location.href);
+    url=u.origin+u.pathname;
+  }catch(e){
+    url='intro.mp4';
+  }
+  v.src=url;
+  v.muted=true;
+  v.playsInline=true;
+  v.setAttribute('playsinline','');
+  v.setAttribute('webkit-playsinline','');
+  v.loop=false;
+  v.controls=false;
+  v.load();
+  // Eventos: terminar video, errores, listo para reproducir.
+  const finishOnce=()=>{
+    box.classList.add('hidden');
+    document.body.style.overflow='';
+    try{v.pause();v.removeAttribute('src');v.load();}catch(e){}
+    localStorage.setItem('rfm_video_intro_seen','1');
+  };
+  v.onended=()=>{finishOnce();document.dispatchEvent(new CustomEvent('rfm-video-intro-done'));};
+  v.onerror=()=>{showVideoIntroError('No se pudo cargar intro.mp4. Asegurate de subir el archivo junto a index.html y que sea un MP4 reproducible por el navegador.');};
+  // Botón "Saltar intro".
+  if(btn)btn.addEventListener('click',skipVideoIntro);
+  // Intentar reproducir; si el navegador bloquea, mantenemos el botón visible.
+  const tryPlay=v.play();
+  if(tryPlay&&typeof tryPlay.catch==='function'){
+    tryPlay.catch(err=>{
+      // Bloqueo de autoplay: dejamos el video listo y armamos un desbloqueo al primer click.
+      v.muted=true;
+      v.play().catch(()=>{});
+      armVideoIntroUnlock();
+    });
+  }
+  // Cualquier interacción del usuario desbloquea la reproducción y permite terminar.
+  armVideoIntroUnlock();
+}
+function armVideoIntroUnlock(){
+  if(RFM_INTRO_SKIP_ARMED)return;
+  RFM_INTRO_SKIP_ARMED=true;
+  const unlock=()=>{
+    const v=$('intro-video');
+    if(v&&v.paused){v.muted=true;v.play().catch(()=>{});}
+    ['pointerdown','touchstart','click','keydown'].forEach(ev=>document.removeEventListener(ev,unlock));
+    RFM_INTRO_SKIP_ARMED=false;
+  };
+  ['pointerdown','touchstart','click','keydown'].forEach(ev=>document.addEventListener(ev,unlock,{once:true,passive:true}));
+}
+function skipVideoIntro(){
+  const box=$('video-intro');
+  const v=$('intro-video');
+  if(!box)return;
+  box.classList.add('hidden');
+  document.body.style.overflow='';
+  try{if(v){v.pause();v.removeAttribute('src');v.load();}}catch(e){}
+  localStorage.setItem('rfm_video_intro_seen','1');
+  document.dispatchEvent(new CustomEvent('rfm-video-intro-done'));
+}
+
 /* ---------- INTRO ---------- */
 let PICK_DIV=3,PICK_CLUB=null,PICK_DEVICE=localStorage.getItem('rfm_device')||'pc';
 function applyDevice(d){PICK_DEVICE=d||'pc';document.body.classList.remove('device-phone','device-tablet','device-pc');document.body.classList.add('device-'+PICK_DEVICE);try{localStorage.setItem('rfm_device',PICK_DEVICE);}catch(e){}if(G)G.device=PICK_DEVICE;}
@@ -2088,7 +2188,42 @@ function pickClub(id){PICK_CLUB=id;document.querySelectorAll('.club-pick').forEa
 function promptDT(){if(!PICK_CLUB){toast('Elegí un club primero');return;}const nm=prompt('Nombre del Director Técnico:','DT')||'DT';startGame(PICK_CLUB,nm);}
 function startGame(clubId,nm){touchLocalActivity();applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);G.device=PICK_DEVICE;pushNews(`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(!showLaunchModal('new'))startTutorial(false);},400);tryResumeMusic();startOnlineServices();updatePresence();submitRanking();}
 
-function boot(){touchLocalActivity();applyVisualPrefs();const s=loadSave();if(s&&s.clubes&&s.userClubId&&s.meta&&(s.meta.v===2||s.meta.v===3||s.meta.v===4)){G=s;migrateState();autoSave();if(!maybePrepareConcacafEvent()&&!maybePrepareCentroEvent())maybePrepareCupEvent();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(!showLaunchModal('existing')){if(!showPatchModal())startTutorial(false);}},500);tryResumeMusic();startOnlineServices();updatePresence();submitRanking();}else{showIntro();startOnlineServices();}}
+function boot(){
+  touchLocalActivity();applyVisualPrefs();
+  // La intro de video (si existe) se muestra antes del menú.
+  // Cuando termina o se salta, dispatcha 'rfm-video-intro-done' y continuamos.
+  const proceed=()=>{
+    const s=loadSave();
+    if(s&&s.clubes&&s.userClubId&&s.meta&&(s.meta.v===2||s.meta.v===3||s.meta.v===4)){
+      G=s;migrateState();autoSave();
+      if(!maybePrepareConcacafEvent()&&!maybePrepareCentroEvent())maybePrepareCupEvent();
+      $('intro').classList.add('hidden');
+      $('app').classList.remove('hidden');
+      renderAll();switchView('dashboard');
+      setTimeout(()=>{if(!showLaunchModal('existing')){if(!showPatchModal())startTutorial(false);}},500);
+      tryResumeMusic();startOnlineServices();updatePresence();submitRanking();
+    }else{
+      showIntro();startOnlineServices();
+    }
+  };
+  if(localStorage.getItem('rfm_video_intro_seen')==='1'){
+    proceed();
+  }else{
+    const onVideoDone=()=>{document.removeEventListener('rfm-video-intro-done',onVideoDone);proceed();};
+    document.addEventListener('rfm-video-intro-done',onVideoDone,{once:true});
+    startVideoIntro();
+    // Plan B: si el video falla (archivo ausente / error), avanzamos igual.
+    setTimeout(()=>{
+      if($('video-intro')&&!$('video-intro').classList.contains('hidden')&&localStorage.getItem('rfm_video_intro_seen')!=='1'){
+        // si pasaron 3s y no se ocultó, puede ser error: mostrar error con botón Entrar
+        const v=$('intro-video');
+        if(v&&(v.error||v.networkState===3||v.readyState===0)){
+          showVideoIntroError();
+        }
+      }
+    },3500);
+  }
+}
 function ensureManifestLink(){
   let link=document.querySelector('link[rel="manifest"]');
   if(!link){link=document.createElement('link');link.rel='manifest';document.head.appendChild(link);}
@@ -2124,5 +2259,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a23870e29d754851',t:'MTc4NTQ1NzI2NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
