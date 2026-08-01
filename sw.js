@@ -1,13 +1,15 @@
-/* Retro Football Manager SV — PWABuilder-safe Service Worker with audio range support */
-const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v4';
+/* Retro Football Manager SV — PWABuilder-safe Service Worker with audio + video range support */
+const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v5';
 const MUSIC_CACHE = 'rfm-music-offline-v4';
+const INTRO_CACHE = 'rfm-intro-offline-v1';
 const SCOPE_PATH = '/Retro-Football-Manager-SV/';
 
 const APP_SHELL = [
   SCOPE_PATH,
   SCOPE_PATH + 'index.html',
   SCOPE_PATH + 'manifest.json',
-  SCOPE_PATH + 'icon-512.png'
+  SCOPE_PATH + 'icon-512.png',
+  SCOPE_PATH + 'intro.mp4'
 ];
 
 self.addEventListener('install', event => {
@@ -22,7 +24,7 @@ self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
     await Promise.all(keys
-      .filter(k => k !== CACHE_VERSION && k !== MUSIC_CACHE)
+      .filter(k => k !== CACHE_VERSION && k !== MUSIC_CACHE && k !== INTRO_CACHE)
       .map(k => caches.delete(k))
     );
     await self.clients.claim();
@@ -36,6 +38,20 @@ self.addEventListener('message', event => {
 function isAudioRequest(request) {
   const url = new URL(request.url);
   return /\.(mp3|ogg|m4a|wav|aac)$/i.test(url.pathname);
+}
+
+function isVideoRequest(request) {
+  const url = new URL(request.url);
+  return /\.(mp4|webm|m4v|mov)$/i.test(url.pathname);
+}
+
+function isIntroVideoRequest(request) {
+  try {
+    const url = new URL(request.url);
+    return /\/intro\.(mp4|webm|m4v|mov)$/i.test(url.pathname);
+  } catch (e) {
+    return false;
+  }
 }
 
 async function makeRangeResponse(request, response) {
@@ -83,7 +99,7 @@ async function handleAudio(request) {
 
   // If we have the complete song cached, serve proper 206 range responses offline/online.
   if (cached && range) return makeRangeResponse(request, cached.clone());
-  if (cached && !navigator.onLine) return cached;
+  if (cached) return cached;
 
   try {
     const fresh = await fetch(request);
@@ -98,6 +114,36 @@ async function handleAudio(request) {
       return cached;
     }
     return new Response('', { status: 503, statusText: 'Audio unavailable offline' });
+  }
+}
+
+async function handleVideo(request) {
+  const cache = await caches.open(INTRO_CACHE);
+  // Buscamos sólo dentro de INTRO_CACHE (no en todas las cachés) para evitar
+  // confundirnos con respuestas precargadas que no son del video.
+  const cleanUrl = new URL(request.url).origin + new URL(request.url).pathname;
+  let cached = await cache.match(cleanUrl);
+  if (!cached) cached = await cache.match(request.url);
+  const range = request.headers.get('range');
+
+  // Si ya está cacheado, lo servimos. Si piden un Range, armamos respuesta 206.
+  if (cached && range) return makeRangeResponse(request, cached.clone());
+  if (cached) return cached;
+
+  try {
+    const fresh = await fetch(request);
+    // Solo cacheamos respuestas 200 completas (los 206 parciales no se pueden reusar como fuente).
+    if (fresh && fresh.ok && fresh.status === 200) {
+      cache.put(cleanUrl, fresh.clone()).catch(() => {});
+    }
+    return fresh;
+  } catch (err) {
+    if (cached) {
+      if (range) return makeRangeResponse(request, cached.clone());
+      return cached;
+    }
+    // No hay video disponible offline: 404 para que el <video> dispare 'error' y el JS muestre el fallback.
+    return new Response('', { status: 404, statusText: 'Intro video unavailable offline' });
   }
 }
 
@@ -125,6 +171,11 @@ self.addEventListener('fetch', event => {
 
   if (isAudioRequest(request)) {
     event.respondWith(handleAudio(request));
+    return;
+  }
+
+  if (isVideoRequest(request)) {
+    event.respondWith(handleVideo(request));
     return;
   }
 

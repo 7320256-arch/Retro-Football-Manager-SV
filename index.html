@@ -2100,6 +2100,27 @@ function startVideoIntro(){
   if(!box||!v||RFM_INTRO_VIDEO_HANDLED)return;
   if(localStorage.getItem('rfm_video_intro_seen')==='1')return;
   RFM_INTRO_VIDEO_HANDLED=true;
+  // Si estamos offline y NO hay video en caché, saltamos la intro directo al menú
+  // para que el jugador no se quede en un bucle de error.
+  if(!navigator.onLine&&'caches'in window){
+    caches.match('intro.mp4').then(hit=>{
+      if(!hit){
+        localStorage.setItem('rfm_video_intro_seen','1');
+        document.dispatchEvent(new CustomEvent('rfm-video-intro-done'));
+        return;
+      }
+      // Sí hay video en caché, lo mostramos normalmente.
+      showVideoIntroOverlay();
+    }).catch(()=>showVideoIntroOverlay());
+    return;
+  }
+  showVideoIntroOverlay();
+}
+function showVideoIntroOverlay(){
+  const box=$('video-intro');
+  const v=$('intro-video');
+  const btn=$('intro-skip-btn');
+  if(!box||!v)return;
   box.classList.remove('hidden');
   document.body.style.overflow='hidden';
   // Construye la URL absoluta del video local (intro.mp4) en la misma carpeta que index.html.
@@ -2259,5 +2280,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a24757e57c950efd',t:'MTc4NTYxMzUyNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
