@@ -1,7 +1,8 @@
 /* Retro Football Manager SV — PWABuilder-safe Service Worker with audio + video range support */
-const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v5';
+const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v6';
 const MUSIC_CACHE = 'rfm-music-offline-v4';
 const INTRO_CACHE = 'rfm-intro-offline-v1';
+const AVATAR_CACHE = 'rfm-avatar-3d-v1';
 const SCOPE_PATH = '/Retro-Football-Manager-SV/';
 
 const APP_SHELL = [
@@ -9,7 +10,8 @@ const APP_SHELL = [
   SCOPE_PATH + 'index.html',
   SCOPE_PATH + 'manifest.json',
   SCOPE_PATH + 'icon-512.png',
-  SCOPE_PATH + 'intro.mp4'
+  SCOPE_PATH + 'intro.mp4',
+  SCOPE_PATH + 'dt-avatar.glb'
 ];
 
 self.addEventListener('install', event => {
@@ -24,7 +26,7 @@ self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
     await Promise.all(keys
-      .filter(k => k !== CACHE_VERSION && k !== MUSIC_CACHE && k !== INTRO_CACHE)
+      .filter(k => k !== CACHE_VERSION && k !== MUSIC_CACHE && k !== INTRO_CACHE && k !== AVATAR_CACHE)
       .map(k => caches.delete(k))
     );
     await self.clients.claim();
@@ -49,6 +51,15 @@ function isIntroVideoRequest(request) {
   try {
     const url = new URL(request.url);
     return /\/intro\.(mp4|webm|m4v|mov)$/i.test(url.pathname);
+  } catch (e) {
+    return false;
+  }
+}
+
+function isAvatarGlbRequest(request) {
+  try {
+    const url = new URL(request.url);
+    return /\/dt-avatar\.glb$/i.test(url.pathname) || /\.glb$/i.test(url.pathname);
   } catch (e) {
     return false;
   }
@@ -147,6 +158,28 @@ async function handleVideo(request) {
   }
 }
 
+async function handleAvatar(request) {
+  const cache = await caches.open(AVATAR_CACHE);
+  const cleanUrl = new URL(request.url).origin + new URL(request.url).pathname;
+  let cached = await cache.match(cleanUrl);
+  if (!cached) cached = await cache.match(request.url);
+  if (cached) return cached;
+  try {
+    const fresh = await fetch(request);
+    if (fresh && fresh.ok && fresh.status === 200) {
+      const type = (fresh.headers.get('content-type') || '').toLowerCase();
+      // Solo cacheamos si es un .glb/model (no HTML 404)
+      if (type.includes('model') || type.includes('octet-stream') || type === '') {
+        cache.put(cleanUrl, fresh.clone()).catch(() => {});
+      }
+    }
+    return fresh;
+  } catch (err) {
+    if (cached) return cached;
+    return new Response('', { status: 503, statusText: 'Avatar 3D unavailable offline' });
+  }
+}
+
 async function networkFirst(request) {
   const cache = await caches.open(CACHE_VERSION);
   try {
@@ -176,6 +209,11 @@ self.addEventListener('fetch', event => {
 
   if (isVideoRequest(request)) {
     event.respondWith(handleVideo(request));
+    return;
+  }
+
+  if (isAvatarGlbRequest(request)) {
+    event.respondWith(handleAvatar(request));
     return;
   }
 
