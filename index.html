@@ -258,6 +258,47 @@ body.no-crt{letter-spacing:.15px}
 .hof-3d-wrap model-viewer::part(default-progress-bar){background:var(--green)}
 .hof-3d-caption{text-align:center;font-family:var(--font-pixel);font-size:9px;color:var(--dim);margin-top:6px;letter-spacing:.5px}
 @media(max-width:700px){.hof-3d-wrap model-viewer{width:160px;height:220px}}
+
+/* --- Feedback obligatorio (post-juego) --- */
+#feedback-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;z-index:5000;padding:16px;animation:fadeIn .35s ease}
+#feedback-overlay.feedback-shake{animation:shake .35s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+@keyframes fadeIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+.feedback-card{background:linear-gradient(180deg,#0d1810,#07120a);border:3px solid var(--amber);border-radius:10px;max-width:620px;width:100%;max-height:90vh;overflow:auto;padding:24px;box-shadow:0 0 60px rgba(255,204,51,.35),inset 0 0 40px rgba(255,204,51,.05);position:relative}
+.feedback-card::before{content:'';position:absolute;inset:-3px;border-radius:10px;background:linear-gradient(45deg,var(--amber),var(--gold),var(--amber));z-index:-1;opacity:.4;filter:blur(8px)}
+.feedback-title{font-family:var(--font-pixel);font-size:18px;color:var(--amber);text-align:center;margin-bottom:14px;text-shadow:0 0 12px rgba(255,204,51,.6);line-height:1.5;animation:glow 2s ease-in-out infinite alternate}
+@keyframes glow{from{text-shadow:0 0 8px rgba(255,204,51,.5)}to{text-shadow:0 0 18px rgba(255,204,51,.9),0 0 30px rgba(255,204,51,.4)}}
+.feedback-subtitle{font-family:var(--font-pixel);font-size:10px;color:var(--green);text-align:center;margin-bottom:18px;line-height:1.5;letter-spacing:.5px}
+.feedback-section{margin-bottom:18px;padding:14px;background:rgba(8,19,10,.6);border:1px solid var(--line2);border-radius:6px}
+.feedback-label{font-family:var(--font-pixel);font-size:10px;color:var(--cyan);margin-bottom:8px;letter-spacing:.5px}
+.feedback-stars{display:flex;justify-content:center;gap:14px;margin:14px 0;cursor:pointer}
+.feedback-star{font-size:42px;color:var(--dim);transition:all .15s;cursor:pointer;user-select:none;line-height:1;filter:drop-shadow(0 0 4px transparent)}
+.feedback-star:hover{transform:scale(1.25)}
+.feedback-star.active{color:var(--gold);text-shadow:0 0 14px rgba(255,225,77,.9);filter:drop-shadow(0 0 8px rgba(255,225,77,.7));transform:scale(1.08)}
+.feedback-stars-hint{text-align:center;font-size:14px;color:var(--dim);margin-top:6px;min-height:18px}
+.feedback-textarea{width:100%;min-height:100px;background:#04100a;border:2px solid var(--line2);border-radius:5px;padding:10px;color:var(--ink);font-family:var(--font-term);font-size:16px;resize:vertical;box-sizing:border-box}
+.feedback-textarea:focus{outline:none;border-color:var(--amber);box-shadow:0 0 12px rgba(255,204,51,.3)}
+.feedback-textarea::placeholder{color:var(--dim2)}
+.feedback-progress{display:flex;justify-content:center;gap:10px;margin:16px 0 8px}
+.feedback-progress-step{display:flex;align-items:center;gap:5px;font-family:var(--font-pixel);font-size:8px;color:var(--dim);letter-spacing:.5px}
+.feedback-progress-step .dot{width:10px;height:10px;border-radius:50%;background:var(--dim2);border:2px solid var(--bg2)}
+.feedback-progress-step.done{color:var(--green)}
+.feedback-progress-step.done .dot{background:var(--green);box-shadow:0 0 8px rgba(70,226,43,.7)}
+.feedback-progress-step.current{color:var(--amber)}
+.feedback-progress-step.current .dot{background:var(--amber);box-shadow:0 0 8px rgba(255,204,51,.7);animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+.feedback-btn{display:block;width:100%;padding:14px;font-family:var(--font-pixel);font-size:12px;letter-spacing:.8px;border:none;border-radius:6px;cursor:pointer;transition:all .15s;margin-top:10px;text-transform:uppercase}
+.feedback-btn-primary{background:linear-gradient(180deg,var(--amber),var(--amber-d));color:#1a1300;border:2px solid var(--gold);box-shadow:0 0 18px rgba(255,204,51,.4)}
+.feedback-btn-primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 0 24px rgba(255,204,51,.6)}
+.feedback-btn-primary:disabled{background:var(--bg2);color:var(--dim);border-color:var(--line2);cursor:not-allowed;opacity:.5;box-shadow:none}
+.feedback-warning{text-align:center;font-family:var(--font-pixel);font-size:8px;color:var(--red);margin-top:12px;letter-spacing:.5px;line-height:1.6}
+.feedback-required{color:var(--red);font-size:10px}
+.feedback-counter{text-align:right;font-size:13px;color:var(--dim);margin-top:4px}
+.feedback-counter.low{color:var(--amber)}
+.feedback-counter.ok{color:var(--green)}
+.feedback-emoji{font-size:48px;text-align:center;margin:8px 0;animation:float 2.5s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@media(max-width:700px){.feedback-card{padding:16px}.feedback-title{font-size:14px}.feedback-star{font-size:36px}.feedback-stars{gap:10px}.feedback-emoji{font-size:36px}}
 .match-scoreboard>div{min-width:0;overflow:hidden}.match-scoreboard .pxl{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.match-scoreboard .badge{margin:0 auto}.match-scoreboard .score{white-space:nowrap;flex:0 0 auto;text-align:center}
 .topbtns{overflow-x:auto;overflow-y:hidden;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;max-width:100%;padding-bottom:2px}.topbtns::-webkit-scrollbar{display:none}.topbtns .btn,.topbtns label.btn{flex:0 0 auto;min-width:40px;min-height:38px;display:inline-flex;align-items:center;justify-content:center}
 @media(max-width:700px){.match-scoreboard{grid-template-columns:minmax(0,1fr) minmax(72px,auto) minmax(0,1fr);gap:6px}.match-scoreboard .score-big{font-size:22px!important;padding:0 6px!important}.match-scoreboard .pxl{font-size:8px!important}.topbtns{max-width:48vw!important;justify-content:flex-start!important}.topbtns .btn,.topbtns label.btn{min-width:44px;min-height:40px}}
@@ -457,8 +498,205 @@ body.no-crt{letter-spacing:.15px}
 /* =========================================================================
    RETRO FOOTBALL MANAGER SV v2 — MODO CARRERA (monolito HTML)
    Módulos: Estado · Data · UI · MatchEngine · Fixture(multidivisión)
-            · Economy · Career(ascenso/descenso + DT) · Storage
+            · Economy · Career(ascenso/descenso + DT) · Storage · Feedback
    ========================================================================= */
+// --- Sistema de feedback obligatorio post-juego ---
+// Persiste por instalación (localStorage). Una vez completado, no vuelve a aparecer
+// salvo que el jugador borre el storage o el flag expire.
+const FEEDBACK_STORAGE_KEY = 'rfm_feedback_v1_completed';
+const FEEDBACK_RATING_KEY = 'rfm_feedback_v1_rating';
+const FEEDBACK_TEXT_KEY = 'rfm_feedback_v1_text';
+const FEEDBACK_EMAIL = 'cseuropa1890@gmail.com';
+const FEEDBACK_MIN_CHARS = 20;
+let FEEDBACK_STATE = {rating: 0, text: '', step: 1};
+
+function isFeedbackCompleted() {
+  try { return localStorage.getItem(FEEDBACK_STORAGE_KEY) === '1'; } catch (e) { return false; }
+}
+function markFeedbackCompleted(rating, text) {
+  try {
+    localStorage.setItem(FEEDBACK_STORAGE_KEY, '1');
+    localStorage.setItem(FEEDBACK_RATING_KEY, String(rating || 0));
+    localStorage.setItem(FEEDBACK_TEXT_KEY, text || '');
+  } catch (e) { console.warn('feedback save failed', e); }
+}
+
+function buildFeedbackMailto(rating, text) {
+  const u = (typeof userClub === 'function' && G) ? userClub() : null;
+  const subject = `Feedback RFM SV — ${rating}★ — ${G ? G.managerName : 'DT'}`;
+  const body = [
+    'Hola,',
+    '',
+    `Valoración: ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)} (${rating}/5)`,
+    '',
+    'Mi feedback:',
+    text || '(sin texto)',
+    '',
+    '--- Datos del juego ---',
+    `Versión: v${typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : '?'}`,
+    `DT: ${G ? G.managerName : '—'}`,
+    `Club: ${u ? u.nombre : '—'}`,
+    `División: ${u && typeof DIV_NAMES !== 'undefined' ? DIV_NAMES[u.nivel] : '—'}`,
+    `Campaña: ${G ? (G.temporada + ' ' + (G.campania || '')) : '—'}`,
+    `Jornada: ${G ? G.jornadaActual : '—'}`,
+    `Dispositivo: ${G ? (G.device || 'pc') : '—'}`,
+  ].join('\n');
+  return `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function renderFeedbackOverlay() {
+  // Si ya está el overlay, no duplicar.
+  if (document.getElementById('feedback-overlay')) return;
+  const stars = [1,2,3,4,5].map(i =>
+    `<span class="feedback-star" data-rating="${i}" onclick="selectFeedbackStar(${i})" role="button" aria-label="${i} estrellas">★</span>`
+  ).join('');
+  const overlay = document.createElement('div');
+  overlay.id = 'feedback-overlay';
+  overlay.innerHTML = `
+    <div class="feedback-card" onclick="event.stopPropagation()">
+      <div class="feedback-emoji">⚽</div>
+      <div class="feedback-title">¡GRACIAS POR JUGAR!</div>
+      <div class="feedback-subtitle">DT, has demostrado lealtad al juego.<br>Tu opinión vale oro.</div>
+
+      <div class="feedback-progress">
+        <div class="feedback-progress-step current" id="fb-step-1"><div class="dot"></div>1. ESTRELLAS</div>
+        <div class="feedback-progress-step" id="fb-step-2"><div class="dot"></div>2. MENSAJE</div>
+        <div class="feedback-progress-step" id="fb-step-3"><div class="dot"></div>3. ENVIAR</div>
+      </div>
+
+      <div class="feedback-section" id="fb-sec-1">
+        <div class="feedback-label">⭐ ¿Cómo valorarías el juego? <span class="feedback-required">*</span></div>
+        <div class="feedback-stars" id="fb-stars">${stars}</div>
+        <div class="feedback-stars-hint" id="fb-stars-hint">Toca una estrella (obligatorio)</div>
+      </div>
+
+      <div class="feedback-section" id="fb-sec-2" style="display:none">
+        <div class="feedback-label">💬 Tu mensaje al creador <span class="feedback-required">*</span></div>
+        <textarea id="fb-text" class="feedback-textarea" placeholder="Contanos qué te gustó, qué mejorarías, si encontraste algún bug... Mínimo ${FEEDBACK_MIN_CHARS} caracteres." maxlength="800"></textarea>
+        <div class="feedback-counter" id="fb-counter">0 / ${FEEDBACK_MIN_CHARS} caracteres mínimo</div>
+      </div>
+
+      <div class="feedback-section" id="fb-sec-3" style="display:none">
+        <div class="feedback-label">📧 Se abrirá tu correo para enviar el feedback a <b class="cyan">${FEEDBACK_EMAIL}</b></div>
+        <p class="muted" style="font-size:15px;line-height:1.5">Si no se abre automáticamente, copiá el mensaje y envialo manualmente a esa dirección.</p>
+      </div>
+
+      <button class="feedback-btn feedback-btn-primary" id="fb-next" onclick="advanceFeedback()" disabled>
+        ▶ SIGUIENTE
+      </button>
+
+      <div class="feedback-warning">⚠ ESTA VENTANA NO SE PUEDE CERRAR HASTA COMPLETAR LOS 3 PASOS ⚠</div>
+    </div>
+  `;
+  // Bloquea click fuera del card (no se cierra).
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) {
+      overlay.classList.add('feedback-shake');
+      toast('Completá los 3 pasos para continuar');
+      setTimeout(() => overlay.classList.remove('feedback-shake'), 400);
+    }
+  });
+  // Bloquea Escape y otras teclas de cierre.
+  document.addEventListener('keydown', blockFeedbackEscape, true);
+  document.body.appendChild(overlay);
+  // Sincronizar contador en tiempo real.
+  setTimeout(() => {
+    const ta = document.getElementById('fb-text');
+    if (ta) ta.addEventListener('input', updateFeedbackTextarea);
+    // Bloquea scroll del body mientras el overlay está activo.
+    document.body.style.overflow = 'hidden';
+  }, 50);
+}
+
+function blockFeedbackEscape(e) {
+  if (document.getElementById('feedback-overlay')) {
+    if (e.key === 'Escape' || e.keyCode === 27) {
+      e.preventDefault(); e.stopPropagation();
+      const ov = document.getElementById('feedback-overlay');
+      ov.classList.add('feedback-shake');
+      toast('Completá los 3 pasos para continuar');
+      setTimeout(() => ov.classList.remove('feedback-shake'), 400);
+    }
+  } else {
+    document.removeEventListener('keydown', blockFeedbackEscape, true);
+  }
+}
+
+function selectFeedbackStar(n) {
+  FEEDBACK_STATE.rating = n;
+  document.querySelectorAll('#fb-stars .feedback-star').forEach(el => {
+    const v = parseInt(el.getAttribute('data-rating'), 10);
+    el.classList.toggle('active', v <= n);
+  });
+  const hints = ['','😞 Puede mejorar','🙁 Cumple','😐 Está bien','😄 Muy bueno','🤩 Increíble'];
+  document.getElementById('fb-stars-hint').textContent = hints[n] || '';
+  document.getElementById('fb-next').disabled = false;
+}
+
+function updateFeedbackTextarea() {
+  const ta = document.getElementById('fb-text');
+  const c = document.getElementById('fb-counter');
+  const v = (ta.value || '').trim();
+  FEEDBACK_STATE.text = v;
+  const len = v.length;
+  c.textContent = `${len} / ${FEEDBACK_MIN_CHARS} caracteres mínimo`;
+  c.classList.remove('low','ok');
+  if (len >= FEEDBACK_MIN_CHARS) c.classList.add('ok');
+  else if (len > 0) c.classList.add('low');
+  document.getElementById('fb-next').disabled = (len < FEEDBACK_MIN_CHARS);
+}
+
+function advanceFeedback() {
+  const step = FEEDBACK_STATE.step;
+  const btn = document.getElementById('fb-next');
+  if (step === 1) {
+    if (FEEDBACK_STATE.rating < 1) { toast('Elegí una valoración'); return; }
+    // Mostrar sección 2
+    document.getElementById('fb-sec-1').style.display = 'none';
+    document.getElementById('fb-sec-2').style.display = 'block';
+    document.getElementById('fb-step-1').classList.remove('current');
+    document.getElementById('fb-step-1').classList.add('done');
+    document.getElementById('fb-step-2').classList.add('current');
+    setTimeout(() => {
+      const ta = document.getElementById('fb-text');
+      if (ta) { ta.focus(); ta.value = FEEDBACK_STATE.text; updateFeedbackTextarea(); }
+    }, 60);
+    btn.textContent = '▶ SIGUIENTE';
+    btn.disabled = (FEEDBACK_STATE.text.trim().length < FEEDBACK_MIN_CHARS);
+    FEEDBACK_STATE.step = 2;
+  } else if (step === 2) {
+    if (FEEDBACK_STATE.text.trim().length < FEEDBACK_MIN_CHARS) { toast(`Mínimo ${FEEDBACK_MIN_CHARS} caracteres`); return; }
+    document.getElementById('fb-sec-2').style.display = 'none';
+    document.getElementById('fb-sec-3').style.display = 'block';
+    document.getElementById('fb-step-2').classList.remove('current');
+    document.getElementById('fb-step-2').classList.add('done');
+    document.getElementById('fb-step-3').classList.add('current');
+    btn.textContent = '📧 ENVIAR Y JUGAR';
+    btn.disabled = false;
+    FEEDBACK_STATE.step = 3;
+  } else if (step === 3) {
+    // Enviar mailto y marcar como completado.
+    const r = FEEDBACK_STATE.rating;
+    const t = FEEDBACK_STATE.text;
+    markFeedbackCompleted(r, t);
+    const url = buildFeedbackMailto(r, t);
+    try { window.location.href = url; } catch (e) { console.warn('mailto failed', e); }
+    toast('¡Gracias por tu feedback! Cargando juego...');
+    setTimeout(() => closeFeedbackAndResume(), 1200);
+  }
+}
+
+function closeFeedbackAndResume() {
+  const ov = document.getElementById('feedback-overlay');
+  if (ov) {
+    ov.style.animation = 'fadeIn .25s reverse';
+    setTimeout(() => ov.remove(), 240);
+  }
+  document.body.style.overflow = '';
+  document.removeEventListener('keydown', blockFeedbackEscape, true);
+  // Reanudar música si corresponde.
+  try { if (typeof tryResumeMusic === 'function') tryResumeMusic(); } catch (e) {}
+}
 const $=id=>document.getElementById(id);
 const rnd=n=>Math.floor(Math.random()*n);
 const pick=a=>a[rnd(a.length)];
@@ -2884,6 +3122,15 @@ function boot(){
   };
   if(sessionStorage.getItem('rfm_video_intro_seen')==='1'){
     proceed();
+    // Activar overlay de feedback obligatorio tras boot (solo si no se completó antes).
+    setTimeout(() => {
+      try {
+        if (!isFeedbackCompleted()) {
+          // Pequeño delay adicional para que el dashboard termine de renderizar.
+          setTimeout(() => renderFeedbackOverlay(), 600);
+        }
+      } catch (e) { console.warn('feedback boot trigger failed', e); }
+    }, 1200);
   }else{
     const onVideoDone=()=>{document.removeEventListener('rfm-video-intro-done',onVideoDone);proceed();};
     document.addEventListener('rfm-video-intro-done',onVideoDone,{once:true});
@@ -2943,5 +3190,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a260d666df6c74ca',t:'MTc4NTg4MDg1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2dda80e5d42c145',t:'MTc4NzE4OTY3NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a260d666df6c74ca',t:'MTc4NTg4MDg1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3f3c9c1fbcedfa0',t:'MTc5MDEwNjA5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
