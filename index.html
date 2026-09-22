@@ -3122,17 +3122,19 @@ function boot(){
   };
   if(sessionStorage.getItem('rfm_video_intro_seen')==='1'){
     proceed();
-    // Activar overlay de feedback obligatorio tras boot (solo si no se completó antes).
-    setTimeout(() => {
-      try {
-        if (!isFeedbackCompleted()) {
-          // Pequeño delay adicional para que el dashboard termine de renderizar.
-          setTimeout(() => renderFeedbackOverlay(), 600);
-        }
-      } catch (e) { console.warn('feedback boot trigger failed', e); }
-    }, 1200);
   }else{
-    const onVideoDone=()=>{document.removeEventListener('rfm-video-intro-done',onVideoDone);proceed();};
+    const onVideoDone=()=>{
+      document.removeEventListener('rfm-video-intro-done',onVideoDone);
+      proceed();
+      // Activar overlay de feedback obligatorio tras video (solo si no se completó antes).
+      setTimeout(() => {
+        try {
+          if (!isFeedbackCompleted()) {
+            setTimeout(() => renderFeedbackOverlay(), 600);
+          }
+        } catch (e) { console.warn('feedback after video failed', e); }
+      }, 1200);
+    };
     document.addEventListener('rfm-video-intro-done',onVideoDone,{once:true});
     startVideoIntro();
     setTimeout(()=>{
@@ -3144,6 +3146,15 @@ function boot(){
       }
     },3500);
   }
+  // Activar overlay de feedback obligatorio tras boot (siempre, salvo si ya se completó).
+  // Esto cubre el caso de intro ya vista en sesión previa Y el caso de partidas existentes.
+  setTimeout(() => {
+    try {
+      if (!isFeedbackCompleted()) {
+        setTimeout(() => renderFeedbackOverlay(), 600);
+      }
+    } catch (e) { console.warn('feedback boot trigger failed', e); }
+  }, 1800);
   // Si el boot terminó cargando un backup en vez del principal, lo decimos una vez.
   setTimeout(()=>{
     try{
@@ -3190,5 +3201,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a260d666df6c74ca',t:'MTc4NTg4MDg1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3f3c9c1fbcedfa0',t:'MTc5MDEwNjA5Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a260d666df6c74ca',t:'MTc4NTg4MDg1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3f3d538b8ef7446',t:'MTc5MDEwNjU2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
