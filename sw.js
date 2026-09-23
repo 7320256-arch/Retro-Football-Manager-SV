@@ -11,7 +11,10 @@ const APP_SHELL = [
   SCOPE_PATH + 'manifest.json',
   SCOPE_PATH + 'icon-512.png',
   SCOPE_PATH + 'intro.mp4',
-  SCOPE_PATH + 'dt-avatar.glb'
+  SCOPE_PATH + 'dt-avatar.glb',
+  SCOPE_PATH + 'flyer-cibernetica.png',
+  SCOPE_PATH + 'flyer-wallet.png',
+  SCOPE_PATH + 'flyer-fmsv.png'
 ];
 
 self.addEventListener('install', event => {

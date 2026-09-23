@@ -299,6 +299,24 @@ body.no-crt{letter-spacing:.15px}
 .feedback-emoji{font-size:48px;text-align:center;margin:8px 0;animation:float 2.5s ease-in-out infinite}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @media(max-width:700px){.feedback-card{padding:16px}.feedback-title{font-size:14px}.feedback-star{font-size:36px}.feedback-stars{gap:10px}.feedback-emoji{font-size:36px}}
+
+/* --- ZeroByte Studios Flyers (Panel lateral en Dashboard) --- */
+.zerobyte-panel{background:linear-gradient(180deg,rgba(8,19,10,.85),#04100a);border:1px solid var(--line2);border-radius:6px;padding:10px;margin-top:11px;position:relative;overflow:hidden}
+.zerobyte-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),var(--amber),var(--cyan),transparent);opacity:.5}
+.zerobyte-title{font-family:var(--font-pixel);font-size:10px;color:var(--amber);margin-bottom:8px;text-align:center;letter-spacing:.5px;text-shadow:0 0 6px rgba(255,204,51,.3)}
+.zerobyte-subtitle{font-size:13px;color:var(--dim);text-align:center;margin-bottom:10px;line-height:1.4;font-style:italic}
+.zerobyte-flyer{display:block;width:100%;border:1px solid var(--line2);border-radius:4px;margin-bottom:8px;cursor:pointer;transition:all .2s ease;background:#000;position:relative;overflow:hidden}
+.zerobyte-flyer:hover{border-color:var(--green);box-shadow:0 0 14px rgba(70,226,43,.4);transform:translateY(-2px)}
+.zerobyte-flyer img{width:100%;height:auto;display:block}
+.zerobyte-flyer-badge{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.7);color:var(--amber);font-family:var(--font-pixel);font-size:8px;padding:3px 6px;border-radius:3px;letter-spacing:.5px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.zerobyte-cta{text-align:center;margin-top:6px;font-size:14px;color:var(--dim)}
+.zerobyte-cta b{color:var(--green)}
+.zerobyte-link{color:var(--cyan);text-decoration:none;font-size:13px}
+.zerobyte-link:hover{color:var(--green);text-decoration:underline}
+.zerobyte-stats{display:flex;justify-content:space-around;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line2);font-size:12px;color:var(--dim)}
+.zerobyte-stats span b{color:var(--amber);font-family:var(--font-pixel);font-size:10px}
+@media(max-width:780px){.zerobyte-panel{padding:8px}}
+@media(hover:none){.zerobyte-flyer:hover{transform:none;box-shadow:none}}
 .match-scoreboard>div{min-width:0;overflow:hidden}.match-scoreboard .pxl{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.match-scoreboard .badge{margin:0 auto}.match-scoreboard .score{white-space:nowrap;flex:0 0 auto;text-align:center}
 .topbtns{overflow-x:auto;overflow-y:hidden;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;max-width:100%;padding-bottom:2px}.topbtns::-webkit-scrollbar{display:none}.topbtns .btn,.topbtns label.btn{flex:0 0 auto;min-width:40px;min-height:38px;display:inline-flex;align-items:center;justify-content:center}
 @media(max-width:700px){.match-scoreboard{grid-template-columns:minmax(0,1fr) minmax(72px,auto) minmax(0,1fr);gap:6px}.match-scoreboard .score-big{font-size:22px!important;padding:0 6px!important}.match-scoreboard .pxl{font-size:8px!important}.topbtns{max-width:48vw!important;justify-content:flex-start!important}.topbtns .btn,.topbtns label.btn{min-width:44px;min-height:40px}}
@@ -382,6 +400,7 @@ body.no-crt{letter-spacing:.15px}
         <div class="panel"><div class="panel-title">💰 Finanzas 3 fechas</div><div id="dash-finance"></div></div>
         <div class="panel"><div class="panel-title">📰 Últimas noticias</div><div id="dash-news" class="scroll" style="max-height:220px"></div></div>
       </div>
+      <div id="zerobyte-panel" style="margin-top:11px"></div>
     </section>
 
     <section id="view-carrera" class="view hidden"><div class="panel" id="carrera-panel"></div></section>
@@ -500,7 +519,64 @@ body.no-crt{letter-spacing:.15px}
    Módulos: Estado · Data · UI · MatchEngine · Fixture(multidivisión)
             · Economy · Career(ascenso/descenso + DT) · Storage · Feedback
    ========================================================================= */
-// --- Sistema de feedback obligatorio post-juego ---
+// --- ZeroByte Studios Flyers (Panel lateral en Dashboard) ---
+// Muestra 3 flyers de tus otros juegos en el Dashboard.
+// Se oculta automáticamente cuando hay un partido en vivo para no contaminar la experiencia.
+const ZEROBYTE_FLYERS = [
+  {
+    id: 'cibernetica',
+    title: 'DEFENSA CIBERNÉTICA',
+    img: 'flyer-cibernetica.png',
+    webUrl: 'https://7320256-arch.github.io/defensa-cibernetica/',
+    apkUrl: 'https://www.mediafire.com/file/lzofjhem1wsu4wg/Def._Cibern%C3%A9tica.apk/file',
+    badge: 'TOWER DEFENSE',
+    cta: 'Jugar en Web'
+  },
+  {
+    id: 'wallet',
+    title: 'MI WALLET PRO',
+    img: 'flyer-wallet.png',
+    webUrl: 'https://7320256-arch.github.io/MiWallet-Pro/',
+    apkUrl: 'https://www.mediafire.com/file/z8134omod7ik6m2/MiWallet.apk/file',
+    badge: 'FINANZAS',
+    cta: 'Abrir App Web'
+  },
+  {
+    id: 'fmsv',
+    title: 'FOOTBALL MANAGER SV',
+    img: 'flyer-fmsv.png',
+    webUrl: 'https://7320256-arch.github.io/Retro-Football-Manager-SV/',
+    apkUrl: 'https://www.mediafire.com/file/esjer0iy809cezm/FM_El_Salvador.apk/file',
+    badge: 'ESTE JUEGO',
+    cta: '⭐ Ya estás aquí'
+  }
+];
+
+function renderZeroBytePanel() {
+  // Si hay partido en vivo, no mostrar (evita contaminación visual).
+  if (typeof isLiveRunning === 'function' && isLiveRunning()) return '';
+  const flyers = ZEROBYTE_FLYERS.map((f, i) => `
+    <a class="zerobyte-flyer" href="${esc(f.webUrl)}" target="_blank" rel="noopener" data-flyer="${f.id}" title="${esc(f.title)} — ${esc(f.cta)}">
+      <img src="${esc(f.img)}" alt="${esc(f.title)}" loading="lazy" onerror="this.parentNode.style.display='none'" />
+      ${f.id !== 'fmsv' ? '<div class="zerobyte-flyer-badge">' + esc(f.badge) + '</div>' : '<div class="zerobyte-flyer-badge" style="color:var(--green);border-color:var(--green)">★ JUGANDO</div>'}
+    </a>
+  `).join('');
+  return `
+    <div class="zerobyte-panel">
+      <div class="zerobyte-title">🟢 ZERO BYTE STUDIOS</div>
+      <div class="zerobyte-subtitle">Otros proyectos del mismo creador</div>
+      ${flyers}
+      <div class="zerobyte-stats">
+        <span><b>3</b> Apps</span>
+        <span><b>100%</b> Offline</span>
+        <span><b>0</b> Trackers</span>
+      </div>
+      <div class="zerobyte-cta">
+        Hecho con ❤️ por <a class="zerobyte-link" href="https://7320256-arch.github.io/Sitio-web-de-presentaci-n/" target="_blank" rel="noopener">ZeroByte Studios</a>
+      </div>
+    </div>
+  `;
+}
 // Persiste por instalación (localStorage). Una vez completado, no vuelve a aparecer
 // salvo que el jugador borre el storage o el flag expire.
 const FEEDBACK_STORAGE_KEY = 'rfm_feedback_v1_completed';
@@ -2320,6 +2396,12 @@ function renderDashboard(){
   const sig=financeSignal(),proj=financeProjection(3);
   $('dash-finance').innerHTML=`<div class="center"><span class="tag ${sig.cls==='good'?'green':sig.cls==='bad'?'red':'amber'}">${sig.label}</span><div class="pxl ${sig.cls==='good'?'green':sig.cls==='bad'?'red':'amber'}" style="font-size:14px;margin-top:5px">${sig.total>=0?'+':''}${money(sig.total)}</div><small>Proyección neta próximas 3 fechas</small></div><div class="finance-strip">${proj.map((x,i)=>`<div class="finance-card ${x.net>=0?'good':x.net>=-15000?'mid':'bad'}"><b>F${G.jornadaActual+i}</b><br><span class="muted">${esc(x.detail)}</span><br><span class="${x.net>=0?'green':'red'}">${x.net>=0?'+':''}${money(x.net)}</span></div>`).join('')}</div><hr class="sep"><div class="panel-title" style="font-size:9px">📨 Ofertas</div>${renderInboxOffers()}`;
   $('dash-news').innerHTML=G.noticias.length?G.noticias.slice(0,10).map(n=>`<div class="news ${n.t}"><span class="tag amber">${esc(n.cat||'club')}</span> <span class="muted">J${n.j}</span> ${esc(n.t)}</div>`).join('')+'<div class="center" style="margin-top:7px"><button class="btn btn-sm" onclick="switchView(&quot;noticias&quot;)">Ver centro de noticias</button></div>':'<p class="muted">Sin novedades.</p>';
+  // Panel ZeroByte Studios: solo Dashboard, oculto si hay partido en vivo.
+  const zbPanel = $('zerobyte-panel');
+  if (zbPanel) {
+    zbPanel.innerHTML = renderZeroBytePanel();
+    zbPanel.style.display = (typeof isLiveRunning === 'function' && isLiveRunning()) ? 'none' : 'block';
+  }
 }
 function userNextMatch(){
   if(G.matchMode==='concacaf'){const f=userConcacafFixture();if(f)return{h:f.h,a:f.a,concacaf:true};}
@@ -3201,5 +3283,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a260d666df6c74ca',t:'MTc4NTg4MDg1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3f3d538b8ef7446',t:'MTc5MDEwNjU2Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a260d666df6c74ca',t:'MTc4NTg4MDg1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
