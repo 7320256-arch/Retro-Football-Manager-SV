@@ -300,23 +300,43 @@ body.no-crt{letter-spacing:.15px}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @media(max-width:700px){.feedback-card{padding:16px}.feedback-title{font-size:14px}.feedback-star{font-size:36px}.feedback-stars{gap:10px}.feedback-emoji{font-size:36px}}
 
-/* --- ZeroByte Studios Flyers (Panel lateral en Dashboard) --- */
-.zerobyte-panel{background:linear-gradient(180deg,rgba(8,19,10,.85),#04100a);border:1px solid var(--line2);border-radius:6px;padding:10px;margin-top:11px;position:relative;overflow:hidden}
-.zerobyte-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),var(--amber),var(--cyan),transparent);opacity:.5}
-.zerobyte-title{font-family:var(--font-pixel);font-size:10px;color:var(--amber);margin-bottom:8px;text-align:center;letter-spacing:.5px;text-shadow:0 0 6px rgba(255,204,51,.3)}
-.zerobyte-subtitle{font-size:13px;color:var(--dim);text-align:center;margin-bottom:10px;line-height:1.4;font-style:italic}
-.zerobyte-flyer{display:block;width:100%;border:1px solid var(--line2);border-radius:4px;margin-bottom:8px;cursor:pointer;transition:all .2s ease;background:#000;position:relative;overflow:hidden}
-.zerobyte-flyer:hover{border-color:var(--green);box-shadow:0 0 14px rgba(70,226,43,.4);transform:translateY(-2px)}
+/* --- ZeroByte Studios Flyers (Panel superior en Dashboard) --- */
+.zerobyte-panel{
+  background:linear-gradient(135deg,rgba(70,226,43,.06),rgba(255,204,51,.04) 50%,rgba(63,208,255,.06));
+  border:2px solid var(--green);
+  border-radius:8px;
+  padding:14px;
+  margin-bottom:14px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 0 24px rgba(70,226,43,.18),inset 0 0 18px rgba(0,0,0,.4);
+  animation:zbPanelGlow 4s ease-in-out infinite alternate;
+}
+@keyframes zbPanelGlow{from{box-shadow:0 0 20px rgba(70,226,43,.15),inset 0 0 18px rgba(0,0,0,.4)}to{box-shadow:0 0 30px rgba(70,226,43,.28),inset 0 0 22px rgba(0,0,0,.4)}}
+.zerobyte-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--amber),var(--cyan),var(--green));opacity:.8}
+.zerobyte-panel::after{content:'PROMOCIÓN';position:absolute;top:8px;right:10px;font-family:var(--font-pixel);font-size:7px;color:var(--amber);background:rgba(0,0,0,.6);padding:3px 6px;border-radius:2px;letter-spacing:1px;border:1px solid var(--amber-d);opacity:.7}
+.zerobyte-header{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px dashed var(--line2)}
+.zerobyte-logo{font-size:32px;line-height:1;filter:drop-shadow(0 0 8px rgba(255,204,51,.5));animation:zbLogoSpin 6s linear infinite}
+@keyframes zbLogoSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.zerobyte-title-block{flex:1;min-width:0}
+.zerobyte-title{font-family:var(--font-pixel);font-size:13px;color:var(--amber);letter-spacing:1px;text-shadow:0 0 8px rgba(255,204,51,.4);line-height:1.3;margin-bottom:4px}
+.zerobyte-subtitle{font-size:14px;color:var(--cyan);line-height:1.4}
+.zerobyte-flyers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.zerobyte-flyer{display:block;border:2px solid var(--line2);border-radius:5px;cursor:pointer;transition:all .2s ease;background:#000;position:relative;overflow:hidden;text-decoration:none}
+.zerobyte-flyer:hover{border-color:var(--green);box-shadow:0 0 18px rgba(70,226,43,.5);transform:translateY(-3px) scale(1.02)}
 .zerobyte-flyer img{width:100%;height:auto;display:block}
-.zerobyte-flyer-badge{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.7);color:var(--amber);font-family:var(--font-pixel);font-size:8px;padding:3px 6px;border-radius:3px;letter-spacing:.5px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
-.zerobyte-cta{text-align:center;margin-top:6px;font-size:14px;color:var(--dim)}
-.zerobyte-cta b{color:var(--green)}
-.zerobyte-link{color:var(--cyan);text-decoration:none;font-size:13px}
-.zerobyte-link:hover{color:var(--green);text-decoration:underline}
-.zerobyte-stats{display:flex;justify-content:space-around;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line2);font-size:12px;color:var(--dim)}
-.zerobyte-stats span b{color:var(--amber);font-family:var(--font-pixel);font-size:10px}
-@media(max-width:780px){.zerobyte-panel{padding:8px}}
-@media(hover:none){.zerobyte-flyer:hover{transform:none;box-shadow:none}}
+.zerobyte-flyer-badge{position:absolute;top:5px;left:5px;background:rgba(0,0,0,.8);color:var(--amber);font-family:var(--font-pixel);font-size:7px;padding:3px 5px;border-radius:2px;letter-spacing:.5px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);border:1px solid rgba(255,204,51,.4)}
+.zerobyte-cta-btn{display:block;width:100%;padding:12px;background:linear-gradient(135deg,var(--green-d),var(--amber-d));color:#04140a;border:2px solid var(--green);border-radius:6px;font-family:var(--font-pixel);font-size:11px;font-weight:bold;text-align:center;text-decoration:none;letter-spacing:1px;transition:all .2s;box-shadow:0 0 14px rgba(70,226,43,.35);text-transform:uppercase}
+.zerobyte-cta-btn:hover{transform:translateY(-2px);box-shadow:0 0 22px rgba(70,226,43,.6);background:linear-gradient(135deg,var(--green),var(--amber))}
+.zerobyte-hint{text-align:center;font-size:12px;color:var(--dim);margin-top:6px;font-style:italic}
+@media(max-width:780px){
+  .zerobyte-flyers{grid-template-columns:1fr;gap:8px}
+  .zerobyte-title{font-size:11px}
+  .zerobyte-subtitle{font-size:13px}
+  .zerobyte-logo{font-size:26px}
+  .zerobyte-panel{padding:10px}
+}
+@media(hover:none){.zerobyte-flyer:hover{transform:none;box-shadow:0 0 0 1px var(--green)} .zerobyte-cta-btn:hover{transform:none}}
 .match-scoreboard>div{min-width:0;overflow:hidden}.match-scoreboard .pxl{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.match-scoreboard .badge{margin:0 auto}.match-scoreboard .score{white-space:nowrap;flex:0 0 auto;text-align:center}
 .topbtns{overflow-x:auto;overflow-y:hidden;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;max-width:100%;padding-bottom:2px}.topbtns::-webkit-scrollbar{display:none}.topbtns .btn,.topbtns label.btn{flex:0 0 auto;min-width:40px;min-height:38px;display:inline-flex;align-items:center;justify-content:center}
 @media(max-width:700px){.match-scoreboard{grid-template-columns:minmax(0,1fr) minmax(72px,auto) minmax(0,1fr);gap:6px}.match-scoreboard .score-big{font-size:22px!important;padding:0 6px!important}.match-scoreboard .pxl{font-size:8px!important}.topbtns{max-width:48vw!important;justify-content:flex-start!important}.topbtns .btn,.topbtns label.btn{min-width:44px;min-height:40px}}
@@ -391,6 +411,7 @@ body.no-crt{letter-spacing:.15px}
 
   <main>
     <section id="view-dashboard" class="view">
+      <div id="zerobyte-panel"></div>
       <div class="grid g3">
         <div class="panel"><div class="panel-title">▣ Estado del Club</div><div id="dash-club"></div></div>
         <div class="panel" style="grid-column:span 2"><div class="panel-title">⚽ Próximo Encuentro</div><div id="dash-next"></div></div>
@@ -400,7 +421,6 @@ body.no-crt{letter-spacing:.15px}
         <div class="panel"><div class="panel-title">💰 Finanzas 3 fechas</div><div id="dash-finance"></div></div>
         <div class="panel"><div class="panel-title">📰 Últimas noticias</div><div id="dash-news" class="scroll" style="max-height:220px"></div></div>
       </div>
-      <div id="zerobyte-panel" style="margin-top:11px"></div>
     </section>
 
     <section id="view-carrera" class="view hidden"><div class="panel" id="carrera-panel"></div></section>
@@ -527,53 +547,54 @@ const ZEROBYTE_FLYERS = [
     id: 'cibernetica',
     title: 'DEFENSA CIBERNÉTICA',
     img: 'flyer-cibernetica.png',
-    webUrl: 'https://7320256-arch.github.io/defensa-cibernetica/',
-    apkUrl: 'https://www.mediafire.com/file/lzofjhem1wsu4wg/Def._Cibern%C3%A9tica.apk/file',
     badge: 'TOWER DEFENSE',
-    cta: 'Jugar en Web'
+    description: 'Defendé el núcleo del sistema contra oleadas de ciberataques en Canvas 2D.'
   },
   {
     id: 'wallet',
     title: 'MI WALLET PRO',
     img: 'flyer-wallet.png',
-    webUrl: 'https://7320256-arch.github.io/MiWallet-Pro/',
-    apkUrl: 'https://www.mediafire.com/file/z8134omod7ik6m2/MiWallet.apk/file',
     badge: 'FINANZAS',
-    cta: 'Abrir App Web'
+    description: 'Gestor de presupuesto personal 100% privado y offline. Controlá tus gastos.'
   },
   {
     id: 'fmsv',
     title: 'FOOTBALL MANAGER SV',
     img: 'flyer-fmsv.png',
-    webUrl: 'https://7320256-arch.github.io/Retro-Football-Manager-SV/',
-    apkUrl: 'https://www.mediafire.com/file/esjer0iy809cezm/FM_El_Salvador.apk/file',
-    badge: 'ESTE JUEGO',
-    cta: '⭐ Ya estás aquí'
+    badge: '⭐ YA ESTÁS AQUÍ',
+    description: 'Administrá tu club salvadoreño, gestioná alineaciones, finanzas y tácticas.'
   }
 ];
+
+// URL ÚNICA a donde van todos los clics: tu página de presentación.
+// Desde ahí el visitante puede ver, explorar y descargar TODO (incluyendo los APKs).
+const ZEROBYTE_HUB_URL = 'https://7320256-arch.github.io/Sitio-web-de-presentaci-n/';
 
 function renderZeroBytePanel() {
   // Si hay partido en vivo, no mostrar (evita contaminación visual).
   if (typeof isLiveRunning === 'function' && isLiveRunning()) return '';
+  // Todos los flyers apuntan al hub de ZeroByte (página principal) para que los visitantes
+  // vean, exploren y descarguen TODOS los proyectos (incluyendo APKs).
   const flyers = ZEROBYTE_FLYERS.map((f, i) => `
-    <a class="zerobyte-flyer" href="${esc(f.webUrl)}" target="_blank" rel="noopener" data-flyer="${f.id}" title="${esc(f.title)} — ${esc(f.cta)}">
+    <a class="zerobyte-flyer" href="${ZEROBYTE_HUB_URL}" target="_blank" rel="noopener" data-flyer="${f.id}" title="${esc(f.title)} — Ver y descargar en ZeroByte Studios">
       <img src="${esc(f.img)}" alt="${esc(f.title)}" loading="lazy" onerror="this.parentNode.style.display='none'" />
-      ${f.id !== 'fmsv' ? '<div class="zerobyte-flyer-badge">' + esc(f.badge) + '</div>' : '<div class="zerobyte-flyer-badge" style="color:var(--green);border-color:var(--green)">★ JUGANDO</div>'}
+      <div class="zerobyte-flyer-badge">${esc(f.badge)}</div>
     </a>
   `).join('');
   return `
     <div class="zerobyte-panel">
-      <div class="zerobyte-title">🟢 ZERO BYTE STUDIOS</div>
-      <div class="zerobyte-subtitle">Otros proyectos del mismo creador</div>
-      ${flyers}
-      <div class="zerobyte-stats">
-        <span><b>3</b> Apps</span>
-        <span><b>100%</b> Offline</span>
-        <span><b>0</b> Trackers</span>
+      <div class="zerobyte-header">
+        <div class="zerobyte-logo">⚡</div>
+        <div class="zerobyte-title-block">
+          <div class="zerobyte-title">ZERO BYTE STUDIOS</div>
+          <div class="zerobyte-subtitle">Otros proyectos del mismo creador · 100% offline · 0 trackers</div>
+        </div>
       </div>
-      <div class="zerobyte-cta">
-        Hecho con ❤️ por <a class="zerobyte-link" href="https://7320256-arch.github.io/Sitio-web-de-presentaci-n/" target="_blank" rel="noopener">ZeroByte Studios</a>
-      </div>
+      <div class="zerobyte-flyers">${flyers}</div>
+      <a class="zerobyte-cta-btn" href="${ZEROBYTE_HUB_URL}" target="_blank" rel="noopener">
+        🌍 VISITAR PORTFOLIO COMPLETO →
+      </a>
+      <div class="zerobyte-hint">Ver, probar y descargar (incluido APK) todos los proyectos</div>
     </div>
   `;
 }
@@ -3283,5 +3304,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a260d666df6c74ca',t:'MTc4NTg4MDg1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a260d666df6c74ca',t:'MTc4NTg4MDg1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3fc15009f2932d8',t:'MTc5MDE5MzA2NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
