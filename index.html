@@ -2405,7 +2405,7 @@ function renderTopbar(){const u=userClub();const bd=$('hd-badge');bd.style.backg
   const sig=financeSignal();$('hd-proj').textContent=(sig.total>=0?'+':'')+money(sig.total);$('hd-proj').className='v '+(sig.cls==='good'?'green':sig.cls==='mid'?'amber':'red');
   const cw=Math.round(G.confianza);const cls=cw>=50?'':(cw>=30?'mid':'low');
   $('hd-conf-wrap').innerHTML=`<div class="meter ${cls}"><i style="width:${cw}%"></i></div>`;
-  $('hd-round').textContent=G.temporada+' '+(G.campania||'Apertura')+' · '+G.jornadaActual+'/'+TOTAL_JORNADAS;const on=$('hd-online');if(on){on.textContent=(firebaseDBReady()?RFM_ONLINE_COUNT:'—');on.className='v '+(RFM_ONLINE_COUNT>0?'green':'amber');}
+  $('hd-round').textContent=G.temporada+' '+(G.campania||'Apertura')+' · '+G.jornadaActual+'/'+TOTAL_JORNADAS;const on=$('hd-online');if(on){const _onlineState=navigator.onLine?(firebaseDBReady()?'live':'loading'):'offline';let _otxt='—';if(_onlineState==='live')_otxt=(typeof RFM_ONLINE_OTHERS!=='undefined'?RFM_ONLINE_OTHERS:(RFM_ONLINE_COUNT>0?RFM_ONLINE_COUNT:0)).toString();else if(_onlineState==='offline')_otxt='OFF';on.textContent=_otxt;on.className='v '+(_onlineState==='live'?(RFM_ONLINE_COUNT>0?'green':'amber'):'red');}
 }
 function renderDashboard(){
   const u=userClub();const lvl=u.nivel;const tabla=sortedDivision(lvl);const pos=tabla.findIndex(e=>e.id===G.userClubId)+1;
@@ -2642,7 +2642,7 @@ function renderNoticias(){
   const regional=(G.regionalNews||[]).slice(0,20).map(n=>`<div class="news"><span class="muted">J${n.j}</span> 🌎 ${esc(n.t)}</div>`).join('')||'<p class="muted">Sin noticias regionales.</p>';
   const ranking=regionalRanking().slice(0,12).map((r,i)=>`<tr class="${r.country==='El Salvador'?'me':''}"><td class="center">${i+1}</td><td>${esc(r.name)}</td><td>${esc(r.country)}</td><td class="center amber">${Math.round(r.rating)}</td></tr>`).join('');
   const champs=G.regional&&G.regional.lastSim?G.regional.lastSim.results.map(r=>`<div class="offer"><b>${esc(r.country)}</b><br>Campeón: <span class="gold">${esc(r.champion.nombre)}</span><br>Subcampeón: ${esc(r.runner.nombre)}</div>`).join(''):'<p class="muted">Los campeones regionales se actualizarán al cierre de campaña.</p>';
-  panel.innerHTML=`<div class="panel-title">📰 Centro de Noticias</div><div class="offer"><b class="green">JUGADORES EN LÍNEA: ${navigator.onLine?(firebaseDBReady()?RFM_ONLINE_COUNT:'--'):'OFFLINE'}</b></div><div class="div-tabs"><button class="div-tab ${NEWS_FILTER==='all'?'active':''}" onclick="setNewsFilter('all')">Todo</button><button class="div-tab ${NEWS_FILTER==='club'?'active':''}" onclick="setNewsFilter('club')">Club</button><button class="div-tab ${NEWS_FILTER==='mercado'?'active':''}" onclick="setNewsFilter('mercado')">Mercado</button><button class="div-tab ${NEWS_FILTER==='regional'?'active':''}" onclick="setNewsFilter('regional')">Regional</button><button class="div-tab ${NEWS_FILTER==='retiros'?'active':''}" onclick="setNewsFilter('retiros')">Retiros</button></div><div class="grid g2"><div><div class="panel-title">Boletín deportivo</div><div class="scroll" style="max-height:360px">${news}</div></div><div><div class="panel-title">Marco de fichajes</div><div class="scroll" style="max-height:360px">${transfers}</div></div></div><hr class="sep"><div class="grid g2"><div><div class="panel-title">🌎 Mundo centroamericano</div>${champs}<div class="scroll" style="max-height:220px">${regional}</div></div><div><div class="panel-title">Ranking de clubes centroamericanos</div><table class="tbl"><thead><tr><th>#</th><th>Club</th><th>País</th><th class="center">Rating</th></tr></thead><tbody>${ranking}</tbody></table></div></div><hr class="sep">${renderOnlineRanking()}<hr class="sep"><div class="panel-title">📋 Tablas regionales</div><p><small>Antes del cierre de campaña se muestran como proyección por rating; al simular campaña muestran puntos y diferencia de goles.</small></p><div class="grid g2">${regionalTablesHTML()}</div>`;
+  panel.innerHTML=`<div class="panel-title">📰 Centro de Noticias</div><div class="offer"><b class="green">JUGADORES EN LÍNEA: ${navigator.onLine?(firebaseDBReady()?'Tú + '+(typeof RFM_ONLINE_OTHERS!=='undefined'?RFM_ONLINE_OTHERS:0)+' otros ('+RFM_ONLINE_COUNT+' dispositivos)':'--'):'OFFLINE'}</b></div><div class="div-tabs"><button class="div-tab ${NEWS_FILTER==='all'?'active':''}" onclick="setNewsFilter('all')">Todo</button><button class="div-tab ${NEWS_FILTER==='club'?'active':''}" onclick="setNewsFilter('club')">Club</button><button class="div-tab ${NEWS_FILTER==='mercado'?'active':''}" onclick="setNewsFilter('mercado')">Mercado</button><button class="div-tab ${NEWS_FILTER==='regional'?'active':''}" onclick="setNewsFilter('regional')">Regional</button><button class="div-tab ${NEWS_FILTER==='retiros'?'active':''}" onclick="setNewsFilter('retiros')">Retiros</button></div><div class="grid g2"><div><div class="panel-title">Boletín deportivo</div><div class="scroll" style="max-height:360px">${news}</div></div><div><div class="panel-title">Marco de fichajes</div><div class="scroll" style="max-height:360px">${transfers}</div></div></div><hr class="sep"><div class="grid g2"><div><div class="panel-title">🌎 Mundo centroamericano</div>${champs}<div class="scroll" style="max-height:220px">${regional}</div></div><div><div class="panel-title">Ranking de clubes centroamericanos</div><table class="tbl"><thead><tr><th>#</th><th>Club</th><th>País</th><th class="center">Rating</th></tr></thead><tbody>${ranking}</tbody></table></div></div><hr class="sep">${renderOnlineRanking()}<hr class="sep"><div class="panel-title">📋 Tablas regionales</div><p><small>Antes del cierre de campaña se muestran como proyección por rating; al simular campaña muestran puntos y diferencia de goles.</small></p><div class="grid g2">${regionalTablesHTML()}</div>`;
 }
 
 function renderStats(){const lvl=userClub().nivel;const next=userNextMatch();const rows=G.divisiones[lvl].map(id=>G.clubes[id]).sort((a,b)=>teamRating(b)-teamRating(a)).map(c=>{const t=c.tabla;const pr=next&&(next.h===G.userClubId||next.a===G.userClubId)&&c.id!==G.userClubId?matchProb(userClub(),c,next.h===G.userClubId):null;return`<tr class="${c.id===G.userClubId?'me':''}"><td>${badgeHTML(c,true)} ${esc(c.nombre)}</td><td class="center amber">${teamRating(c)}</td><td class="center">${t.pj?((t.gf/t.pj).toFixed(1)):'0.0'}</td><td class="center">${t.pj?((t.gc/t.pj).toFixed(1)):'0.0'}</td><td class="center">${formaTag(c.forma)}</td><td class="right">${money(c.plantilla.reduce((s,p)=>s+p.salario,0))}</td><td>${pr?`G ${pr.win}% · E ${pr.draw}% · P ${pr.loss}%`:''}</td></tr>`;}).join('');
@@ -2761,7 +2761,7 @@ function showPatchModal(){
 }
 
 /* ---------- ONLINE PRESENCE + RANKING ---------- */
-let RFM_ONLINE_COUNT=0,RFM_RANKING=[],RFM_ONLINE_STARTED=false,RFM_ONLINE_INTERVAL=null,RFM_RANK_INTERVAL=null,RFM_UNSUB_PRESENCE=null,RFM_UNSUB_RANKING=null;
+let RFM_ONLINE_COUNT=0,RFM_ONLINE_OTHERS=0,RFM_RANKING=[],RFM_ONLINE_STARTED=false,RFM_ONLINE_INTERVAL=null,RFM_RANK_INTERVAL=null,RFM_UNSUB_PRESENCE=null,RFM_UNSUB_RANKING=null;
 const RANK_SEASON_DAYS=30;
 const RANK_SEASON_EPOCH=Date.UTC(2026,0,1);
 function firebaseDBReady(){return !!(window.RFM_FIREBASE_READY&&window.RFM_FIREBASE_DB&&window.RFM_DB);}
@@ -2785,7 +2785,34 @@ function syncOnlineNow(force){if(RFM_SYNCING_ONLINE)return;RFM_SYNCING_ONLINE=tr
 function updatePresence(){try{if(!firebaseDBReady())return;const db=window.RFM_FIREBASE_DB,F=window.RFM_DB;F.update(F.ref(db,'presencia/'+onlineUserId()),onlineProfile()).catch(e=>console.warn('presence update failed',e));}catch(e){console.warn(e);}}
 let RFM_NEWS_RENDER_TIMER=null;
 function scheduleNoticiasRender(){if(CUR!=='noticias')return;clearTimeout(RFM_NEWS_RENDER_TIMER);RFM_NEWS_RENDER_TIMER=setTimeout(()=>{try{renderNoticias();}catch(e){console.warn(e);}},250);}
-function startOnlineServices(){if(RFM_ONLINE_STARTED)return;if(!navigator.onLine){RFM_ONLINE_COUNT=0;if(G)renderTopbar();return;}if(!firebaseDBReady()){window.addEventListener('rfm-firebase-ready',()=>startOnlineServices(),{once:true});setTimeout(()=>{if(!RFM_ONLINE_STARTED&&firebaseDBReady())startOnlineServices();},2500);return;}RFM_ONLINE_STARTED=true;checkRankSeasonRoll();const db=window.RFM_FIREBASE_DB,F=window.RFM_DB,uid=onlineUserId();const pRef=F.ref(db,'presencia/'+uid);F.set(pRef,onlineProfile()).catch(e=>console.warn('presence set failed',e));try{F.onDisconnect(pRef).remove().catch(()=>{});}catch(e){}clearInterval(RFM_ONLINE_INTERVAL);RFM_ONLINE_INTERVAL=setInterval(updatePresence,30000);clearInterval(RFM_RANK_INTERVAL);RFM_RANK_INTERVAL=setInterval(submitRanking,120000);submitRanking();try{RFM_UNSUB_PRESENCE&&RFM_UNSUB_PRESENCE();RFM_UNSUB_PRESENCE=F.onValue(F.ref(db,'presencia'),snap=>{const now=Date.now();let count=0;snap.forEach(ch=>{const v=ch.val()||{};const seen=typeof v.lastSeen==='number'?v.lastSeen:now;if(v.online!==false&&now-seen<120000)count++;});RFM_ONLINE_COUNT=count;if(G)renderTopbar();scheduleNoticiasRender();},err=>console.warn('presence read failed',err));}catch(e){console.warn(e);}try{RFM_UNSUB_RANKING&&RFM_UNSUB_RANKING();const q=F.query(F.ref(db,'rankingSeasons/'+currentRankSeasonId()),F.orderByChild('score'),F.limitToLast(50));RFM_UNSUB_RANKING=F.onValue(q,snap=>{const arr=[];snap.forEach(ch=>{const v=ch.val();if(v)arr.push(Object.assign({rankKey:ch.key},v));});RFM_RANKING=arr.sort((a,b)=>(b.score||0)-(a.score||0));purgarRankingAuto();scheduleNoticiasRender();},err=>console.warn('ranking read failed',err));}catch(e){console.warn(e);}}
+function startOnlineServices(){if(RFM_ONLINE_STARTED)return;if(!navigator.onLine){RFM_ONLINE_COUNT=0;if(G)renderTopbar();return;}if(!firebaseDBReady()){window.addEventListener('rfm-firebase-ready',()=>startOnlineServices(),{once:true});setTimeout(()=>{if(!RFM_ONLINE_STARTED&&firebaseDBReady())startOnlineServices();},2500);return;}RFM_ONLINE_STARTED=true;checkRankSeasonRoll();const db=window.RFM_FIREBASE_DB,F=window.RFM_DB,uid=onlineUserId();const pRef=F.ref(db,'presencia/'+uid);F.set(pRef,onlineProfile()).catch(e=>console.warn('presence set failed',e));try{F.onDisconnect(pRef).remove().catch(()=>{});}catch(e){}clearInterval(RFM_ONLINE_INTERVAL);RFM_ONLINE_INTERVAL=setInterval(updatePresence,30000);clearInterval(RFM_RANK_INTERVAL);RFM_RANK_INTERVAL=setInterval(submitRanking,120000);submitRanking();try{RFM_UNSUB_PRESENCE&&RFM_UNSUB_PRESENCE();
+  // Cuenta jugadores únicos por managerName (no por userId, para fusionar sesiones multi-device del mismo jugador).
+  // RFM_ONLINE_COUNT = total dispositivos activos (incluyendo al usuario actual)
+  // RFM_ONLINE_OTHERS = jugadores únicos distintos al usuario actual
+  RFM_UNSUB_PRESENCE=F.onValue(F.ref(db,'presencia'),snap=>{
+    const now=Date.now();
+    const myId=onlineUserId();
+    const seenManagers=new Set(); // jugadores únicos (otros)
+    let totalDevices=0;
+    let selfCount=0;
+    snap.forEach(ch=>{
+      const v=ch.val()||{};
+      const seen=typeof v.lastSeen==='number'?v.lastSeen:now;
+      if(v.online!==false&&now-seen<120000){
+        totalDevices++;
+        const mgrName=v.managerName||'?';
+        if(v.userId===myId){
+          selfCount++;
+        }else{
+          seenManagers.add(mgrName);
+        }
+      }
+    });
+    RFM_ONLINE_COUNT=totalDevices;
+    RFM_ONLINE_OTHERS=seenManagers.size;
+    if(G)renderTopbar();
+    scheduleNoticiasRender();
+  },err=>console.warn('presence read failed',err));}catch(e){console.warn(e);}try{RFM_UNSUB_RANKING&&RFM_UNSUB_RANKING();const q=F.query(F.ref(db,'rankingSeasons/'+currentRankSeasonId()),F.orderByChild('score'),F.limitToLast(50));RFM_UNSUB_RANKING=F.onValue(q,snap=>{const arr=[];snap.forEach(ch=>{const v=ch.val();if(v)arr.push(Object.assign({rankKey:ch.key},v));});RFM_RANKING=arr.sort((a,b)=>(b.score||0)-(a.score||0));purgarRankingAuto();scheduleNoticiasRender();},err=>console.warn('ranking read failed',err));}catch(e){console.warn(e);}}
 function renderOnlineRanking(){purgarRankingInactivo(15,false);const rows=(RFM_RANKING||[]).slice(0,50).map((r,i)=>`<tr><td class="center">${i+1}</td><td>${esc(r.managerName||'DT')} ${r.valid===false?'<span class="tag amber">REV</span>':''}</td><td>${esc(r.club||'—')}<br><small>${esc(r.division||'')} · ${r.season||''} ${esc(r.campaign||'')}</small></td><td class="center amber">${r.score||0}</td><td class="center">${r.titles||0}</td></tr>`).join('')||'<tr><td colspan="5" class="muted center">Ranking online sin datos por ahora.</td></tr>';return`<div class="panel-title">🌐 Ranking online de DTs · ${rankSeasonLabel()}</div><table class="tbl"><thead><tr><th>#</th><th>DT</th><th>Club</th><th class="center">Puntos</th><th class="center">Títulos</th></tr></thead><tbody>${rows}</tbody></table>`;}
 
 /* ---------- VISUAL PREFERENCES ---------- */
@@ -3236,21 +3263,24 @@ function boot(){
     }else{
       showIntro();startOnlineServices();
     }
+    // Overlay de feedback obligatorio: se muestra SIEMPRE después de cargar la partida
+    // (con intro o sin intro), solo si no se completó antes. Delay 2.5s para que respire el dashboard.
+    setTimeout(() => {
+      try {
+        if (!isFeedbackCompleted()) {
+          renderFeedbackOverlay();
+        }
+      } catch (e) { console.warn('feedback proceed trigger failed', e); }
+    }, 2500);
   };
   if(sessionStorage.getItem('rfm_video_intro_seen')==='1'){
+    // Intro ya vista en sesión previa (saltada o completada): proceder directo.
     proceed();
   }else{
+    // Primera vez con la intro en esta sesión: mostrar video, esperar a que termine/salte.
     const onVideoDone=()=>{
       document.removeEventListener('rfm-video-intro-done',onVideoDone);
       proceed();
-      // Activar overlay de feedback obligatorio tras video (solo si no se completó antes).
-      setTimeout(() => {
-        try {
-          if (!isFeedbackCompleted()) {
-            setTimeout(() => renderFeedbackOverlay(), 600);
-          }
-        } catch (e) { console.warn('feedback after video failed', e); }
-      }, 1200);
     };
     document.addEventListener('rfm-video-intro-done',onVideoDone,{once:true});
     startVideoIntro();
@@ -3263,15 +3293,7 @@ function boot(){
       }
     },3500);
   }
-  // Activar overlay de feedback obligatorio tras boot (siempre, salvo si ya se completó).
-  // Esto cubre el caso de intro ya vista en sesión previa Y el caso de partidas existentes.
-  setTimeout(() => {
-    try {
-      if (!isFeedbackCompleted()) {
-        setTimeout(() => renderFeedbackOverlay(), 600);
-      }
-    } catch (e) { console.warn('feedback boot trigger failed', e); }
-  }, 1800);
+  // (El trigger del feedback ahora vive dentro de proceed() y respeta la intro)
   // Si el boot terminó cargando un backup en vez del principal, lo decimos una vez.
   setTimeout(()=>{
     try{
@@ -3317,6 +3339,9 @@ window.addEventListener('beforeunload',autoSave);
 installErrorGuard();
 registerOfflineSupport();
 boot();
+// Watchdog: si después de 6s Firebase no se inicializó (por bloqueo CSP, sin red, etc),
+// forzamos el estado "offline visual" para que el indicador no quede en "---".
+setTimeout(()=>{try{if(!firebaseDBReady()&&typeof renderTopbar==='function'&&G){RFM_ONLINE_COUNT=0;renderTopbar();}}catch(e){}},6000);
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a260d666df6c74ca',t:'MTc4NTg4MDg1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3fc1c52a81d0c83',t:'MTc5MDE5MzM2NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a260d666df6c74ca',t:'MTc4NTg4MDg1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3fc36b1b87fd03f',t:'MTc5MDE5NDQ0NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
