@@ -305,36 +305,39 @@ body.no-crt{letter-spacing:.15px}
   background:linear-gradient(135deg,rgba(70,226,43,.06),rgba(255,204,51,.04) 50%,rgba(63,208,255,.06));
   border:2px solid var(--green);
   border-radius:8px;
-  padding:14px;
+  padding:12px;
   margin-bottom:14px;
   position:relative;
   overflow:hidden;
-  box-shadow:0 0 24px rgba(70,226,43,.18),inset 0 0 18px rgba(0,0,0,.4);
-  animation:zbPanelGlow 4s ease-in-out infinite alternate;
+  box-shadow:0 0 18px rgba(70,226,43,.15),inset 0 0 14px rgba(0,0,0,.4);
 }
-@keyframes zbPanelGlow{from{box-shadow:0 0 20px rgba(70,226,43,.15),inset 0 0 18px rgba(0,0,0,.4)}to{box-shadow:0 0 30px rgba(70,226,43,.28),inset 0 0 22px rgba(0,0,0,.4)}}
-.zerobyte-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--amber),var(--cyan),var(--green));opacity:.8}
-.zerobyte-panel::after{content:'PROMOCIÓN';position:absolute;top:8px;right:10px;font-family:var(--font-pixel);font-size:7px;color:var(--amber);background:rgba(0,0,0,.6);padding:3px 6px;border-radius:2px;letter-spacing:1px;border:1px solid var(--amber-d);opacity:.7}
-.zerobyte-header{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px dashed var(--line2)}
-.zerobyte-logo{font-size:32px;line-height:1;filter:drop-shadow(0 0 8px rgba(255,204,51,.5));animation:zbLogoSpin 6s linear infinite}
-@keyframes zbLogoSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.zerobyte-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--amber),var(--cyan),var(--green));opacity:.7}
+.zerobyte-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--line2)}
+.zerobyte-logo{font-size:24px;line-height:1;filter:drop-shadow(0 0 6px rgba(255,204,51,.5))}
 .zerobyte-title-block{flex:1;min-width:0}
-.zerobyte-title{font-family:var(--font-pixel);font-size:13px;color:var(--amber);letter-spacing:1px;text-shadow:0 0 8px rgba(255,204,51,.4);line-height:1.3;margin-bottom:4px}
-.zerobyte-subtitle{font-size:14px;color:var(--cyan);line-height:1.4}
-.zerobyte-flyers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
-.zerobyte-flyer{display:block;border:2px solid var(--line2);border-radius:5px;cursor:pointer;transition:all .2s ease;background:#000;position:relative;overflow:hidden;text-decoration:none}
-.zerobyte-flyer:hover{border-color:var(--green);box-shadow:0 0 18px rgba(70,226,43,.5);transform:translateY(-3px) scale(1.02)}
-.zerobyte-flyer img{width:100%;height:auto;display:block}
-.zerobyte-flyer-badge{position:absolute;top:5px;left:5px;background:rgba(0,0,0,.8);color:var(--amber);font-family:var(--font-pixel);font-size:7px;padding:3px 5px;border-radius:2px;letter-spacing:.5px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);border:1px solid rgba(255,204,51,.4)}
-.zerobyte-cta-btn{display:block;width:100%;padding:12px;background:linear-gradient(135deg,var(--green-d),var(--amber-d));color:#04140a;border:2px solid var(--green);border-radius:6px;font-family:var(--font-pixel);font-size:11px;font-weight:bold;text-align:center;text-decoration:none;letter-spacing:1px;transition:all .2s;box-shadow:0 0 14px rgba(70,226,43,.35);text-transform:uppercase}
-.zerobyte-cta-btn:hover{transform:translateY(-2px);box-shadow:0 0 22px rgba(70,226,43,.6);background:linear-gradient(135deg,var(--green),var(--amber))}
-.zerobyte-hint{text-align:center;font-size:12px;color:var(--dim);margin-top:6px;font-style:italic}
+.zerobyte-title{font-family:var(--font-pixel);font-size:12px;color:var(--amber);letter-spacing:1px;text-shadow:0 0 6px rgba(255,204,51,.4);line-height:1.3;margin-bottom:3px}
+.zerobyte-subtitle{font-size:13px;color:var(--cyan);line-height:1.4}
+.zerobyte-flyers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.zerobyte-flyer{display:block;border:1px solid var(--line2);border-radius:4px;cursor:pointer;transition:all .2s ease;background:#000;position:relative;overflow:hidden;text-decoration:none;max-height:140px}
+.zerobyte-flyer:hover{border-color:var(--green);box-shadow:0 0 12px rgba(70,226,43,.5);transform:translateY(-2px)}
+.zerobyte-flyer-image{width:100%;height:78px;overflow:hidden;background:#000;display:flex;align-items:center;justify-content:center}
+.zerobyte-flyer-image img{width:100%;height:100%;object-fit:cover;display:block}
+.zerobyte-flyer-info{padding:6px 8px;background:linear-gradient(180deg,rgba(8,19,10,.95),rgba(0,0,0,.95))}
+.zerobyte-flyer-title{font-family:var(--font-pixel);font-size:8px;color:var(--green);letter-spacing:.5px;line-height:1.2;margin-bottom:2px;text-align:center}
+.zerobyte-flyer-desc{font-size:11px;color:var(--dim);line-height:1.3;text-align:center}
+.zerobyte-flyer-badge{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.8);color:var(--amber);font-family:var(--font-pixel);font-size:6px;padding:2px 4px;border-radius:2px;letter-spacing:.5px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);border:1px solid rgba(255,204,51,.4);z-index:2}
+.zerobyte-stats{display:flex;justify-content:space-around;margin-bottom:10px;padding:6px 0;border-top:1px dashed var(--line2);border-bottom:1px dashed var(--line2);font-size:12px;color:var(--dim);flex-wrap:wrap;gap:4px}
+.zerobyte-stats span{display:flex;flex-direction:column;align-items:center;gap:1px}
+.zerobyte-stats span b{color:var(--amber);font-family:var(--font-pixel);font-size:10px}
+.zerobyte-cta-btn{display:block;width:100%;padding:10px;background:linear-gradient(135deg,var(--green-d),var(--amber-d));color:#04140a;border:2px solid var(--green);border-radius:5px;font-family:var(--font-pixel);font-size:10px;font-weight:bold;text-align:center;text-decoration:none;letter-spacing:1px;transition:all .2s;box-shadow:0 0 12px rgba(70,226,43,.3);text-transform:uppercase}
+.zerobyte-cta-btn:hover{transform:translateY(-1px);box-shadow:0 0 18px rgba(70,226,43,.5);background:linear-gradient(135deg,var(--green),var(--amber))}
+.zerobyte-hint{text-align:center;font-size:11px;color:var(--dim);margin-top:5px;font-style:italic}
 @media(max-width:780px){
   .zerobyte-flyers{grid-template-columns:1fr;gap:8px}
   .zerobyte-title{font-size:11px}
-  .zerobyte-subtitle{font-size:13px}
-  .zerobyte-logo{font-size:26px}
-  .zerobyte-panel{padding:10px}
+  .zerobyte-subtitle{font-size:12px}
+  .zerobyte-logo{font-size:22px}
+  .zerobyte-flyer-image{height:90px}
 }
 @media(hover:none){.zerobyte-flyer:hover{transform:none;box-shadow:0 0 0 1px var(--green)} .zerobyte-cta-btn:hover{transform:none}}
 .match-scoreboard>div{min-width:0;overflow:hidden}.match-scoreboard .pxl{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.match-scoreboard .badge{margin:0 auto}.match-scoreboard .score{white-space:nowrap;flex:0 0 auto;text-align:center}
@@ -576,9 +579,15 @@ function renderZeroBytePanel() {
   // Todos los flyers apuntan al hub de ZeroByte (página principal) para que los visitantes
   // vean, exploren y descarguen TODOS los proyectos (incluyendo APKs).
   const flyers = ZEROBYTE_FLYERS.map((f, i) => `
-    <a class="zerobyte-flyer" href="${ZEROBYTE_HUB_URL}" target="_blank" rel="noopener" data-flyer="${f.id}" title="${esc(f.title)} — Ver y descargar en ZeroByte Studios">
-      <img src="${esc(f.img)}" alt="${esc(f.title)}" loading="lazy" onerror="this.parentNode.style.display='none'" />
+    <a class="zerobyte-flyer" href="${ZEROBYTE_HUB_URL}" target="_blank" rel="noopener" data-flyer="${f.id}" title="${esc(f.title)} — Ver en ZeroByte Studios">
       <div class="zerobyte-flyer-badge">${esc(f.badge)}</div>
+      <div class="zerobyte-flyer-image">
+        <img src="${esc(f.img)}" alt="${esc(f.title)}" loading="lazy" onerror="this.parentNode.parentNode.style.display='none'" />
+      </div>
+      <div class="zerobyte-flyer-info">
+        <div class="zerobyte-flyer-title">${esc(f.title)}</div>
+        <div class="zerobyte-flyer-desc">${esc(f.description)}</div>
+      </div>
     </a>
   `).join('');
   return `
@@ -587,10 +596,15 @@ function renderZeroBytePanel() {
         <div class="zerobyte-logo">⚡</div>
         <div class="zerobyte-title-block">
           <div class="zerobyte-title">ZERO BYTE STUDIOS</div>
-          <div class="zerobyte-subtitle">Otros proyectos del mismo creador · 100% offline · 0 trackers</div>
+          <div class="zerobyte-subtitle">Otros proyectos del mismo creador</div>
         </div>
       </div>
       <div class="zerobyte-flyers">${flyers}</div>
+      <div class="zerobyte-stats">
+        <span><b>3</b>Apps</span>
+        <span><b>100%</b>Offline</span>
+        <span><b>0</b>Rastreo</span>
+      </div>
       <a class="zerobyte-cta-btn" href="${ZEROBYTE_HUB_URL}" target="_blank" rel="noopener">
         🌍 VISITAR PORTFOLIO COMPLETO →
       </a>
@@ -3304,5 +3318,5 @@ installErrorGuard();
 registerOfflineSupport();
 boot();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a260d666df6c74ca',t:'MTc4NTg4MDg1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3fc15009f2932d8',t:'MTc5MDE5MzA2NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a260d666df6c74ca',t:'MTc4NTg4MDg1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3fc1c52a81d0c83',t:'MTc5MDE5MzM2NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
