@@ -1,6 +1,6 @@
 # Retro Football Manager SV
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.7-blue)
 ![Platform](https://img.shields.io/badge/platform-Web%20%7C%20PWA-green)
 ![License](https://img.shields.io/badge/license-All%20Rights%20Reserved-red)
 
@@ -13,9 +13,19 @@
 ## 📋 Especificaciones Técnicas
 
 * **Arquitectura:** Aplicación Web Progresiva (PWA) con soporte de ejecución offline mediante *Service Workers*.
-* **Motor de Simulación:** Desarrollado de forma nativa en Javascript (Vanilla JS), garantizando alto rendimiento y nula dependencia de librerías externas.
+* **Motor de Simulación:** Desarrollado de forma nativa en Javascript (Vanilla JS). Usa Firebase (ranking y presencia online) y `<model-viewer>` (avatar 3D) como únicas dependencias externas; el juego completo funciona sin conexión.
 * **Interfaz de Usuario:** Renderizado mediante HTML5/CSS3 optimizado para navegadores de escritorio y dispositivos móviles.
 * **Sistema de Audio:** Módulo de audio dinámico integrado para ambientación de menús y estados del partido.
+
+---
+
+## 🆕 Novedades v1.7
+
+* **Nombres únicos** de jugadores (partidas viejas se corrigen solas).
+* **Reserva del club recuperable**: el excedente de presupuesto ya no se pierde; se retira desde Finanzas.
+* **Guardado ~35 % más liviano**, se guarda al minimizar/cerrar y avisa si falta espacio.
+* **Feedback opcional**, pestaña **🆕 Novedades** dentro del juego, interfaz móvil más legible.
+* Instalación offline más ligera (ya no se descargan ~15 MB de golpe).
 
 ---
 
