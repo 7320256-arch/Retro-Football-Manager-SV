@@ -1,21 +1,20 @@
-/* Retro Football Manager SV — PWABuilder-safe Service Worker with audio + video range support */
-const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v6';
+/* Retro Football Manager SV — Service Worker v7 (audio + video range support, caché ligera) */
+const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v7';
+const RUNTIME_CACHE = 'rfm-runtime-v1';
 const MUSIC_CACHE = 'rfm-music-offline-v4';
 const INTRO_CACHE = 'rfm-intro-offline-v1';
 const AVATAR_CACHE = 'rfm-avatar-3d-v1';
 const SCOPE_PATH = '/Retro-Football-Manager-SV/';
 
+// Solo lo mínimo para arrancar offline. Video, avatar 3D e imágenes pesadas se guardan
+// la primera vez que se usan (antes se descargaban ~15 MB de golpe al instalar).
 const APP_SHELL = [
   SCOPE_PATH,
   SCOPE_PATH + 'index.html',
   SCOPE_PATH + 'manifest.json',
-  SCOPE_PATH + 'icon-512.png',
-  SCOPE_PATH + 'intro.mp4',
-  SCOPE_PATH + 'dt-avatar.glb',
-  SCOPE_PATH + 'flyer-cibernetica.png',
-  SCOPE_PATH + 'flyer-wallet.png',
-  SCOPE_PATH + 'flyer-fmsv.png'
+  SCOPE_PATH + 'icon-512.png'
 ];
+const CDN_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'ajax.googleapis.com', 'www.gstatic.com'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -29,7 +28,7 @@ self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
     await Promise.all(keys
-      .filter(k => k !== CACHE_VERSION && k !== MUSIC_CACHE && k !== INTRO_CACHE && k !== AVATAR_CACHE)
+      .filter(k => k !== CACHE_VERSION && k !== MUSIC_CACHE && k !== INTRO_CACHE && k !== AVATAR_CACHE && k !== RUNTIME_CACHE)
       .map(k => caches.delete(k))
     );
     await self.clients.claim();
@@ -39,6 +38,31 @@ self.addEventListener('activate', event => {
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
+
+function isCdnRequest(request) {
+  try { return CDN_HOSTS.includes(new URL(request.url).hostname); } catch (e) { return false; }
+}
+
+function isImageRequest(request) {
+  try {
+    const url = new URL(request.url);
+    return url.origin === self.location.origin && /\.(png|jpe?g|webp|gif|svg)$/i.test(url.pathname);
+  } catch (e) { return false; }
+}
+
+// Cache-first para recursos que casi no cambian (fuentes, librerías versionadas, imágenes).
+async function cacheFirstRuntime(request) {
+  const cache = await caches.open(RUNTIME_CACHE);
+  const hit = await cache.match(request);
+  if (hit) return hit;
+  try {
+    const res = await fetch(request);
+    if (res && (res.ok || res.type === 'opaque')) cache.put(request, res.clone()).catch(() => {});
+    return res;
+  } catch (err) {
+    return new Response('', { status: 504, statusText: 'Recurso no disponible offline' });
+  }
+}
 
 function isAudioRequest(request) {
   const url = new URL(request.url);
@@ -217,6 +241,11 @@ self.addEventListener('fetch', event => {
 
   if (isAvatarGlbRequest(request)) {
     event.respondWith(handleAvatar(request));
+    return;
+  }
+
+  if (isCdnRequest(request) || isImageRequest(request)) {
+    event.respondWith(cacheFirstRuntime(request));
     return;
   }
 

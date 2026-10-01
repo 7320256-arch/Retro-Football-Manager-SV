@@ -344,6 +344,25 @@ body.no-crt{letter-spacing:.15px}
 .topbtns{overflow-x:auto;overflow-y:hidden;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;max-width:100%;padding-bottom:2px}.topbtns::-webkit-scrollbar{display:none}.topbtns .btn,.topbtns label.btn{flex:0 0 auto;min-width:40px;min-height:38px;display:inline-flex;align-items:center;justify-content:center}
 @media(max-width:700px){.match-scoreboard{grid-template-columns:minmax(0,1fr) minmax(72px,auto) minmax(0,1fr);gap:6px}.match-scoreboard .score-big{font-size:22px!important;padding:0 6px!important}.match-scoreboard .pxl{font-size:8px!important}.topbtns{max-width:48vw!important;justify-content:flex-start!important}.topbtns .btn,.topbtns label.btn{min-width:44px;min-height:40px}}
 
+
+/* ===== v1.7 · mejoras de interfaz ===== */
+:root{--tap:44px}
+button:focus-visible,select:focus-visible,input:focus-visible,.tab:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.nov-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);margin-left:6px;box-shadow:0 0 6px var(--amber);vertical-align:middle}
+.tab.go.active{background:var(--green);color:#04140a;box-shadow:0 0 12px rgba(70,226,43,.55)}
+.nav{scrollbar-width:thin}
+body.device-phone .tab{font-size:9px;min-width:86px;min-height:var(--tap)}
+body.device-phone .tab.go{min-width:96px}
+body.device-phone .topbar{max-height:34vh}
+body.device-phone .stats{grid-template-columns:repeat(3,1fr)}
+body.device-phone .btn-sm{min-height:38px}
+body.device-phone select,body.device-phone input{min-height:40px}
+
+.phone-only{display:none}
+body.device-phone .phone-only{display:inline-block}
+/* "Jugar" fijo a la izquierda en teléfono para no tapar ninguna pestaña */
+body.device-phone .tab.go{order:-1;left:0;right:auto;margin-left:0;margin-right:6px;box-shadow:8px 0 12px rgba(0,0,0,.45)}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
 </style>
 </head>
 <body>
@@ -387,7 +406,7 @@ body.no-crt{letter-spacing:.15px}
       <div class="stat"><div class="k">Online</div><div id="hd-online" class="v green">—</div></div>
     </div>
     <div class="topbtns">
-      <button class="btn btn-sm" onclick="toggleMusic()" title="Música ON/OFF">🎵</button><button class="btn btn-sm" onclick="nextMusicTrack(true)" title="Siguiente canción">⏭</button><button class="btn btn-sm" onclick="playIntroManually()" title="Ver intro de video">🎬</button><button class="btn btn-sm" onclick="toggleCRT()" title="Activar/desactivar CRT">CRT</button><button class="btn btn-sm" onclick="openHelpCenter()" title="Ayuda">?</button><button class="btn btn-sm" onclick="repairGame(true)" title="Reparar partida">🔧</button><button class="btn btn-sm" onclick="exportSave()" title="Descargar partida">⬇</button>
+      <button class="btn btn-sm phone-only" onclick="openPhoneMenu()" title="Menú">☰</button><button class="btn btn-sm" onclick="toggleMusic()" title="Música ON/OFF">🎵</button><button class="btn btn-sm" onclick="nextMusicTrack(true)" title="Siguiente canción">⏭</button><button class="btn btn-sm" onclick="playIntroManually()" title="Ver intro de video">🎬</button><button class="btn btn-sm" onclick="toggleCRT()" title="Activar/desactivar CRT">CRT</button><button class="btn btn-sm" onclick="openHelpCenter()" title="Ayuda">?</button><button class="btn btn-sm" onclick="repairGame(true)" title="Reparar partida">🔧</button><button class="btn btn-sm" onclick="exportSave()" title="Descargar partida">⬇</button>
       <label class="btn btn-sm" title="Cargar partida">⬆<input type="file" accept=".json,application/json" id="imp-file" hidden onchange="importSave(event)"></label>
       <button class="btn btn-sm btn-d" onclick="confirmNewGame()">⟳</button>
     </div>
@@ -407,8 +426,8 @@ body.no-crt{letter-spacing:.15px}
     <button class="tab" data-v="concacaf" onclick="switchView('concacaf')">🌐 CONCACAF</button>
     <button class="tab" data-v="stats" onclick="switchView('stats')">📊 Stats</button>
     <button class="tab" data-v="noticias" onclick="switchView('noticias')">📰 Noticias</button>
-    <button class="tab" data-v="clasificacion" onclick="switchView('clasificacion')">🏆 Tabla</button>
-    <button class="tab" data-v="partido" onclick="switchView('partido')">⚽ Fecha</button>
+    <button class="tab" data-v="novedades" onclick="switchView('novedades')">🆕 Novedades<span id="nov-dot" class="nov-dot hidden"></span></button>
+    <button class="tab" data-v="clasificacion" onclick="switchView('clasificacion')">📋 Tabla</button>
     <button class="tab go" data-v="partido" onclick="switchView('partido')">▶ Jugar</button>
   </nav>
 
@@ -458,6 +477,7 @@ body.no-crt{letter-spacing:.15px}
     <section id="view-concacaf" class="view hidden"><div class="panel" id="concacaf-panel"></div></section>
     <section id="view-stats" class="view hidden"><div class="panel" id="stats-panel"></div></section>
     <section id="view-noticias" class="view hidden"><div class="panel" id="noticias-panel"></div></section>
+    <section id="view-novedades" class="view hidden"><div class="panel" id="novedades-panel"></div></section>
 
     <section id="view-clasificacion" class="view hidden"><div class="panel"><div class="panel-title">🏆 Tabla de Posiciones</div><div class="div-tabs" id="div-switch"></div><div class="scroll"><table class="tbl"><thead><tr><th class="center">#</th><th>Club</th><th class="center">PJ</th><th class="center">PG</th><th class="center">PE</th><th class="center">PP</th><th class="center">GF</th><th class="center">GC</th><th class="center">DG</th><th class="center">Pts</th><th>Forma</th></tr></thead><tbody id="table-body"></tbody></table></div><small>► <span class="green">Verde</span>: 1° asciende directo; 2°/3° repechaje · <span class="red">Rojo</span>: 12° desciende directo; 10°/11° repechaje</small></div></section>
 
@@ -574,6 +594,11 @@ const ZEROBYTE_FLYERS = [
 const ZEROBYTE_HUB_URL = 'https://7320256-arch.github.io/Sitio-web-de-presentaci-n/';
 
 function renderZeroBytePanel() {
+  if (typeof isLiveRunning === 'function' && isLiveRunning()) return '';
+  if (zbCollapsed()) return `<div style="margin-bottom:10px"><button class="btn btn-sm" style="width:100%;min-height:40px" onclick="toggleZB()">⚡ ZERO BYTE STUDIOS · Otros proyectos ▼</button></div>`;
+  return `<div style="margin-bottom:4px;text-align:right"><button class="btn btn-sm" onclick="toggleZB()">▲ Ocultar</button></div>` + renderZeroBytePanelFull();
+}
+function renderZeroBytePanelFull() {
   // Si hay partido en vivo, no mostrar (evita contaminación visual).
   if (typeof isLiveRunning === 'function' && isLiveRunning()) return '';
   // Todos los flyers apuntan al hub de ZeroByte (página principal) para que los visitantes
@@ -709,16 +734,12 @@ function renderFeedbackOverlay() {
         ▶ SIGUIENTE
       </button>
 
-      <div class="feedback-warning">⚠ ESTA VENTANA NO SE PUEDE CERRAR HASTA COMPLETAR LOS 3 PASOS ⚠</div>
+      <button class="feedback-btn" style="margin-top:10px;opacity:.85" onclick="snoozeFeedback()">Ahora no · recordármelo en unos días</button>
     </div>
   `;
   // Bloquea click fuera del card (no se cierra).
   overlay.addEventListener('click', e => {
-    if (e.target === overlay) {
-      overlay.classList.add('feedback-shake');
-      toast('Completá los 3 pasos para continuar');
-      setTimeout(() => overlay.classList.remove('feedback-shake'), 400);
-    }
+    if (e.target === overlay) snoozeFeedback();
   });
   // Bloquea Escape y otras teclas de cierre.
   document.addEventListener('keydown', blockFeedbackEscape, true);
@@ -736,10 +757,7 @@ function blockFeedbackEscape(e) {
   if (document.getElementById('feedback-overlay')) {
     if (e.key === 'Escape' || e.keyCode === 27) {
       e.preventDefault(); e.stopPropagation();
-      const ov = document.getElementById('feedback-overlay');
-      ov.classList.add('feedback-shake');
-      toast('Completá los 3 pasos para continuar');
-      setTimeout(() => ov.classList.remove('feedback-shake'), 400);
+      snoozeFeedback();
     }
   } else {
     document.removeEventListener('keydown', blockFeedbackEscape, true);
@@ -810,6 +828,14 @@ function advanceFeedback() {
   }
 }
 
+function snoozeFeedback() {
+  try { localStorage.setItem('rfm_feedback_snooze', String(Date.now() + 3 * 24 * 3600 * 1000)); } catch (e) {}
+  closeFeedbackAndResume();
+  toast('Listo. Podés opinar cuando quieras desde 🆕 Novedades.');
+}
+function feedbackSnoozed() {
+  try { return Date.now() < Number(localStorage.getItem('rfm_feedback_snooze') || 0); } catch (e) { return false; }
+}
 function closeFeedbackAndResume() {
   const ov = document.getElementById('feedback-overlay');
   if (ov) {
@@ -872,14 +898,41 @@ function personalityHint(p){const x=p.personalidad||'Profesional';return{Profesi
 function trainingMultiplier(p){const x=p.personalidad||'Profesional';return x==='Promesa'?1.25:x==='Profesional'?1.15:x==='Líder'?1.08:x==='Conflictivo'?0.9:x==='Veterano'?0.85:1;}
 
 
-function genPlayer(pos,tier){
+/* --- Nombres únicos (v1.7) --- */
+let NAME_POOL=null;
+function realNameSet(){const s=new Set();Object.values(REAL_ROSTERS).forEach(l=>l.forEach(x=>s.add(x[0])));RELEASED_PLAYERS.forEach(x=>s.add(x[0]));return s;}
+function currentPlayerNames(){const s=new Set();try{if(G){Object.values(G.clubes||{}).forEach(c=>(c.plantilla||[]).forEach(p=>s.add(p.nombre)));(G.mercado||[]).concat(G.agentOffers||[]).forEach(p=>s.add(p.nombre));}}catch(e){}return s;}
+function usedNameSet(){const s=realNameSet();currentPlayerNames().forEach(n=>s.add(n));return s;}
+function withNamePool(fn){const prev=NAME_POOL;NAME_POOL=prev||usedNameSet();try{return fn();}finally{NAME_POOL=prev;}}
+function uniqueName(){
+  const used=NAME_POOL||usedNameSet();
+  for(let i=0;i<80;i++){const n=pick(NOMBRES)+' '+pick(APELLIDOS);if(!used.has(n)){used.add(n);return n;}}
+  for(let i=0;i<200;i++){const n=pick(NOMBRES)+' '+pick(APELLIDOS)+' '+pick(APELLIDOS);if(!used.has(n)){used.add(n);return n;}}
+  const n=pick(NOMBRES)+' '+pick(APELLIDOS)+' '+(used.size+1);used.add(n);return n;
+}
+/* Renombra duplicados en partidas ya guardadas. Prioridad: tu club, jugadores reales, resto. */
+function dedupeNames(){
+  if(!G||!G.clubes)return 0;
+  const u=G.userClubId,list=[];
+  const add=(p,pr)=>{if(p&&p.nombre)list.push({p,pr});};
+  Object.values(G.clubes).forEach(c=>(c.plantilla||[]).forEach(p=>add(p,(c.id===u?0:2)+(p.real?0:1))));
+  (G.mercado||[]).concat(G.agentOffers||[]).forEach(p=>add(p,5));
+  list.sort((a,b)=>a.pr-b.pr);
+  const taken=new Set(),dups=[];
+  list.forEach(x=>{if(taken.has(x.p.nombre))dups.push(x.p);else taken.add(x.p.nombre);});
+  if(!dups.length)return 0;
+  const prev=NAME_POOL;NAME_POOL=new Set([...taken,...realNameSet()]);
+  try{dups.forEach(p=>{p.nombre=uniqueName();});}finally{NAME_POOL=prev;}
+  return dups.length;
+}
+function genPlayer(pos,tier,keepName){
   const f=TIER_F[tier]||0.7;const edad=clamp(Math.round(17+Math.random()*20),17,37);
   const b=()=>clamp(Math.round((45+Math.random()*40)*f),18,93);
   let a={ataque:b(),defensa:b(),fisico:b(),porteria:b()};
   if(pos==='POR'){a.porteria=clamp(a.porteria+18,20,95);a.ataque=clamp(Math.round(a.ataque*0.2),5,30);}
   else if(pos==='DEF'){a.defensa=clamp(a.defensa+10,20,95);a.porteria=clamp(Math.round(a.porteria*0.25),5,30);}
   else if(pos==='DEL'){a.ataque=clamp(a.ataque+10,20,95);a.defensa=clamp(Math.round(a.defensa*0.55),10,60);}
-  const p={id:uid(),nombre:pick(NOMBRES)+' '+pick(APELLIDOS),posicion:pos,edad,atributos:a,energia:100,moral:55+rnd(36),contrato:1+rnd(3),quiereIrse:false,lesionado:false,lesionJor:0,yellowCards:0,suspended:0,salario:0,valorMercado:0,nacionalidad:pick(NACIONALIDADES),equipoOrigen:'Libre',stats:{goles:0,asistencias:0,atajadas:0,pj:0}};
+  const p={id:uid(),nombre:keepName?'':uniqueName(),posicion:pos,edad,atributos:a,energia:100,moral:55+rnd(36),contrato:1+rnd(3),quiereIrse:false,lesionado:false,lesionJor:0,yellowCards:0,suspended:0,salario:0,valorMercado:0,nacionalidad:pick(NACIONALIDADES),equipoOrigen:'Libre',stats:{goles:0,asistencias:0,atajadas:0,pj:0}};
   p.media=calcMedia(p);p.personalidad=pick(PERSONALIDADES);p.potencial=calcPotential(p);p.scouted=false;p.salario=Math.round((p.media*p.media*0.9+p.media*15)/10)*10;p.valorMercado=Math.round(p.media*p.media*40*ageFactor(edad));
   return p;
 }
@@ -893,13 +946,13 @@ const REAL_ROSTERS={
   INT:[['Kilmar Echeverría','POR'],['Michael Umaña','DEF'],['Walter Gutierrez','MED'],['J. Sánchez','DEF'],['K. Gotou','MED'],['R. Aparicio','DEL'],['Roberto Herrera','MED']]
 };
 const RELEASED_PLAYERS=[
- ['William Canales','DEF'],['Christopher Rauda','MED'],['Diego Lemus','DEF'],['Mario Jacobo','DEF'],['Jonathan Jiménez','DEF'],['Juan Barahona','MED'],['Andrés Bello','DEL'],['Matías Steib','DEL'],['Michell Mercado','MED'],['Óscar Rodríguez','MED'],['Allan Ocon','MED'],['Enrico Dueñas','DEL'],
+ ['William Canales','DEF'],['Christopher Rauda','MED'],['Diego Lemus','DEF'],['Mario Jacobo','DEF'],['Juan Barahona','MED'],['Andrés Bello','DEL'],['Matías Steib','DEL'],['Allan Ocon','MED'],['Enrico Dueñas','DEL'],
  ['Dustin Coreas','POR'],['Christopher Ortiz','DEF'],['Eduardo Pinto','MED'],['Diego Chávez','DEF'],['David Funes','DEL'],['Diego Grande','MED'],
  ['Tomás Granitto','MED'],['Franco Cacace','DEF'],['Walter Pineda','DEL'],['Carlos Ortiz','DEF'],['Melvin Cruz','DEL'],
  ['Lucas Dos Santos','DEL'],['Wilberth Hernández','DEF'],['Alexi Quintanilla','MED'],['César Orellana','DEF'],['Brian Martínez','DEL'],['Jeremías Lemus','MED'],['Ken Mejía','MED'],['Kevin Ascencio','POR'],['Marcelo Ferreira','DEL'],['Andre Morales','DEF']
 ];
 function mkRealPlayer(nombre,pos,tier,star){
-  const p=genPlayer(pos,tier);p.nombre=nombre;p.edad=clamp(20+rnd(14),18,36);p.moral=68+rnd(25);p.contrato=1+rnd(3);p.real=true;
+  const p=genPlayer(pos,tier,true);p.nombre=nombre;p.edad=clamp(20+rnd(14),18,36);p.moral=68+rnd(25);p.contrato=1+rnd(3);p.real=true;
   if(star){['ataque','defensa','fisico','porteria'].forEach(k=>p.atributos[k]=clamp(p.atributos[k]+star,1,95));}
   p.media=calcMedia(p);p.personalidad=p.personalidad||pick(PERSONALIDADES);p.potencial=calcPotential(p);p.scouted=true;p.salario=Math.round((p.media*p.media*0.95+p.media*18)/10)*10;p.valorMercado=Math.round(p.media*p.media*45*ageFactor(p.edad));return p;
 }
@@ -911,7 +964,7 @@ function clubSquad(id,tier){
   while(base.length<20)base.push(genPlayer(pick(POS),tier));
   return base.slice(0,22);
 }
-function genReleasedMarket(n){return shuffle(RELEASED_PLAYERS).slice(0,n).map(x=>{const p=mkRealPlayer(x[0],x[1],pick([1,2,2,3]),0);p.libre=true;p.precio=Math.round(p.valorMercado*(0.55+Math.random()*0.25));p.comision=Math.round(p.precio*(0.08+Math.random()*0.08));return p;});}
+function genReleasedMarket(n){const taken=currentPlayerNames();return shuffle(RELEASED_PLAYERS.filter(x=>!taken.has(x[0]))).slice(0,n).map(x=>{const p=mkRealPlayer(x[0],x[1],pick([1,2,2,3]),0);p.libre=true;p.precio=Math.round(p.valorMercado*(0.55+Math.random()*0.25));p.comision=Math.round(p.precio*(0.08+Math.random()*0.08));return p;});}
 
 /* Plantilla artesanal del Firpo (sabor real) */
 function firpoSquad(){
@@ -976,8 +1029,8 @@ const TOTAL_JORNADAS=22;
 /* ---------- ESTADO ---------- */
 let G=null;
 const SAVE_KEY='rfm_sv_save_v2';
-const GAME_VERSION='1.6';
-const BUILD_ID='1.6-full';
+const GAME_VERSION='1.7';
+const BUILD_ID='1.7-full';
 const FORMACIONES={'Libre':{def:0,med:0,del:0,l:'XI Libre (sin esquema)'},'4-4-2':{def:4,med:4,del:2,l:'4-4-2 Equilibrada'},'4-3-3':{def:4,med:3,del:3,l:'4-3-3 Ofensiva'},'3-5-2':{def:3,med:5,del:2,l:'3-5-2 Control'},'5-3-2':{def:5,med:3,del:2,l:'5-3-2 Muralla'},'4-2-3-1':{def:4,med:5,del:1,l:'4-2-3-1 Moderna'}};
 const MENTALIDADES={'Defensiva':{atk:0.80,def:1.20},'Contraataque':{atk:1.05,def:1.05},'Equilibrada':{atk:1.0,def:1.0},'Ofensiva':{atk:1.20,def:0.85}};
 const PRESIONES={'Baja':{atk:.96,def:1.04,energy:.92},'Media':{atk:1,def:1,energy:1},'Alta':{atk:1.07,def:.96,energy:1.18}};
@@ -1032,7 +1085,8 @@ function regionalRanking(){const foreign=regionalAllClubs().map(c=>({name:c.nomb
 function regionalOrigin(){return pick(REGIONAL_CLUB_NAMES.concat(['Academia Centroamericana','Libre regional','Selección juvenil regional']));}
 function regionalNationalityFromOrigin(origin){return COUNTRY_OF_CLUB[origin]||pick(['Guatemala','Honduras','Costa Rica','Panamá','Nicaragua','El Salvador']);}
 function getRegionalClubById(id){return regionalAllClubs().find(c=>c.id===id);}
-function centroVirtualSquad(rating){const squad=[];const tier=rating>=78?1:rating>=72?2:rating>=66?3:4;['POR','POR','DEF','DEF','DEF','DEF','DEF','MED','MED','MED','MED','MED','DEL','DEL','DEL','DEL'].forEach(pos=>{let p=genPlayer(pos,tier);const diff=rating-p.media;if(diff>0)p=boostMarketPlayer(p,Math.min(12,Math.round(diff/2)));p.nacionalidad=pick(['Guatemala','Honduras','Costa Rica','Panamá','Nicaragua']);p.equipoOrigen='Copa Centroamericana';squad.push(p);});return squad;}
+function centroVirtualSquad(rating){return withNamePool(()=>centroVirtualSquadRaw(rating));}
+function centroVirtualSquadRaw(rating){const squad=[];const tier=rating>=78?1:rating>=72?2:rating>=66?3:4;['POR','POR','DEF','DEF','DEF','DEF','DEF','MED','MED','MED','MED','MED','DEL','DEL','DEL','DEL'].forEach(pos=>{let p=genPlayer(pos,tier);const diff=rating-p.media;if(diff>0)p=boostMarketPlayer(p,Math.min(12,Math.round(diff/2)));p.nacionalidad=pick(['Guatemala','Honduras','Costa Rica','Panamá','Nicaragua']);p.equipoOrigen='Copa Centroamericana';squad.push(p);});return squad;}
 function makeCentroTeamSV(id,source){const c=G.clubes[id];return{id:c.id,nombre:c.nombre,country:'El Salvador',source,sv:true,rating:teamRating(c),color:c.color,plantilla:c.plantilla};}
 function makeCentroTeamRegional(c,source){return{id:c.id,nombre:c.nombre,country:c.country,source,sv:false,rating:c.rating,color:'#0b6b8f',plantilla:centroVirtualSquad(c.rating)};}
 function centroTeam(id){if(G.clubes&&G.clubes[id])return G.clubes[id];if(G.centroCup&&G.centroCup.teams)return G.centroCup.teams.find(t=>t.id===id);return null;}
@@ -1185,7 +1239,8 @@ function finishConcacafMatch(gf,ga){recordPlayerStats(gf,ga);applyNonLeagueMatch
 function pushRegionalNews(t){G.regionalNews=G.regionalNews||[];G.regionalNews.unshift({j:G.jornadaActual,t});if(G.regionalNews.length>80)G.regionalNews.length=80;pushNews('🌎 '+t,'info','regional');}
 
 
-function newGameState(userClubId,managerName){
+function newGameState(a,b){const prev=NAME_POOL;NAME_POOL=realNameSet();try{return newGameStateRaw(a,b);}finally{NAME_POOL=prev;}}
+function newGameStateRaw(userClubId,managerName){
   const clubes={};const divs={1:[],2:[],3:[]};
   for(const d of DEF){
     const plantilla=clubSquad(d[1],d[5]);plantilla.forEach(p=>p.scouted=true);
@@ -1300,13 +1355,12 @@ function renderObjectivesMini(obj){const arr=(obj&&obj.objetivos)||[];return arr
 function genSponsorOffers(lvl){
   return SPONSOR_POOL.map(s=>({id:s.id,nombre:s.nombre,base:s.base[lvl],win:s.win[lvl],up:s.up[lvl],obj:s.obj[lvl],riesgo:s.riesgo}));
 }
-function initCopa(ids){return{active:true,alive:ids.slice(),round:0,current:null,playedWeeks:[],history:[],champion:null};}
 function fin(t,tipo,monto,detalle){if(!G.finanzas)G.finanzas=[];G.finanzas.unshift({temp:G.temporada,j:G.jornadaActual,tipo,monto,detalle});if(G.finanzas.length>80)G.finanzas.length=80;}
 function applyRealRosterUpdates(){if(G.realRosterV4)return;['ALI','FAS','AGU','FIR','INT'].forEach(id=>{if(G.clubes[id]){G.clubes[id].plantilla=clubSquad(id,G.clubes[id].tier);}});G.realRosterV4=true;if(G.clubes[G.userClubId])G.tactics.alineacion=bestXI(userClub().plantilla,G.tactics.formacion||'4-4-2').map(p=>p.id);}
 function repairState(){
   if(!G)return;
   G.noticias=(G.noticias||[]).map(n=>Object.assign({j:G.jornadaActual||1,tipo:'info',cat:'club',time:`${G.temporada||2026} ${G.campania||''} · J${G.jornadaActual||1}`},n));
-  G.transferNews=G.transferNews||[];G.regionalNews=G.regionalNews||[];G.finanzas=G.finanzas||[];G.achievements=G.achievements||[];
+  G.transferNews=G.transferNews||[];G.regionalNews=G.regionalNews||[];G.finanzas=G.finanzas||[];G.achievements=G.achievements||[];restoreCupSquads();
   if(G.centroCup&&G.centroCup.teams){G.centroCup.teams.forEach(t=>{if(!t.plantilla)t.plantilla=t.sv&&G.clubes[t.id]?G.clubes[t.id].plantilla:centroVirtualSquad(t.rating||68);if(!t.color)t.color=t.sv&&G.clubes[t.id]?G.clubes[t.id].color:'#0b6b8f';});}
   ['mercado','agentOffers'].forEach(k=>{(G[k]||[]).forEach(p=>{if(!p.id)p.id=uid();if(p.comision==null)p.comision=Math.round((p.precio||p.valorMercado||10000)*0.08);if(!p.nacionalidad)p.nacionalidad='El Salvador';if(!p.equipoOrigen)p.equipoOrigen=p.libre?'Libre':'Mercado';if(!p.personalidad)p.personalidad=pick(PERSONALIDADES);if(!p.potencial||p.potencial<p.media)p.potencial=calcPotential(p);if(p.scouted==null)p.scouted=false;});});
 }
@@ -1322,6 +1376,7 @@ function migrateState(){
   if(!G.matchMode)G.matchMode='league';
   if(!G.finanzas)G.finanzas=[];if(!G.rankingOnline)G.rankingOnline=[];if(G.concacafCup===undefined)G.concacafCup=null;if(G.nextConcacafSeeds===undefined)G.nextConcacafSeeds=null;if(!G.concacafStats)G.concacafStats=null;if(!G.regional)G.regional=initRegionalWorld();if(G.centroCup===undefined)G.centroCup=null;if(G.concacafCup===undefined)G.concacafCup=null;if(G.nextConcacafSeeds===undefined)G.nextConcacafSeeds=null;if(!G.transferNews)G.transferNews=[];if(!G.regionalNews)G.regionalNews=[];normalizeBudget('Ajuste económico de actualización');
   purgeDuplicateElites(false);
+  if(!G.namesV17){G.namesFixedCount=dedupeNames();G.namesV17=1;}
   if(G.meta)G.meta.v=4;
   validateGameState(false);
 }
@@ -1435,13 +1490,15 @@ function adjustMarketForClubLevel(list){
   });
   return list;
 }
-function genMarket(n){const o=[];const origins=['FAS','Alianza','Águila','Firpo','Metapán','Dragón','Platense','Limeño','Once Deportivo','Club regional','Reserva nacional'].concat(REGIONAL_CLUB_NAMES);
+function genMarket(n){return withNamePool(()=>genMarketRaw(n));}
+function genMarketRaw(n){const o=[];const origins=['FAS','Alianza','Águila','Firpo','Metapán','Dragón','Platense','Limeño','Once Deportivo','Club regional','Reserva nacional'].concat(REGIONAL_CLUB_NAMES);
   for(let i=0;i<n;i++){const pos=pick(POS);const tier=pick([1,2,2,2,3,3,3,4,4,5]);let p=genPlayer(pos,tier);if(Math.random()<0.22)p=boostMarketPlayer(p,4+rnd(7));if(Math.random()<0.18){p.edad=18+rnd(5);p.valorMercado=Math.round(p.valorMercado*1.15);}p.precio=Math.round(p.valorMercado*(0.78+Math.random()*0.48));p.comision=Math.round(p.precio*(0.05+Math.random()*0.10));p.equipoOrigen=pick(origins);p.nacionalidad=regionalNationalityFromOrigin(p.equipoOrigen);o.push(p);}
   // Talentos/regionales inventados para que el mercado no sea siempre igual ni inaccesible.
   for(let i=0;i<3;i++){let p=boostMarketPlayer(genPlayer(pick(POS),pick([2,3,3,4])),3+rnd(8));p.equipoOrigen=pick(['Academia SV','Reserva departamental','Libre','Club regional',regionalOrigin()]);p.nacionalidad=regionalNationalityFromOrigin(p.equipoOrigen);p.precio=Math.round(p.valorMercado*(0.70+Math.random()*0.38));p.comision=Math.round(p.precio*(0.06+Math.random()*0.08));o.push(p);}
   if(eliteMarketScore()>=75){const qty=eliteMarketScore()>=135?3:eliteMarketScore()>=105?2:1;for(let i=0;i<qty;i++)o.push(makeElitePlayer());}o.push(...genReleasedMarket(Math.min(4,n)));return adjustMarketForClubLevel(o).filter((p,i,arr)=>!p.eliteKey||arr.findIndex(x=>x.eliteKey===p.eliteKey)===i).sort((a,b)=>b.media-a.media);
 }
-function genAgentOffers(lvl){const n=6;const arr=[];for(let i=0;i<n;i++){const baseTier=pick([lvl,lvl,lvl+1,2,3,4].map(x=>clamp(x,1,5)));let p=genPlayer(pick(POS),baseTier);if(Math.random()<0.30)p=boostMarketPlayer(p,3+rnd(8));p.ofrecido=true;p.equipoOrigen=pick(['Libre','Reserva de club','Representante','Academia regional',regionalOrigin(),regionalOrigin()]);p.nacionalidad=regionalNationalityFromOrigin(p.equipoOrigen);p.precio=Math.round(p.valorMercado*(0.62+Math.random()*0.45));p.comision=Math.round(p.precio*(0.08+Math.random()*0.12));arr.push(p);}return adjustMarketForClubLevel(arr).sort((a,b)=>b.media-a.media);}
+function genAgentOffers(lvl){return withNamePool(()=>genAgentOffersRaw(lvl));}
+function genAgentOffersRaw(lvl){const n=6;const arr=[];for(let i=0;i<n;i++){const baseTier=pick([lvl,lvl,lvl+1,2,3,4].map(x=>clamp(x,1,5)));let p=genPlayer(pick(POS),baseTier);if(Math.random()<0.30)p=boostMarketPlayer(p,3+rnd(8));p.ofrecido=true;p.equipoOrigen=pick(['Libre','Reserva de club','Representante','Academia regional',regionalOrigin(),regionalOrigin()]);p.nacionalidad=regionalNationalityFromOrigin(p.equipoOrigen);p.precio=Math.round(p.valorMercado*(0.62+Math.random()*0.45));p.comision=Math.round(p.precio*(0.08+Math.random()*0.12));arr.push(p);}return adjustMarketForClubLevel(arr).sort((a,b)=>b.media-a.media);}
 
 /* ---------- MATCH ENGINE ---------- */
 const TXT={
@@ -1745,7 +1802,8 @@ function simulatePrimeraPlayoff(sorted){
   const res={temp:G.temporada,champion:final.w,rows,qualified:q.map(c=>c.id)};G.playoffs=G.playoffs||[];G.playoffs.unshift(res);return res;
 }
 function budgetSoftCap(lvl){return{1:2600000,2:900000,3:380000}[lvl]||500000;}
-function normalizeBudget(reason){const cap=budgetSoftCap(userClub().nivel);if(G.budget>cap){const surplus=G.budget-cap;const cut=Math.round(surplus*0.72);G.budget-=cut;G.clubReserve=(G.clubReserve||0)+cut;fin('Directiva','reserva',-cut,reason||'Reserva directiva por excedente presupuestario');pushNews(`🏦 La directiva mueve ${money(cut)} a reserva institucional. Presupuesto operativo ajustado.`, 'info');}}
+function normalizeBudget(reason){const cap=budgetSoftCap(userClub().nivel);if(G.budget>cap){const surplus=G.budget-cap;const cut=Math.round(surplus*0.72);G.budget-=cut;G.clubReserve=(G.clubReserve||0)+cut;fin('Directiva','reserva',-cut,reason||'Excedente guardado en la reserva del club');pushNews(`🏦 La directiva guarda ${money(cut)} del excedente en la reserva del club. Podés retirarlo desde Finanzas cuando tu presupuesto baje.`, 'info');}}
+function withdrawReserve(pct){if(blockIfLive('retirar reserva'))return;const r=G.clubReserve||0;if(r<=0){toast('No hay reserva para retirar');return;}const cap=budgetSoftCap(userClub().nivel);const room=Math.max(0,cap-G.budget);const amt=Math.min(Math.round(r*pct/100),room);if(amt<=0){toast('Tu presupuesto está en el tope ('+money(cap)+'). Gastá primero para retirar reserva.');return;}G.budget+=amt;G.clubReserve=r-amt;fin('Directiva','ingreso',amt,'Retiro de la reserva del club');pushNews(`🏦 Retiraste ${money(amt)} de la reserva del club.`,'info');autoSave();renderAll();toast('Retiraste '+money(amt));}
 function unlockAchievement(id,name,desc){G.achievements=G.achievements||[];if(G.achievements.some(a=>a.id===id))return;G.achievements.unshift({id,name,desc,temp:G.temporada,campania:G.campania});pushNews(`🏅 Logro desbloqueado: ${name}.`,'gol');}
 function buyAvatarItem(id,name,cost){G.avatar=G.avatar||{items:[]};G.managerWallet=G.managerWallet||0;if(G.avatar.items.includes(id)){toast('Ya comprado');return;}if(G.managerWallet<cost){toast('No alcanza sueldo DT');return;}G.managerWallet-=cost;G.avatar.items.push(id);unlockAchievement('style_'+id,'Estilo DT: '+name,'Compraste un elemento cosmético');autoSave();renderAll();toast('Compra personal realizada');}
 function renderAchievements(){const a=G.achievements||[];const owned=(G.avatar&&G.avatar.items)||[];
@@ -2461,7 +2519,12 @@ function userNextMatch(){
 function changeManagerName(){
   if(!G)return;
   const old=G.managerName||'DT';
-  const nm=(prompt('Nuevo nombre del Director Técnico:',old)||old).trim().slice(0,24);
+  openModal(`<div class="modal-title">👔 Nuevo nombre del DT</div><input id="dt-rename-input" maxlength="24" value="${esc(old)}" style="width:100%;margin:10px 0" onkeydown="if(event.key==='Enter')applyManagerName()"><div class="center"><button class="btn btn-p" onclick="applyManagerName()">Guardar</button> <button class="btn" onclick="closeModal()">Cancelar</button></div>`);
+  setTimeout(()=>{const i=$('dt-rename-input');if(i){i.focus();i.select();}},60);
+}
+function applyManagerName(){
+  if(!G)return;const old=G.managerName||'DT';const i=$('dt-rename-input');
+  const nm=((i&&i.value)||'').trim().replace(/\s+/g,' ').slice(0,24);closeModal();
   if(!nm){toast('Nombre inválido');return;}
   if(nm===old){toast('Sin cambios');return;}
   G.managerName=nm;
@@ -2574,7 +2637,7 @@ function offerSellPlayer(id){if(blockIfLive('vender jugadores'))return;const u=u
   const clubs=['FAS','Alianza','Águila','Firpo','Metapán','Dragón','Platense','Limeño','Once Deportivo','Santa Tecla'];
   const offers=[0.72+Math.random()*0.22,0.86+Math.random()*0.26,1.02+Math.random()*0.28].map((m,i)=>({club:pick(clubs),val:Math.round(p.valorMercado*m),i})).sort((a,b)=>b.val-a.val);
   openModal(`<div class="modal-title">💵 Ofertas por ${esc(p.nombre)}</div><p>${p.posicion} · Media <b class="amber">${p.media}</b> · Valor de mercado ${money(p.valorMercado)}</p><hr class="sep">${offers.map(o=>`<div class="offer"><div style="display:flex;justify-content:space-between;align-items:center"><div><b>${esc(o.club)}</b><br><span class="muted">Oferta del agente</span></div><div><b class="green">${money(o.val)}</b> <button class="btn btn-p btn-sm" onclick="acceptSale('${id}',${o.val})">Aceptar</button></div></div></div>`).join('')}<div class="center"><button class="btn" onclick="closeModal()">Cancelar</button></div>`);}
-function acceptSale(id,val){if(blockIfLive('vender jugadores'))return;const u=userClub();const i=u.plantilla.findIndex(p=>p.id===id);if(i<0)return;const p=u.plantilla[i];G.budget+=val;u.plantilla.splice(i,1);G.inboxOffers=(G.inboxOffers||[]).filter(o=>o.pid!==id);G.tactics.alineacion=G.tactics.alineacion.filter(x=>x!==id);ensureValidXI();G.mercado.push(Object.assign({},p,{precio:Math.round(p.valorMercado*1.05)}));fin('Mercado','ingreso',val,`Venta: ${p.nombre}`);pushNews(`💵 Venta: ${p.nombre} por ${money(val)}.`,'bueno','mercado');pushTransferNews(`${userClub().nombre} vende a ${p.nombre} por ${money(val)}.`);closeModal();autoSave();renderAll();toast('Vendido');}
+function acceptSale(id,val){if(blockIfLive('vender jugadores'))return;const u=userClub();const i=u.plantilla.findIndex(p=>p.id===id);if(i<0)return;const p=u.plantilla[i];if(u.plantilla.length<=16){toast('Necesitás al menos 16 jugadores en la plantilla para vender');return;}if(p.posicion==='POR'&&u.plantilla.filter(x=>x.posicion==='POR').length<=2){toast('Debés conservar al menos 2 porteros');return;}G.budget+=val;u.plantilla.splice(i,1);G.inboxOffers=(G.inboxOffers||[]).filter(o=>o.pid!==id);G.tactics.alineacion=G.tactics.alineacion.filter(x=>x!==id);ensureValidXI();G.mercado.push(Object.assign({},p,{precio:Math.round(p.valorMercado*1.05)}));fin('Mercado','ingreso',val,`Venta: ${p.nombre}`);pushNews(`💵 Venta: ${p.nombre} por ${money(val)}.`,'bueno','mercado');pushTransferNews(`${userClub().nombre} vende a ${p.nombre} por ${money(val)}.`);closeModal();autoSave();renderAll();toast('Vendido');}
 function makeRivalOffer(p,forced){const big=['Alianza','FAS','Águila','Firpo','Metapán','Dragón','Platense','Limeño','Club mexicano','Club chapín'];const mult=forced?(0.95+Math.random()*0.18):(0.82+Math.random()*0.38);return{id:'of'+Date.now()+rnd(999),pid:p.id,club:pick(big),amount:Math.round(p.valorMercado*mult),j:G.jornadaActual,forced:!!forced};}
 function maybeGenerateRivalOffer(){const u=userClub();G.inboxOffers=G.inboxOffers||[];if(G.inboxOffers.length>=4||Math.random()>0.32)return;const candidates=u.plantilla.filter(p=>p.media>=teamRating(u)-2||p.moral<45).sort((a,b)=>b.media-a.media);if(!candidates.length)return;const p=pick(candidates.slice(0,8));const o=makeRivalOffer(p,false);G.inboxOffers.unshift(o);pushNews(`📨 ${o.club} pregunta por ${p.nombre}: ${money(o.amount)}.`, 'info');}
 function checkPlayerUnrest(){const u=userClub();G.inboxOffers=G.inboxOffers||[];u.plantilla.forEach(p=>{if((p.moral||60)<22&&!p.quiereIrse&&Math.random()<0.45){p.quiereIrse=true;const o=makeRivalOffer(p,true);G.inboxOffers.unshift(o);pushNews(`😠 ${p.nombre} pidió salir. Su agente trae una oferta de ${o.club}.`,'malo');}});}
@@ -2596,7 +2659,7 @@ function renderFinanzas(){const u=userClub();const est=estimateNextBalance();con
   const rows=(G.finanzas||[]).slice(0,18).map(x=>`<tr><td class="center">${x.temp}</td><td class="center">F${x.j}</td><td>${esc(x.tipo)}</td><td class="${x.monto>=0?'green':'red'} right">${x.monto>=0?'+':''}${money(x.monto)}</td><td class="muted">${esc(x.detalle)}</td></tr>`).join('')||'<tr><td colspan="5" class="muted center">Sin movimientos registrados todavía.</td></tr>';
   const projectBtns=e.propio?(e.construccion&&e.construccion.weeks>0?`<span class="tag amber">Obra: ${e.construccion.kind} · ${e.construccion.weeks} fechas</span>`:`<button class="btn btn-a btn-sm" onclick="startStadiumProject('aforo')">Ampliar aforo (${money(stadiumProjectCost('aforo',e))})</button> <button class="btn btn-sm" onclick="startStadiumProject('iluminacion')">Iluminación (${money(stadiumProjectCost('iluminacion',e))})</button> <button class="btn btn-sm" onclick="startStadiumProject('palcos')">Palcos (${money(stadiumProjectCost('palcos',e))})</button> <button class="btn btn-sm" onclick="startStadiumProject('cancha')">Cancha (${money(stadiumProjectCost('cancha',e))})</button>`):'';
   $('finanzas-panel').innerHTML=`<div class="panel-title">💰 Finanzas, Patrocinadores y Estadio</div>
-  <div class="grid g3"><div><span class="muted">Presupuesto operativo</span><div class="pxl ${G.budget<0?'red':'green'}" style="font-size:15px">${money(G.budget)}</div><small>Reserva directiva: ${money(G.clubReserve||0)}</small></div><div><span class="muted">Semáforo 3 fechas</span><div class="pxl ${sig.cls==='good'?'green':sig.cls==='bad'?'red':'amber'}" style="font-size:14px">${sig.label} · ${sig.total>=0?'+':''}${money(sig.total)}</div><small>Ingreso aprox. ${money(est.income)} − costos ${money(est.cost)}</small></div><div><span class="muted">TV por fecha</span><div class="cyan">${money(tvIncome(u.nivel))}</div></div></div>
+  <div class="grid g3"><div><span class="muted">Presupuesto operativo</span><div class="pxl ${G.budget<0?'red':'green'}" style="font-size:15px">${money(G.budget)}</div><small>Reserva del club: ${money(G.clubReserve||0)}</small>${(G.clubReserve||0)>0?'<div style="margin-top:5px"><button class="btn btn-sm" onclick="withdrawReserve(25)">Retirar 25%</button> <button class="btn btn-sm" onclick="withdrawReserve(100)">Retirar todo</button></div><small class="muted">Se retira mientras el presupuesto esté bajo el tope de '+money(budgetSoftCap(u.nivel))+'.</small>':''}</div><div><span class="muted">Semáforo 3 fechas</span><div class="pxl ${sig.cls==='good'?'green':sig.cls==='bad'?'red':'amber'}" style="font-size:14px">${sig.label} · ${sig.total>=0?'+':''}${money(sig.total)}</div><small>Ingreso aprox. ${money(est.income)} − costos ${money(est.cost)}</small></div><div><span class="muted">TV por fecha</span><div class="cyan">${money(tvIncome(u.nivel))}</div></div></div>
   <div class="finance-strip">${proj.map((x,i)=>`<div class="finance-card ${x.net>=0?'good':x.net>=-15000?'mid':'bad'}"><b>Fecha ${G.jornadaActual+i}</b><br>${esc(x.detail)}<br><span class="green">Ing ${money(x.income)}</span><br><span class="red">Cost ${money(x.cost)}</span><br><b class="${x.net>=0?'green':'red'}">${x.net>=0?'+':''}${money(x.net)}</b></div>`).join('')}</div>
   <hr class="sep"><div class="grid g2"><div><div class="panel-title">🏟 Estadio</div><div class="offer"><b class="amber">${esc(stadiumName(u))}</b><br>${e.propio?'Propio · ingreso íntegro y ampliable':'Alquilado · recibís menos taquilla'}<br>Aforo: <b>${e.aforo.toLocaleString('en-US')}</b> · Boleto: <button class="btn btn-sm" onclick="changeTicket(-1)">−</button> <b>${money(e.precio)}</b> <button class="btn btn-sm" onclick="changeTicket(1)">+</button><br>Costo por fecha: <span class="red">${money(stadiumCost(u))}</span><br>${e.propio?`Fans: <b class="${(e.fans||70)>=60?'green':'red'}">${Math.round(e.fans||70)}/100</b><br>Instalaciones: ${e.iluminacion?'💡':''}${e.palcos?' VIP':''}${e.cancha?' 🌱':''}<hr class="sep">${projectBtns}`:`<hr class="sep"><b>Opciones en ${esc(u.ciudad)}</b>${stadiumOps}`}</div></div><div><div class="panel-title">📨 Ofertas rivales por tus jugadores</div>${renderInboxOffers()}</div></div>
   <hr class="sep"><div class="panel-title">🤝 Patrocinador actual</div>${sp?`<div class="offer" style="border-color:var(--green)"><b class="green">${esc(sp.nombre)}</b><br>Fijo ${money(sp.base)}/fecha · Victoria ${money(sp.win)} · Bono objetivo ${money(sp.obj)}</div>`:'<p class="red">Sin patrocinador. Firmá uno para estabilizar caja.</p>'}<div class="panel-title">📋 Ofertas disponibles</div>${offers}<hr class="sep"><div class="panel-title">📒 Últimos movimientos</div><div class="scroll" style="max-height:260px"><table class="tbl"><thead><tr><th>Temp</th><th>F</th><th>Tipo</th><th class="right">Monto</th><th>Detalle</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
@@ -2699,10 +2762,10 @@ function playQuick(){if(!prepComplete()){toast('Completa la preparación semanal
 
 function switchView(v){if(isLiveRunning()&&isCriticalView(v)){toast(v==='tactica'?'Táctica solo en el descanso':'Esta sección está bloqueada durante el partido en vivo');return;}if(!SIM)abortSim();CUR=v;document.querySelectorAll('.view').forEach(s=>s.classList.add('hidden'));
   const sec=$('view-'+v);if(sec)sec.classList.remove('hidden');
-  document.querySelectorAll('.tab').forEach(t=>{const on=t.dataset.v===v&&!t.classList.contains('go');t.classList.toggle('active',on);});
-  if(v==='dashboard')renderDashboard();if(v==='carrera')renderCarrera();if(v==='plantilla')renderSquad();if(v==='tactica')renderTactics();if(v==='mercado')renderMarket();if(v==='finanzas')renderFinanzas();if(v==='entreno')renderEntreno();if(v==='calendario')renderCalendario();if(v==='copa')renderCopa();if(v==='centro')renderCentro();if(v==='concacaf')renderConcacaf();if(v==='stats')renderStats();if(v==='noticias'){syncOnlineNow(true);renderNoticias();}if(v==='clasificacion'){VIEW_DIV=userClub().nivel;renderTable();}if(v==='partido')renderMatch();
+  document.querySelectorAll('.tab').forEach(t=>{t.classList.toggle('active',t.dataset.v===v);});
+  if(v==='dashboard')renderDashboard();if(v==='carrera')renderCarrera();if(v==='plantilla')renderSquad();if(v==='tactica')renderTactics();if(v==='mercado')renderMarket();if(v==='finanzas')renderFinanzas();if(v==='entreno')renderEntreno();if(v==='calendario')renderCalendario();if(v==='copa')renderCopa();if(v==='centro')renderCentro();if(v==='concacaf')renderConcacaf();if(v==='stats')renderStats();if(v==='noticias'){syncOnlineNow(true);renderNoticias();}if(v==='clasificacion'){VIEW_DIV=userClub().nivel;renderTable();}if(v==='partido')renderMatch();if(v==='novedades')renderNovedades();
   document.querySelector('main').scrollTop=0;renderLiveMini();}
-function renderAll(){renderTopbar();switchView(CUR);renderLiveMini();}
+function renderAll(){renderTopbar();switchView(CUR);renderLiveMini();updateNovDot();}
 
 function emergencyResetLive(){try{if(SIM){clearInterval(SIM);SIM=null;}if(LIVE&&LIVE.phase!=='halftime'){LIVE=null;}G.matchMode=G.matchMode||'league';}catch(e){}}
 function installErrorGuard(){if(window._rfmErr)return;window._rfmErr=true;window.addEventListener('error',e=>{console.error(e.error||e.message);emergencyResetLive();try{toast('Error controlado: se reinició el estado del partido');renderAll();}catch(_){};});window.addEventListener('unhandledrejection',e=>{console.error(e.reason);emergencyResetLive();try{toast('Error de proceso controlado');renderAll();}catch(_){};});}
@@ -2739,6 +2802,77 @@ function sendFeedback(){
   window.location.href=mailto;
   setTimeout(()=>openModal(`<div class="modal-title">📧 Enviar feedback</div><p>Si no se abrió tu correo automáticamente, escribí a:</p><p class="center"><b class="cyan">${to}</b></p><p class="muted">Asunto sugerido: ${esc(subject)}</p><div class="center"><button class="btn btn-p" onclick="closeModal()">Entendido</button></div>`),650);
 }
+
+
+/* ---------- MENÚ PARA TELÉFONO (acceso a todo lo que antes quedaba fuera de pantalla) ---------- */
+function openPhoneMenu(){
+  const g=id=>{const e=$(id);return (e&&e.textContent)||'—';};
+  const b=(label,fn)=>`<button class="btn" style="width:100%;text-align:left;min-height:44px" onclick="closeModal();${fn}">${label}</button>`;
+  openModal(`<div class="modal-title">☰ Menú</div>
+    <div class="offer"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div><small class="muted">Nómina por fecha</small><br><b class="red">${esc(g('hd-wage'))}</b></div>
+      <div><small class="muted">Caja próximas 3 fechas</small><br><b class="amber">${esc(g('hd-proj'))}</b></div>
+      <div><small class="muted">Temporada / Fecha</small><br><b class="cyan">${esc(g('hd-round'))}</b></div>
+      <div><small class="muted">Jugadores online</small><br><b class="green">${esc(g('hd-online'))}</b></div></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+      ${b('🎵 Música ON/OFF','toggleMusic()')}${b('⏭ Siguiente canción','nextMusicTrack(true)')}
+      ${b('🎬 Ver intro','playIntroManually()')}${b('🖥 Efecto CRT','toggleCRT()')}
+      ${b('❓ Ayuda','openHelpCenter()')}${b('🆕 Novedades',"switchView('novedades')")}
+      ${b('🔧 Reparar partida','repairGame(true)')}${b('⬇ Exportar partida','exportSave()')}
+      <label class="btn" style="width:100%;min-height:44px;display:flex;align-items:center">⬆ Cargar partida<input type="file" accept=".json,application/json" hidden onchange="importSave(event);closeModal()"></label>
+      <button class="btn btn-d" style="width:100%;min-height:44px" onclick="closeModal();confirmNewGame()">⟳ Nueva partida</button>
+    </div>
+    <div class="center" style="margin-top:10px"><button class="btn" onclick="closeModal()">Cerrar</button></div>`);
+}
+/* ---------- Panel promocional plegable ---------- */
+function zbCollapsed(){try{const v=localStorage.getItem('rfm_zb_collapsed');if(v==='1')return true;if(v==='0')return false;}catch(e){}return document.body.classList.contains('device-phone');}
+function toggleZB(){try{localStorage.setItem('rfm_zb_collapsed',zbCollapsed()?'0':'1');}catch(e){}if(typeof renderDashboard==='function'&&CUR==='dashboard')renderDashboard();}
+
+/* ---------- NOVEDADES / CHANGELOG ---------- */
+const CHANGELOG=[
+ {v:'1.7',fecha:'1 oct 2026',titulo:'Revisión general: más justo, más claro, más seguro',items:[
+  ['🧑','Nombres únicos','Ya no existen dos jugadores con el mismo nombre en los clubes ni en el mercado. En partidas guardadas se renombraron automáticamente los repetidos (los jugadores reales y los de tu club tienen prioridad).'],
+  ['💰','Tu dinero ya no desaparece','Antes, si tu presupuesto crecía demasiado, la directiva se quedaba con el excedente y no había forma de usarlo. Ahora va a la Reserva del club y lo retirás desde Finanzas cuando tu presupuesto baje del tope.'],
+  ['🛡','Plantilla protegida','No podés vender si te quedás con menos de 16 jugadores ni dejarte sin porteros (mínimo 2). Evita partidas rotas por ventas apuradas.'],
+  ['💾','Guardado más seguro y liviano','La partida ocupa cerca de un 35% menos, se guarda también al minimizar o cerrar la app, y si el teléfono se queda sin espacio te avisa en vez de fallar en silencio.'],
+  ['🗳','Opinión opcional','La ventana de feedback ya no bloquea el juego: la podés cerrar y te la recordamos unos días después. También podés opinar desde esta pestaña.'],
+  ['📱','Interfaz más cómoda','Menú más legible en teléfono, sin pestaña repetida, “Jugar” se ilumina cuando estás en el partido, y el nombre del DT se pide en una ventana del juego (no del navegador).'],
+  ['📡','Menos datos, mejor offline','La app ya no descarga ~15 MB de golpe al instalarse. Imágenes y fuentes se guardan al usarlas, y la descarga de música offline avisa si usás datos móviles.'],
+  ['🧹','Limpieza técnica','Se eliminó código duplicado y scripts innecesarios de terceros que ralentizaban el arranque.']
+ ]},
+ {v:'1.6',fecha:'Parche anterior',titulo:'CONCACAF Champions Cup',items:[
+  ['🌐','Nuevo reto continental','El campeón y subcampeón de la Copa Centroamericana abren camino a la CONCACAF Champions Cup, con premios mayores y rivales más duros.']
+ ]}
+];
+function novedadesSeen(){try{return localStorage.getItem('rfm_novedades_seen')===GAME_VERSION;}catch(e){return true;}}
+function updateNovDot(){const d=$('nov-dot');if(d)d.classList.toggle('hidden',novedadesSeen());}
+function renderNovedades(){
+  const p=$('novedades-panel');if(!p)return;
+  try{localStorage.setItem('rfm_novedades_seen',GAME_VERSION);}catch(e){}
+  updateNovDot();
+  const fixed=(G&&G.namesFixedCount)||0;
+  const html=CHANGELOG.map((c,i)=>`<div class="offer"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><b class="${i===0?'gold':'cyan'}">Versión ${c.v} — ${esc(c.titulo)}</b><small class="muted">${esc(c.fecha)}</small></div>
+    ${i===0&&fixed?`<div class="tag green" style="margin:6px 0;display:inline-block">En tu partida se corrigieron ${fixed} nombres repetidos</div>`:''}
+    ${c.items.map(it=>`<div style="margin-top:8px"><span style="font-size:20px">${it[0]}</span> <b class="green">${esc(it[1])}</b><div style="color:var(--ink2);font-size:16px;line-height:1.35">${esc(it[2])}</div></div>`).join('')}</div>`).join('');
+  p.innerHTML=`<div class="panel-title">🆕 Novedades y ajustes</div>
+    <p class="muted" style="margin-bottom:8px">Si no ves los cambios, cerrá la app por completo y volvé a abrirla con internet; se actualiza sola.</p>
+    ${html}
+    <div class="center" style="margin-top:10px"><button class="btn btn-p" onclick="startTutorial(true)">📘 Ver tutorial</button> <button class="btn btn-a" onclick="sendFeedback()">📧 Enviar opinión</button> <button class="btn" onclick="exportSave()">⬇ Exportar mi partida</button></div>`;
+}
+function showUpdateModal(){
+  const key='rfm_update_v1_7_seen';
+  try{if(localStorage.getItem(key)==='1')return false;localStorage.setItem(key,'1');}catch(e){return false;}
+  openModal(`<div class="modal-title">🆕 Actualización v${GAME_VERSION}</div>
+    <p><b class="green">Revisamos el juego de pies a cabeza.</b> Estos son los cambios que más vas a notar:</p>
+    <div class="offer"><b class="gold">🧑 Nombres únicos</b><br><small>Se acabaron los jugadores repetidos${(G&&G.namesFixedCount)?` (en tu partida se corrigieron ${G.namesFixedCount})`:''}.</small></div>
+    <div class="offer"><b class="gold">💰 Tu dinero ya no se pierde</b><br><small>El excedente va a una Reserva del club que podés retirar desde Finanzas.</small></div>
+    <div class="offer"><b class="gold">💾 Guardado más seguro</b><br><small>Se guarda al minimizar la app y avisa si falta espacio.</small></div>
+    <div class="offer"><b class="gold">🗳 Feedback opcional</b><br><small>Ya no bloquea el juego.</small></div>
+    <p class="muted"><small>El detalle completo está en la pestaña <b>🆕 Novedades</b>.</small></p>
+    <div class="center"><button class="btn btn-p" onclick="closeModal();switchView('novedades')">🆕 Ver todas las novedades</button> <button class="btn" onclick="closeModal()">▶ Seguir mi carrera</button></div>`);
+  if(G)pushNews(`🆕 Actualización v${GAME_VERSION}: nombres únicos, reserva recuperable y guardado más seguro. Detalles en Novedades.`,'info','club');
+  return true;
+}
 function showLaunchModal(kind){
   const key=kind==='existing'?'rfm_launch_v1_existing':'rfm_launch_v1_new';
   if(localStorage.getItem(key)==='1')return false;
@@ -2762,14 +2896,14 @@ function showPatchModal(){
   const key='rfm_patch_v1_6_seen';
   if(localStorage.getItem(key)==='1')return false;
   localStorage.setItem(key,'1');
-  openModal(`<div class="modal-title">🟢 Parche oficial v${GAME_VERSION}</div>
+  openModal(`<div class="modal-title">🟢 Parche oficial v1.6</div>
     <p><b class="green">La carrera internacional crece.</b> Esta actualización añade el siguiente gran reto después de Centroamérica: competir contra clubes de México, MLS, Canadá y el Caribe.</p>
     <div class="offer"><b class="gold">🌐 CONCACAF Champions Cup</b><br><small>Ahora el campeón y subcampeón de Copa Centroamericana abren camino a la CONCACAF Champions Cup. Es un torneo más duro, con rivales de mayor nivel y premios mucho más grandes.</small></div>
     <div class="offer"><b class="cyan">🎯 Objetivos internacionales</b><br><small>Si tu club clasifica, la directiva puede valorar tu participación continental. Disputar partidos internacionales suma prestigio y puede transformar tu proyecto.</small></div>
     <div class="offer"><b class="green">💰 Premios superiores</b><br><small>Avanzar en CONCACAF entrega ingresos importantes, pero exige plantillas profundas: la energía, las suspensiones y la rotación serán clave.</small></div>
     <div class="offer"><b class="amber">🏆 Camino de gloria</b><br><small>Ganar CONCACAF desbloquea un logro continental y deja tu nombre en el historial de campeones.</small></div>
     <div class="center"><button class="btn btn-p" onclick="closeModal();startTutorial(true)">📘 Repasar tutorial</button> <button class="btn btn-a" onclick="sendFeedback()">📧 Enviar opinión</button> <button class="btn" onclick="closeModal()">▶ Seguir mi carrera</button></div>`);
-  if(G)pushNews(`🟢 Parche v${GAME_VERSION}: CONCACAF Champions Cup disponible como nuevo reto continental.`, 'gol','club');
+  if(G)pushNews(`🟢 Parche v1.6: CONCACAF Champions Cup disponible como nuevo reto continental.`, 'gol','club');
   return true;
 }
 
@@ -2876,8 +3010,13 @@ async function offlineMusicStatus(){
   for(const track of MUSIC_PLAYLIST){const hit=await matchCachedTrack(cache,track);if(hit)count++;}
   return{available:true,count,total:MUSIC_PLAYLIST.length};
 }
-async function downloadOfflineMusic(){
+async function downloadOfflineMusic(confirmed){
   if(!navigator.onLine){toast('Necesitás internet para guardar música offline');return;}
+  const cn=navigator.connection;
+  if(!confirmed&&cn&&(cn.saveData||cn.type==='cellular')){
+    openModal(`<div class="modal-title">🎵 Música offline</div><p>Son unos <b>19 MB</b> y parece que estás usando datos móviles. ¿Querés descargarlas ahora o esperar a tener Wi-Fi?</p><div class="center"><button class="btn btn-p" onclick="closeModal();downloadOfflineMusic(true)">Descargar ahora</button> <button class="btn" onclick="closeModal()">Esperar al Wi-Fi</button></div>`);
+    return;
+  }
   if(!('caches' in window)){toast('Este dispositivo no permite caché de música');return;}
   toast('Guardando música offline...');
   // Limpia cachés viejas de música que pudieron guardar respuestas inválidas.
@@ -2990,7 +3129,7 @@ function validateGameState(show){
   ['mercado','agentOffers'].forEach(k=>{G[k]=G[k]||[];G[k].forEach(p=>{validatePlayer(p,p.equipoOrigen||'Mercado',issues);p.precio=clamp(Number(p.precio||p.valorMercado),0,expectedValue(p)*5);p.comision=clamp(Number(p.comision||0),0,Math.max(1,p.precio));});});
   [1,2,3].forEach(l=>{G.divisiones[l]=G.divisiones[l]||[];G.divisiones[l]=G.divisiones[l].filter(id=>G.clubes[id]);if(G.divisiones[l].length!==12)issues.push(`División ${l} tiene ${G.divisiones[l].length} clubes`);});
   if(!G.calendarios||!G.calendarios[1]){G.calendarios={1:roundRobinFull(G.divisiones[1]),2:roundRobinFull(G.divisiones[2]),3:roundRobinFull(G.divisiones[3])};issues.push('Calendario regenerado');}
-  const cap=budgetSoftCap(userClub().nivel);if(Number(G.budget||0)>cap*2){normalizeBudget('Control anti-trampa por presupuesto excesivo');issues.push('Presupuesto excesivo normalizado');}G.budget=clamp(Number(G.budget||0),-5000000,cap*2);
+  const cap=budgetSoftCap(userClub().nivel);if(Number(G.budget||0)>cap*2){normalizeBudget('Excedente guardado en la reserva del club');issues.push('Excedente de presupuesto guardado en reserva');}G.budget=clamp(Number(G.budget||0),-5000000,cap*2);
   const sig=G._signatureStatus;if(sig==='invalid'){issues.push('Firma de guardado inválida');G.security.tampered=true;}
   G.security.lastCheck=Date.now();G.security.issues=issues.slice(0,20);G.security.valid=!G.security.tampered;G.security.rankEligible=!G.security.tampered;
   if(show)toast(issues.length?`Revisión: ${issues.length} ajustes`:'Partida válida');return{ok:G.security.valid,issues};
@@ -3007,29 +3146,34 @@ const ALL_SAVE_KEYS=[SAVE_KEY,SAVE_BKP1,SAVE_BKP2];
 
 // Guarda el estado actual en los 3 slots rotando: bkp2<-bkp1, bkp1<-principal, principal<-nuevo.
 // Esto da 3 puntos de recuperación si algo se corrompe.
+function slimPayload(g){
+  // Copia para guardar SIN las plantillas de equipos de copa (se regeneran/enlazan al cargar). Ahorra ~35% del guardado.
+  const c=Object.assign({},g);
+  ['centroCup','concacafCup'].forEach(k=>{const cup=g[k];if(cup&&Array.isArray(cup.teams)){c[k]=Object.assign({},cup,{teams:cup.teams.map(t=>{if(!t)return t;const x=Object.assign({},t);delete x.plantilla;return x;})});}});
+  return c;
+}
+function restoreCupSquads(){
+  ['centroCup','concacafCup'].forEach(k=>{const c=G&&G[k];if(!c||!Array.isArray(c.teams))return;
+    c.teams.forEach(t=>{if(!t||(t.plantilla&&t.plantilla.length))return;t.plantilla=(t.sv&&G.clubes&&G.clubes[t.id])?G.clubes[t.id].plantilla:centroVirtualSquad(t.rating||68);if(!t.color)t.color=t.sv&&G.clubes[t.id]?G.clubes[t.id].color:'#0b6b8f';});});
+}
+let SAVE_WARNED=false;
 function autoSave(){
   try{
     if(!G)return;
-    const prev=validateGameState(false);
-    const envelope=makeSaveEnvelope(G);
-    const json=JSON.stringify(envelope);
-    // Rotación atómica: escribimos a un temp y luego movemos. Si algo falla a mitad, queda el temp.
-    try{localStorage.setItem(SAVE_TEMP,json);}catch(e){console.warn('autoSave temp failed',e);}
-    try{
-      // abuelo <- padre
-      const old1=localStorage.getItem(SAVE_BKP1);
-      if(old1)localStorage.setItem(SAVE_BKP2,old1);
-      // padre <- hijo (el principal actual)
-      const old0=localStorage.getItem(SAVE_KEY);
-      if(old0)localStorage.setItem(SAVE_BKP1,old0);
-      // hijo <- nuevo
-      localStorage.setItem(SAVE_KEY,json);
-      // Limpieza del temp si todo salió bien
-      try{localStorage.removeItem(SAVE_TEMP);}catch(e){}
-    }catch(e){
-      console.error('autoSave rotation failed',e);
-      // Si la rotación falla, al menos dejamos el nuevo estado en el principal
-      try{localStorage.setItem(SAVE_KEY,json);}catch(e2){}
+    validateGameState(false);
+    const json=JSON.stringify(makeSaveEnvelope(slimPayload(G)));
+    const set=(k,v)=>{try{localStorage.setItem(k,v);return true;}catch(e){return false;}};
+    const del=k=>{try{localStorage.removeItem(k);}catch(e){}};
+    // Rotación abuelo <- padre <- principal. Cada paso es independiente: si uno falla no se pierde el resto.
+    const old1=localStorage.getItem(SAVE_BKP1),old0=localStorage.getItem(SAVE_KEY);
+    if(old1)set(SAVE_BKP2,old1);
+    if(old0)set(SAVE_BKP1,old0);
+    del(SAVE_TEMP);
+    let ok=set(SAVE_KEY,json);
+    if(!ok){ // almacenamiento lleno: liberamos respaldos viejos y reintentamos
+      del(SAVE_BKP2);ok=set(SAVE_KEY,json);
+      if(!ok){del(SAVE_BKP1);ok=set(SAVE_KEY,json);}
+      if(!SAVE_WARNED){SAVE_WARNED=true;toast(ok?'⚠ Almacenamiento casi lleno: se liberaron respaldos antiguos. Exportá tu partida con ⬇.':'⚠ NO SE PUDO GUARDAR: almacenamiento lleno. Exportá tu partida con ⬇ ya.');}
     }
   }catch(e){console.error('autoSave',e);}
 }
@@ -3074,7 +3218,7 @@ function getSaveHealth(){
   }catch(e){}
   return out;
 }
-function exportSave(){if(!G)return;validateGameState(false);const b=new Blob([JSON.stringify(makeSaveEnvelope(G),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`partida_${G.userClubId}_${G.temporada}.json`;a.click();toast('Partida exportada');}
+function exportSave(){if(!G)return;validateGameState(false);const b=new Blob([JSON.stringify(makeSaveEnvelope(slimPayload(G)))],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`partida_${G.userClubId}_${G.temporada}.json`;a.click();toast('Partida exportada');}
 function importSave(ev){const f=ev.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=readSaveObject(rd.result);if(!d.clubes||!d.userClubId)throw 0;G=d;migrateState();autoSave();if(!maybePrepareConcacafEvent()&&!maybePrepareCentroEvent())maybePrepareCupEvent();autoSave();renderAll();switchView('dashboard');toast(G.security&&G.security.tampered?'Partida cargada con advertencia':'Partida cargada');}catch(e){toast('Archivo inválido');}};rd.readAsText(f);ev.target.value='';}
 function confirmNewGame(){openModal(`<div class="modal-title">⟳ ¿Nueva partida?</div><p>Se borrará el avance actual y los 3 respaldos automáticos. Si tenés una partida importante, primero exportala con ⬇.</p><div class="center" style="margin-top:10px"><button class="btn btn-d" onclick="hardReset()">Sí, empezar de nuevo</button> <button class="btn" onclick="closeModal()">Cancelar</button></div>`);}
 function hardReset(){closeModal();try{ALL_SAVE_KEYS.forEach(k=>localStorage.removeItem(k));try{localStorage.removeItem(SAVE_TEMP);}catch(e){}}catch(e){}G=null;showIntro();}
@@ -3254,13 +3398,16 @@ function pickDiv(l){PICK_DIV=l;PICK_CLUB=null;document.querySelectorAll('#intro-
 function renderIntroClubs(){
   const grid=$('club-grid');const ids=G&&false?[]:G_division_static(PICK_DIV);
   grid.innerHTML=ids.map(id=>{const c=staticClub(id);const own=!!c.estadioPropio;
-    return`<div class="club-pick ${own?'home':''}" onclick="pickClub('${id}')"><span class="badge" style="width:26px;height:26px;font-size:9px;background:${c.color};color:#fff;border-color:#000">${id.slice(0,3)}</span><div class="pxl" style="font-size:11px;margin-top:6px">${c.nombre}</div><div class="ci">${c.ciudad}</div><div class="stars">${'★'.repeat(6-c.tier)}${'☆'.repeat(c.tier-1)}</div>${own?'<div class="tag amber">ESTADIO PROPIO</div>':''}</div>`;}).join('');
+    return`<div class="club-pick ${own?'home':''}" onclick="pickClub('${id}',this)"><span class="badge" style="width:26px;height:26px;font-size:9px;background:${c.color};color:#fff;border-color:#000">${id.slice(0,3)}</span><div class="pxl" style="font-size:11px;margin-top:6px">${c.nombre}</div><div class="ci">${c.ciudad}</div><div class="stars">${'★'.repeat(6-c.tier)}${'☆'.repeat(c.tier-1)}</div>${own?'<div class="tag amber">ESTADIO PROPIO</div>':''}</div>`;}).join('');
 }
 function G_division_static(lvl){return DEF.filter(d=>d[0]===lvl).map(d=>d[1]);}
 function staticClub(id){const d=DEF.find(x=>x[1]===id);return{id:d[1],nombre:d[2],ciudad:d[3],color:d[4],tier:d[5],estadioPropio:d[6]};}
-function pickClub(id){PICK_CLUB=id;document.querySelectorAll('.club-pick').forEach(el=>el.style.outline='');event.currentTarget.style.outline='2px solid var(--green)';}
-function promptDT(){if(!PICK_CLUB){toast('Elegí un club primero');return;}const nm=prompt('Nombre del Director Técnico:','DT')||'DT';startGame(PICK_CLUB,nm);}
-function startGame(clubId,nm){touchLocalActivity();applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);G.device=PICK_DEVICE;pushNews(`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(!showLaunchModal('new'))startTutorial(false);},400);tryResumeMusic();startOnlineServices();updatePresence();submitRanking();}
+function pickClub(id,el){PICK_CLUB=id;document.querySelectorAll('.club-pick').forEach(x=>x.style.outline='');if(el)el.style.outline='2px solid var(--green)';}
+function promptDT(){if(!PICK_CLUB){toast('Elegí un club primero');return;}
+  openModal(`<div class="modal-title">🎽 Nombre del Director Técnico</div><p class="muted">Así aparecerás en noticias y en el ranking.</p><input id="dt-name-input" maxlength="20" value="DT" style="width:100%;margin:10px 0" onkeydown="if(event.key==='Enter')confirmDT()"><div class="center"><button class="btn btn-p" onclick="confirmDT()">▶ Empezar</button> <button class="btn" onclick="closeModal()">Cancelar</button></div>`);
+  setTimeout(()=>{const i=$('dt-name-input');if(i){i.focus();i.select();}},60);}
+function confirmDT(){const i=$('dt-name-input');const nm=((i&&i.value)||'').trim().replace(/\s+/g,' ').slice(0,20)||'DT';closeModal();startGame(PICK_CLUB,nm);}
+function startGame(clubId,nm){touchLocalActivity();try{localStorage.setItem('rfm_update_v1_7_seen','1');localStorage.setItem('rfm_novedades_seen',GAME_VERSION);}catch(e){}applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);G.device=PICK_DEVICE;pushNews(`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(!showLaunchModal('new'))startTutorial(false);},400);tryResumeMusic();startOnlineServices();updatePresence();submitRanking();}
 
 function boot(){
   touchLocalActivity();applyVisualPrefs();
@@ -3274,20 +3421,23 @@ function boot(){
       $('intro').classList.add('hidden');
       $('app').classList.remove('hidden');
       renderAll();switchView('dashboard');
-      setTimeout(()=>{if(!showLaunchModal('existing')){if(!showPatchModal())startTutorial(false);}},500);
+      setTimeout(()=>{if(!showLaunchModal('existing')){if(!showUpdateModal()){if(!showPatchModal())startTutorial(false);}}},500);
       tryResumeMusic();startOnlineServices();updatePresence();submitRanking();
     }else{
       showIntro();startOnlineServices();
     }
     // Overlay de feedback obligatorio: se muestra SIEMPRE después de cargar la partida
     // (con intro o sin intro), solo si no se completó antes. Delay 2.5s para que respire el dashboard.
-    setTimeout(() => {
+    // Feedback opcional: solo si ya hay partida, no está pospuesto y no hay otra ventana abierta encima.
+    const tryFeedback = n => {
       try {
-        if (!isFeedbackCompleted()) {
-          renderFeedbackOverlay();
-        }
+        if (!G || isFeedbackCompleted() || feedbackSnoozed()) return;
+        const m = $('modal');
+        if (m && !m.classList.contains('hidden') && n < 20) { setTimeout(() => tryFeedback(n + 1), 3000); return; }
+        renderFeedbackOverlay();
       } catch (e) { console.warn('feedback proceed trigger failed', e); }
-    }, 2500);
+    };
+    setTimeout(() => tryFeedback(0), 2500);
   };
   if(sessionStorage.getItem('rfm_video_intro_seen')==='1'){
     // Intro ya vista en sesión previa (saltada o completada): proceder directo.
@@ -3352,6 +3502,8 @@ function registerOfflineSupport(){
 window.RFM_BUILD_COMPLETE=BUILD_ID;
 console.log('RFM build completo', window.RFM_BUILD_COMPLETE);
 window.addEventListener('beforeunload',autoSave);
+window.addEventListener('pagehide',autoSave);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')autoSave();});
 installErrorGuard();
 registerOfflineSupport();
 boot();
@@ -3359,5 +3511,5 @@ boot();
 // forzamos el estado "offline visual" para que el indicador no quede en "---".
 setTimeout(()=>{try{if(!firebaseDBReady()&&typeof renderTopbar==='function'&&G){RFM_ONLINE_COUNT=0;renderTopbar();}}catch(e){}},6000);
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a260d666df6c74ca',t:'MTc4NTg4MDg1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3fc47a13d975c81',t:'MTc5MDE5NTEzOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
