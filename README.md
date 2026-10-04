@@ -67,3 +67,11 @@ Cualquier referencia a nombres de equipos, escudos, ligas o instituciones deport
 
 Para consultas institucionales, reporte de fallos técnicos o solicitudes de autorización: cseuropa1890@gmail.com 
 * **Repositorio Oficial:** [7320256-arch/Retro-Football-Manager-SV](https://github.com/7320256-arch/Retro-Football-Manager-SV)
+
+## v1.9 — Modo Presidente, Fundar club, Cantera y probador 3D (4 oct 2026)
+- **Presidente** sobre un club existente: contratas DT y cuerpo técnico (7 puestos), cuidas caja y apoyo de socios; el DT dirige solo.
+- **Fundar club** en Liga Amateur (8 equipos, 14 fechas); el campeón asciende a Tercera.
+- **Elecciones**: desde la carrera de DT te postulas a presidente (reputación ≥55, ≥3 campañas, confianza ≥45); promesas, campaña y asamblea. Si te destituyen vuelves a DT.
+- **Cantera**: academia nivel 1–5, camada anual de juveniles.
+- **Probador 3D** (Three.js, 34 objetos) en DT y Presidente; sin WebGL muestra tarjeta alterna. Tema visual *Palco* solo en modo Presidente.
+- Archivos nuevos que deben subirse junto a index.html: `avatar3d.js`, `modo-presidente.js`, `palco.css`, `three-lite.js`, y `sw.js` (v8).

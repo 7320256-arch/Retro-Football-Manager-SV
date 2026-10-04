@@ -15,7 +15,8 @@
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="palco.css">
 <style>
 :root{
   --bg:#050805;--bg2:#0a100a;--panel:#0d1810;--panel2:#102015;
@@ -555,6 +556,8 @@ body.device-phone .tab.go{order:-1;left:0;right:auto;margin-left:0;margin-right:
 </script>
 <!-- /Firebase bootstrap -->
 
+<script src="avatar3d.js"></script>
+<script src="modo-presidente.js"></script>
 <script>
 "use strict";
 /* =========================================================================
@@ -1029,8 +1032,8 @@ const TOTAL_JORNADAS=22;
 /* ---------- ESTADO ---------- */
 let G=null;
 const SAVE_KEY='rfm_sv_save_v2';
-const GAME_VERSION='1.8';
-const BUILD_ID='1.8-full';
+const GAME_VERSION='1.9';
+const BUILD_ID='1.9-presidente';
 const FORMACIONES={'Libre':{def:0,med:0,del:0,l:'XI Libre (sin esquema)'},'4-4-2':{def:4,med:4,del:2,l:'4-4-2 Equilibrada'},'4-3-3':{def:4,med:3,del:3,l:'4-3-3 Ofensiva'},'3-5-2':{def:3,med:5,del:2,l:'3-5-2 Control'},'5-3-2':{def:5,med:3,del:2,l:'5-3-2 Muralla'},'4-2-3-1':{def:4,med:5,del:1,l:'4-2-3-1 Moderna'}};
 const MENTALIDADES={'Defensiva':{atk:0.80,def:1.20},'Contraataque':{atk:1.05,def:1.05},'Equilibrada':{atk:1.0,def:1.0},'Ofensiva':{atk:1.20,def:0.85}};
 const PRESIONES={'Baja':{atk:.96,def:1.04,energy:.92},'Media':{atk:1,def:1,energy:1},'Alta':{atk:1.07,def:.96,energy:1.18}};
@@ -1375,7 +1378,7 @@ function migrateState(){
   if(!G.weekPrep||G.weekPrep.week!==G.jornadaActual)G.weekPrep={week:G.jornadaActual,recovery:false,train1:false,train2:false,concentration:false,bonusAtk:0,bonusDef:0,focus:0};if(G.tactics){if(!G.tactics.presion)G.tactics.presion='Media';if(!G.tactics.ritmo)G.tactics.ritmo='Normal';}if(!G.copa||!G.copa.groups)G.copa=initCopa(Object.keys(G.clubes));
   if(!G.matchMode)G.matchMode='league';
   if(!G.finanzas)G.finanzas=[];if(!G.rankingOnline)G.rankingOnline=[];if(G.concacafCup===undefined)G.concacafCup=null;if(G.nextConcacafSeeds===undefined)G.nextConcacafSeeds=null;if(!G.concacafStats)G.concacafStats=null;if(!G.regional)G.regional=initRegionalWorld();if(G.centroCup===undefined)G.centroCup=null;if(G.concacafCup===undefined)G.concacafCup=null;if(G.nextConcacafSeeds===undefined)G.nextConcacafSeeds=null;if(!G.transferNews)G.transferNews=[];if(!G.regionalNews)G.regionalNews=[];normalizeBudget('Ajuste económico de actualización');
-  purgeDuplicateElites(false);
+  purgeDuplicateElites(false);if(window.PRES)PRES.migrate();
   if(!G.namesV17){G.namesFixedCount=dedupeNames();G.namesV17=1;}
   if(G.meta)G.meta.v=4;
   validateGameState(false);
@@ -1520,6 +1523,7 @@ function expectedGoals(home,away){
   let lh=clamp(1.28*ratio,0.18,3.8),la=clamp(1.05/ratio,0.10,3.2);
   if(diff>8){la*=clamp(1-(diff-8)*0.035,0.35,1);lh*=1+Math.min(0.28,(diff-8)*0.015);} 
   if(diff<-8){lh*=clamp(1-(-diff-8)*0.035,0.35,1);la*=1+Math.min(0.28,(-diff-8)*0.015);} 
+  if(window.PRES){const k=PRES.edgeFor(home.id,away.id);if(k){lh*=k.h;la*=k.a;}}
   return{lh,la,diff,fh,fa};
 }
 function quickSim(home,away){const eg=expectedGoals(home,away);let gh=poisson(eg.lh),ga=poisson(eg.la);
@@ -1578,7 +1582,7 @@ function triggerLiveDecision(kind){
   let pool=base.concat(lead>0?winning:lead<0?losing:tied);
   if(G.matchMode==='centro')pool.push({id:'regionalPressure',title:'Noche regional intensa',txt:'La Copa Centroamericana exige carácter. Podés presionar el momento o enfriar el partido.'});
   if(G.matchMode==='cup')pool.push({id:'cupDrama',title:'Partido copero cerrado',txt:'Cada error pesa. Podés jugar seguro o buscar ventaja antes de penales.'});
-  LIVE.decision=pick(pool);LIVE.logs.unshift({min:LIVE.min,msg:'🧠 Decisión táctica: '+LIVE.decision.title,t:'info'});renderLive();return true;
+  LIVE.decision=pick(pool);LIVE.logs.unshift({min:LIVE.min,msg:'🧠 Decisión táctica: '+LIVE.decision.title,t:'info'});renderLive();if(window.PRES)PRES.liveHook('decision');return true;
 }
 
 function chooseLiveDecision(choice){if(!LIVE||LIVE.phase!=='decision')return;let msg='';
@@ -1591,7 +1595,7 @@ function runLiveInterval(){if(SIM||!LIVE)return;SIM=setInterval(()=>{
   if(evU){const pGol=clamp(0.13*(pw.offU/pw.defR),0.03,0.32),r=Math.random(),S=scorerName(xiUarr),A=feederName(xiUarr);if(r<pGol){LIVE.sU++;LIVE.logs.unshift({min:LIVE.min,msg:fill(pick(TXT.gol),S,A),t:'goal'});}else if(r<pGol+0.30)LIVE.logs.unshift({min:LIVE.min,msg:fill(pick(TXT.save),S),t:'miss'});else if(r<pGol+0.62)LIVE.logs.unshift({min:LIVE.min,msg:fill(pick(TXT.miss),S),t:'miss'});else LIVE.logs.unshift({min:LIVE.min,msg:fill(pick(TXT.foul),'',A),t:'miss'});}
   if(evR){const pGol=clamp(0.13*(pw.offR/pw.defU),0.03,0.32),r=Math.random();if(r<pGol){LIVE.sR++;LIVE.logs.unshift({min:LIVE.min,msg:'⚡ El rival aprovecha y anota. '+fill(pick(TXT.solo)),t:'owngoal'});}else if(r<pGol+0.55)LIVE.logs.unshift({min:LIVE.min,msg:'Ataque rival que se pierde por poco.',t:'miss'});else LIVE.logs.unshift({min:LIVE.min,msg:'El rival exige a tu defensa. Saque de puerta.',t:'miss'});}
   if(Math.random()<0.045){LIVE.logs.unshift({min:LIVE.min,msg:pick(['La grada aprieta y el equipo responde con intensidad.','El DT da indicaciones desde la línea técnica.','El mediocampo se parte; el próximo ajuste puede ser clave.','El rival empieza a mostrar cansancio en las bandas.','Tu capitán pide calma y ordena al equipo.']),t:'info'});}tickOtherScores(LIVE.min);renderLive();
-  if(LIVE.min===45&&LIVE.phase==='playing1'){clearInterval(SIM);SIM=null;LIVE.phase='halftime';LIVE.logs.unshift({min:45,msg:fill(pick(TXT.ht))+' Podés hacer cambios y ajustar táctica.',t:'info'});renderLive();toast('Descanso: podés ajustar táctica y once');return;}
+  if(LIVE.min===45&&LIVE.phase==='playing1'){clearInterval(SIM);SIM=null;LIVE.phase='halftime';LIVE.logs.unshift({min:45,msg:fill(pick(TXT.ht))+' Podés hacer cambios y ajustar táctica.',t:'info'});renderLive();toast('Descanso: podés ajustar táctica y once');if(window.PRES)PRES.liveHook('halftime');return;}
   if(LIVE.min>=90){clearInterval(SIM);SIM=null;LIVE.phase='ended';LIVE.logs.unshift({min:90,msg:fill(pick(TXT.ft)),t:'info'});renderLive();const gf=LIVE.sU,ga=LIVE.sR;LIVE=null;renderLiveMini();setTimeout(()=>{if(G.matchMode==='concacaf')finishConcacafMatch(gf,ga);else if(G.matchMode==='centro')finishCentroMatch(gf,ga);else if(G.matchMode==='cup')finishCupMatch(gf,ga,[]);else if(G.matchMode==='playoff')finishPlayoffMatch(gf,ga);else if(G.matchMode==='supercopa')finishSupercopaMatch(gf,ga);else finishJornada(gf,ga,[]);},650);}
 },matchDelay());}
 function continueSecondHalf(){if(!LIVE||LIVE.phase!=='halftime')return;ensureValidXI();const oldXi=(LIVE.isHome?LIVE.xiH:LIVE.xiA).slice();const newXi=G.tactics.alineacion.slice();const subs=oldXi.filter(id=>!newXi.includes(id)).length;if(subs>(LIVE.subsLeft||0)){toast('Solo quedan '+(LIVE.subsLeft||0)+' cambios disponibles');return;}LIVE.subsLeft=(LIVE.subsLeft||0)-subs;if(LIVE.isHome)LIVE.xiH=newXi;else LIVE.xiA=newXi;LIVE.phase='playing2';switchView('partido');LIVE.logs.unshift({min:45,msg:`Arranca el segundo tiempo. Cambios realizados: ${subs}. Restan ${LIVE.subsLeft}.`,t:'info'});renderLive();runLiveInterval();}
@@ -1606,7 +1610,7 @@ function renderLiveMini(){const el=$('live-mini');if(!el)return;if(LIVE&&CUR!=='
 
 
 /* ---------- AVANCE DE JORNADA (multidivisión) ---------- */
-function weeklyWage(){return userClub().plantilla.reduce((s,p)=>s+p.salario,0);}
+function weeklyWage(){return userClub().plantilla.reduce((s,p)=>s+p.salario,0)+(window.PRES?PRES.payroll():0);}
 function recordPlayerStats(gf,ga){const u=userClub();const xi=G.tactics.alineacion.map(id=>u.plantilla.find(p=>p.id===id)).filter(Boolean);xi.forEach(p=>{p.stats=p.stats||{goles:0,asistencias:0,atajadas:0,pj:0};p.stats.pj++;});
   const scorers=xi.filter(p=>p.posicion==='DEL').concat(xi.filter(p=>p.posicion==='MED'),xi);const feeders=xi.filter(p=>p.posicion==='MED').concat(xi.filter(p=>p.posicion==='DEF'),xi);
   for(let i=0;i<gf;i++){const s=pick(scorers);s.stats.goles=(s.stats.goles||0)+1;if(Math.random()<0.72){const a=pick(feeders.filter(x=>x.id!==s.id));if(a)a.stats.asistencias=(a.stats.asistencias||0)+1;}}
@@ -1701,13 +1705,13 @@ function finishJornada(userGF,userGA,matchLogs){
   u.plantilla.forEach(p=>{if(p.lesionado){p.lesionJor--;if(p.lesionJor<=0){p.lesionado=false;p.lesionJor=0;}}if(p.suspended>0)p.suspended--;p.energia=clamp(p.energia+(p.lesionado?3:7),0,100);});
   const carded=[];
   const starters=G.tactics.alineacion.map(id=>u.plantilla.find(p=>p.id===id)).filter(Boolean);
-  starters.forEach(p=>{if(!p.lesionado){const use=((PRESIONES[G.tactics.presion||'Media'].energy+RITMOS[G.tactics.ritmo||'Normal'].energy)/2);const drain=Math.round((12+rnd(12))*use);p.energia=clamp(p.energia-drain,0,100);if(Math.random()<0.025){p.lesionado=true;p.lesionJor=1+rnd(3);}const yChance=(G.tactics.presion==='Alta'?0.13:0.08)+(p.energia<35?0.03:0);if(Math.random()<yChance){p.yellowCards=(p.yellowCards||0)+1;carded.push('🟨 '+p.nombre.split(' ').slice(-1)[0]);if(p.yellowCards>=3){p.yellowCards=0;p.suspended=Math.max(p.suspended||0,1);carded.push('suspensión '+p.nombre.split(' ').slice(-1)[0]);}}if(Math.random()<(G.tactics.presion==='Alta'?0.018:0.010)){p.suspended=Math.max(p.suspended||0,1);carded.push('🟥 '+p.nombre.split(' ').slice(-1)[0]);}}});
+  starters.forEach(p=>{if(!p.lesionado){const use=((PRESIONES[G.tactics.presion||'Media'].energy+RITMOS[G.tactics.ritmo||'Normal'].energy)/2);const drain=Math.round((12+rnd(12))*use);p.energia=clamp(p.energia-drain,0,100);if(Math.random()<(window.PRES?PRES.injuryChance():0.025)){p.lesionado=true;p.lesionJor=1+rnd(3);}const yChance=(G.tactics.presion==='Alta'?0.13:0.08)+(p.energia<35?0.03:0);if(Math.random()<yChance){p.yellowCards=(p.yellowCards||0)+1;carded.push('🟨 '+p.nombre.split(' ').slice(-1)[0]);if(p.yellowCards>=3){p.yellowCards=0;p.suspended=Math.max(p.suspended||0,1);carded.push('suspensión '+p.nombre.split(' ').slice(-1)[0]);}}if(Math.random()<(G.tactics.presion==='Alta'?0.018:0.010)){p.suspended=Math.max(p.suspended||0,1);carded.push('🟥 '+p.nombre.split(' ').slice(-1)[0]);}}});
   if(carded.length)pushNews(`🟨 Disciplina: ${carded.slice(0,5).join(', ')}.`, carded.some(x=>x.includes('🟥')||x.includes('suspensión'))?'malo':'info');eliteUpkeepAfterMatch();
   // noticias
   const oppName=(()=>{const m=G.calendarios[lvl][jor-1].find(x=>x.h===G.userClubId||x.a===G.userClubId);const oid=m.h===G.userClubId?m.a:m.h;return G.clubes[oid].nombre;})();
   pushNews(`📅 F${jor}: ${u.nombre} ${userGF}-${userGA} vs ${oppName}.`,userGF>userGA?'bueno':userGF<userGA?'malo':'info');
   pushNews(`💰 Taquilla ${money(gate)} + TV ${money(tv)} + bonus ${money(bonus)}${sp?` + patrocinador ${money(sp)}`:''} − nómina/estadio ${money(wage+stadCost)} = ${net>=0?'+':''}${money(net)}.`,net>=0?'bueno':'malo');
-  processStadiumConstruction();
+  processStadiumConstruction();if(window.PRES)PRES.afterMatchday(userGF,userGA);
   const inj=u.plantilla.filter(p=>p.lesionado);if(inj.length)pushNews(`🩹 Lesionados: ${inj.map(p=>p.nombre.split(' ').slice(-1)[0]+' ('+p.lesionJor+'f)').join(', ')}.`,'malo');
   if(jor%4===0){G.mercado.splice(0,2);G.mercado.push(...genMarket(2));}simulateWorldNews();worldNews();svNews(jor);
   // ============ FIX 2 (Opción B a profundidad) ============
@@ -1811,6 +1815,7 @@ function renderAchievements(){const a=G.achievements||[];const owned=(G.avatar&&
   const list=a.length?a.map(x=>`<div class="offer"><b class="gold">${esc(x.name)}</b><br><span class="muted">${esc(x.desc)} · ${x.temp} ${x.campania||''}</span></div>`).join(''):'<p class="muted">Sin logros aún.</p>';
   const shop=[['balon','Balón retro',3500],['traje','Traje de gala',9000],['libreta','Libreta táctica',5500],['gorra','Gorra del DT',2500],['lentes','Lentes de campeón',4200],['botines','Botines clásicos',4800],['banderin','Banderín histórico',3000],['reloj','Reloj elegante',7000],['audifonos','Audífonos de análisis',6200],['trofeoMini','Mini vitrina',11000],['pizarra','Pizarra premium',8500],['mascota','Mascota del club',12500]];
   const buttons=shop.map(i=>`<button class="btn btn-sm ${owned.includes(i[0])?'btn-p':''}" onclick="buyAvatarItem('${i[0]}','${i[1]}',${i[2]})">${i[1]} · ${money(i[2])}</button>`).join(' ');
+  if(window.PRES&&PRES.avatarInCarrera()&&G.rol!=='presidente')return`<div class="panel-title">🎖 Logros y estilo del DT</div><div id="av-host"></div><hr class="sep"><div class="scroll" style="max-height:260px">${list}</div>`;
   return`<div class="panel-title">🎖 Logros y avatar del DT</div><div class="offer avatar-card"><div class="avatar-face">${face}</div><div><b class="green">${esc(G.managerName)}</b><br>Billetera personal: <b class="amber">${money(G.managerWallet||0)}</b><br><small>Decoraciones: ${owned.length?owned.map(esc).join(', '):'ninguna'}</small></div></div><div class="decor-grid">${buttons}</div><hr class="sep"><div class="scroll" style="max-height:260px">${list}</div>`;}
 
 function addChampionHistory(comp,champion,extra){
@@ -1854,7 +1859,7 @@ function hallStats(){
 }
 function dtLeverage(){const h=hallStats();return clamp((G.confianza||50)*0.45+(G.reputacion||50)*0.35+h.titles*5+h.promotions*4+h.centroTitles*18+h.copaTitles*8+(G.historia||[]).length*1.2,0,140);}
 function negotiateDTSalary(pct){if(blockIfLive('negociar contrato'))return;G.dtContract=G.dtContract||{campaignsLeft:2,lastRaise:0};const lev=dtLeverage();const ask=Math.round((G.salarioDT||12000)*(1+pct/100));const difficulty=35+pct*0.9+(G.dtContract.lastRaise?18:0);if(lev>=difficulty){G.salarioDT=ask;G.dtContract.campaignsLeft=Math.max(G.dtContract.campaignsLeft||0,4);G.dtContract.lastRaise=G.temporada+' '+G.campania;G.confianza=clamp((G.confianza||50)+3,0,100);pushNews(`📝 La directiva acepta mejorar el sueldo del DT a ${money(G.salarioDT)}.`, 'bueno','club');toast('Aumento aprobado');}else{G.confianza=clamp((G.confianza||50)-4,0,100);pushNews('📝 La directiva rechaza la solicitud salarial del DT.', 'malo','club');toast('La directiva rechazó la propuesta');}autoSave();renderAll();}
-function processDTContractEnd(){G.dtContract=G.dtContract||{campaignsLeft:2,lastRaise:0};G.dtContract.campaignsLeft--;if(G.dtContract.campaignsLeft===1)pushNews('📄 Tu contrato como DT termina en una campaña. Podés negociar o esperar decisión directiva.','info','club');if(G.dtContract.campaignsLeft<=0){const lev=dtLeverage();if(lev>=45){const raise=lev>95?1.35:lev>75?1.20:1.08;G.salarioDT=Math.round((G.salarioDT||12000)*raise/100)*100;G.dtContract.campaignsLeft=4;pushNews(`📄 La directiva renueva tu contrato. Nuevo sueldo: ${money(G.salarioDT)}.`, 'bueno','club');}else{G.dtContract.campaignsLeft=1;G.confianza=clamp((G.confianza||50)-15,0,100);pushNews('📄 La directiva no está convencida de renovar. Tenés una campaña para cambiar la situación.', 'malo','club');}}}
+function processDTContractEnd(){if(G.rol==='presidente')return;G.dtContract=G.dtContract||{campaignsLeft:2,lastRaise:0};G.dtContract.campaignsLeft--;if(G.dtContract.campaignsLeft===1)pushNews('📄 Tu contrato como DT termina en una campaña. Podés negociar o esperar decisión directiva.','info','club');if(G.dtContract.campaignsLeft<=0){const lev=dtLeverage();if(lev>=45){const raise=lev>95?1.35:lev>75?1.20:1.08;G.salarioDT=Math.round((G.salarioDT||12000)*raise/100)*100;G.dtContract.campaignsLeft=4;pushNews(`📄 La directiva renueva tu contrato. Nuevo sueldo: ${money(G.salarioDT)}.`, 'bueno','club');}else{G.dtContract.campaignsLeft=1;G.confianza=clamp((G.confianza||50)-15,0,100);pushNews('📄 La directiva no está convencida de renovar. Tenés una campaña para cambiar la situación.', 'malo','club');}}}
 function renderDTContract(){G.dtContract=G.dtContract||{campaignsLeft:2,lastRaise:0};const lev=Math.round(dtLeverage());return`<div class="panel-title">📄 Contrato del DT</div><div class="offer"><b class="green">Sueldo personal:</b> ${money(G.salarioDT||0)} / campaña<br><b>Contrato restante:</b> ${G.dtContract.campaignsLeft} campaña(s)<br><b>Fuerza negociadora:</b> <span class="${lev>=75?'green':lev>=45?'amber':'red'}">${lev}/140</span><br><small>Influyen confianza, reputación, títulos, ascensos, Copa Presidente, Copa Centroamericana y tiempo en el club.</small><div style="margin-top:8px"><button class="btn btn-sm" onclick="negotiateDTSalary(15)">Pedir +15%</button> <button class="btn btn-a btn-sm" onclick="negotiateDTSalary(35)">Pedir +35%</button> <button class="btn btn-p btn-sm" onclick="negotiateDTSalary(75)">Pedir contrato estrella</button></div></div>`;}
 
 function renderHallOfFame(){
@@ -2325,6 +2330,7 @@ function endSeason(){
   const fired=G.confianza<=0;
   if(fired){G.confianza=40;G.avisos++;}
   submitRanking();autoSave();renderAll();
+  if(window.PRES&&PRES.endSeasonHook(seasonRes,fired))return;
   if(fired)showFiredModal(seasonRes);else showOffersModal(seasonRes);
 }
 
@@ -2369,6 +2375,7 @@ function generateOffers(fired){
   return offers;
 }
 function acceptOffer(clubId,nivel,sal){
+  if(G.rol==='presidente'){G.rol='DT';if(G.pres){G.pres.dt=null;G.pres.camp=null;}}
   G.userClubId=clubId;G.budget=G.clubes[clubId].budget;G.salarioDT=sal;
   G.tactics.alineacion=bestXI(G.clubes[clubId].plantilla,G.tactics.formacion).map(p=>p.id);
   G.objetivo=setObjectiveFor(G.clubes[clubId],G.divisiones);
@@ -2495,7 +2502,7 @@ function formaTag(f){const map={G:'<span class="green">G</span>',E:'<span class=
 function repStars(r){const n=Math.round(r/20);return'★'.repeat(clamp(n,1,5));}
 
 function renderTopbar(){const u=userClub();const bd=$('hd-badge');bd.style.background=u.color;bd.textContent=u.id.slice(0,3);
-  $('hd-name').textContent=u.nombre;$('hd-sub').textContent='DT '+G.managerName+' · '+DIV_NAMES[u.nivel];
+  $('hd-name').textContent=u.nombre;$('hd-sub').textContent=(G.rol==='presidente'?'Presidente ':'DT ')+G.managerName+' · '+((window.PRES&&PRES.isFund())?'Liga Amateur':DIV_NAMES[u.nivel]);
   $('hd-budget').textContent=money(G.budget);$('hd-budget').className='v '+(G.budget<0?'red':'green');
   $('hd-wage').textContent=money(weeklyWage());
   const sig=financeSignal();$('hd-proj').textContent=(sig.total>=0?'+':'')+money(sig.total);$('hd-proj').className='v '+(sig.cls==='good'?'green':sig.cls==='mid'?'amber':'red');
@@ -2574,7 +2581,8 @@ function renderCarrera(){
     </div>
     <hr class="sep"><div class="panel-title">📜 Historial de temporadas</div>
     <table class="tbl"><thead><tr><th class="center">Campaña</th><th>Club</th><th class="center">Div</th><th class="center">Pos</th><th class="center">Obj</th><th class="center">Logro</th></tr></thead><tbody>${hist}</tbody></table>
-    <hr class="sep">${renderSecurityPanel()}<hr class="sep">${renderDTContract()}<hr class="sep">${renderHallOfFame()}<hr class="sep">${renderChampionHistory()}<hr class="sep">${renderAchievements()}<p style="margin-top:10px"><small>💡 Si tu <b>confianza</b> cae a 0, te despiden. Si destacás, clubes más grandes te ofrecen trabajo. Ganá reputación subiendo de categoría y conquistando títulos. Los objetivos ya no son fijos: cambian por división, nivel del club y expectativa de directiva.</small></p>`;
+    <hr class="sep">${renderSecurityPanel()}<hr class="sep">${renderDTContract()}<hr class="sep">${window.PRES?PRES.electionCard():''}${renderHallOfFame()}<hr class="sep">${renderChampionHistory()}<hr class="sep">${renderAchievements()}<p style="margin-top:10px"><small>💡 Si tu <b>confianza</b> cae a 0, te despiden. Si destacás, clubes más grandes te ofrecen trabajo. Ganá reputación subiendo de categoría y conquistando títulos. Los objetivos ya no son fijos: cambian por división, nivel del club y expectativa de directiva.</small></p>`;
+  if(window.PRES)PRES.afterCarrera();
 }
 
 function renderSquad(){const u=userClub();const XI=new Set(G.tactics.alineacion);
@@ -2857,18 +2865,19 @@ function renderMatchCard(c,o){const{min,sU,sR,homeEq,awayEq,isHome,live,btns,log
 
 function renderMatch(){const panel=$('match-panel');if(LIVE){renderLive();return;}if(G.finished){panel.innerHTML='<div class="panel-title">🏁 Temporada finalizada</div>';return;}
   const m=userNextMatch();if(!m){panel.innerHTML='<p class="muted">No hay partido.</p>';return;}
-  const opp=concacafTeam(m.h===G.userClubId?m.a:m.h);const isHome=m.h===G.userClubId;ensureValidXI();
+  const opp=concacafTeam(m.h===G.userClubId?m.a:m.h);const isHome=m.h===G.userClubId;if(window.PRES)PRES.autoPrepare();ensureValidXI();
   if(!prepComplete()){panel.innerHTML=`<div class="panel-title">🔒 Partido bloqueado — Preparación pendiente</div><p>Próximo rival: <b class="cyan">${esc(opp.nombre)}</b></p>${prepPanelHTML()}${matchSpeedControls()}<div class="center"><button class="btn btn-p" onclick="simulatePreparation();switchView('partido')">⚙ Simular preparación y desbloquear</button></div>`;return;}
   renderMatchCard(panel,{min:0,sU:0,sR:0,homeEq:isHome?userClub():opp,awayEq:isHome?opp:userClub(),isHome,live:false,btns:true,logs:[{min:0,msg:`Listo. ${userClub().nombre} (${teamRating(userClub())}) vs ${opp.nombre} (${teamRating(opp)}).`,t:'info'}]});}
-function playLive(){if(SIM)return;if(!prepComplete()){toast('Completa la preparación semanal antes de jugar');switchView('entreno');return;}if(LIVE&&LIVE.phase==='halftime'){toast('Estás en descanso: continuá el 2T');return;}abortSim();const m=userNextMatch();if(!m)return;const opp=concacafTeam(m.h===G.userClubId?m.a:m.h);const isHome=m.h===G.userClubId;startLiveSim(isHome?userClub():opp,isHome?opp:userClub(),isHome);}
-function playQuick(){if(!prepComplete()){toast('Completa la preparación semanal antes de jugar');switchView('entreno');return;}if(SIM||LIVE){toast('Ya hay un partido en curso');return;}const m=userNextMatch();if(!m)return;const opp=concacafTeam(m.h===G.userClubId?m.a:m.h);const isHome=m.h===G.userClubId;const r=quickSim(isHome?userClub():opp,isHome?opp:userClub());const gf=isHome?r.gh:r.ga,ga=isHome?r.ga:r.gh;if(G.matchMode==='concacaf')finishConcacafMatch(gf,ga);else if(G.matchMode==='centro')finishCentroMatch(gf,ga);else if(G.matchMode==='cup')finishCupMatch(gf,ga,[{min:0,msg:'Simulación rápida de copa.',t:'info'}]);else if(G.matchMode==='playoff')finishPlayoffMatch(gf,ga);else if(G.matchMode==='supercopa')finishSupercopaMatch(gf,ga);else finishJornada(gf,ga,[{min:0,msg:'Simulación rápida.',t:'info'}]);}
+function playLive(){if(SIM)return;if(window.PRES)PRES.beforePlay();if(!prepComplete()){toast('Completa la preparación semanal antes de jugar');switchView('entreno');return;}if(LIVE&&LIVE.phase==='halftime'){toast('Estás en descanso: continuá el 2T');return;}abortSim();const m=userNextMatch();if(!m)return;const opp=concacafTeam(m.h===G.userClubId?m.a:m.h);const isHome=m.h===G.userClubId;startLiveSim(isHome?userClub():opp,isHome?opp:userClub(),isHome);}
+function playQuick(){if(window.PRES)PRES.beforePlay();if(!prepComplete()){toast('Completa la preparación semanal antes de jugar');switchView('entreno');return;}if(SIM||LIVE){toast('Ya hay un partido en curso');return;}const m=userNextMatch();if(!m)return;const opp=concacafTeam(m.h===G.userClubId?m.a:m.h);const isHome=m.h===G.userClubId;const r=quickSim(isHome?userClub():opp,isHome?opp:userClub());const gf=isHome?r.gh:r.ga,ga=isHome?r.ga:r.gh;if(G.matchMode==='concacaf')finishConcacafMatch(gf,ga);else if(G.matchMode==='centro')finishCentroMatch(gf,ga);else if(G.matchMode==='cup')finishCupMatch(gf,ga,[{min:0,msg:'Simulación rápida de copa.',t:'info'}]);else if(G.matchMode==='playoff')finishPlayoffMatch(gf,ga);else if(G.matchMode==='supercopa')finishSupercopaMatch(gf,ga);else finishJornada(gf,ga,[{min:0,msg:'Simulación rápida.',t:'info'}]);}
 
-function switchView(v){if(isLiveRunning()&&isCriticalView(v)){toast(v==='tactica'?'Táctica solo en el descanso':'Esta sección está bloqueada durante el partido en vivo');return;}if(!SIM)abortSim();CUR=v;document.querySelectorAll('.view').forEach(s=>s.classList.add('hidden'));
+function switchView(v){if(window.PRES)v=PRES.redirect(v);if(isLiveRunning()&&isCriticalView(v)){toast(v==='tactica'?'Táctica solo en el descanso':'Esta sección está bloqueada durante el partido en vivo');return;}if(!SIM)abortSim();CUR=v;document.querySelectorAll('.view').forEach(s=>s.classList.add('hidden'));
   const sec=$('view-'+v);if(sec)sec.classList.remove('hidden');
   document.querySelectorAll('.tab').forEach(t=>{t.classList.toggle('active',t.dataset.v===v);});
   if(v==='dashboard')renderDashboard();if(v==='carrera')renderCarrera();if(v==='plantilla')renderSquad();if(v==='tactica')renderTactics();if(v==='mercado')renderMarket();if(v==='finanzas')renderFinanzas();if(v==='entreno')renderEntreno();if(v==='calendario')renderCalendario();if(v==='copa')renderCopa();if(v==='centro')renderCentro();if(v==='concacaf')renderConcacaf();if(v==='stats')renderStats();if(v==='noticias'){syncOnlineNow(true);renderNoticias();}if(v==='clasificacion'){VIEW_DIV=userClub().nivel;renderTable();}if(v==='partido')renderMatch();if(v==='novedades')renderNovedades();
+  if(window.PRES)PRES.onSwitch(v);
   document.querySelector('main').scrollTop=0;renderLiveMini();}
-function renderAll(){renderTopbar();switchView(CUR);renderLiveMini();updateNovDot();}
+function renderAll(){if(window.PRES)PRES.chrome();renderTopbar();switchView(CUR);renderLiveMini();updateNovDot();}
 
 function emergencyResetLive(){try{if(SIM){clearInterval(SIM);SIM=null;}if(LIVE&&LIVE.phase!=='halftime'){LIVE=null;}G.matchMode=G.matchMode||'league';}catch(e){}}
 function installErrorGuard(){if(window._rfmErr)return;window._rfmErr=true;window.addEventListener('error',e=>{console.error(e.error||e.message);emergencyResetLive();try{toast('Error controlado: se reinició el estado del partido');renderAll();}catch(_){};});window.addEventListener('unhandledrejection',e=>{console.error(e.reason);emergencyResetLive();try{toast('Error de proceso controlado');renderAll();}catch(_){};});}
@@ -2921,7 +2930,7 @@ function openPhoneMenu(){
       ${b('🎵 Música ON/OFF','toggleMusic()')}${b('⏭ Siguiente canción','nextMusicTrack(true)')}
       ${b('🎬 Ver intro','playIntroManually()')}${b('🖥 Efecto CRT','toggleCRT()')}
       ${b('❓ Ayuda','openHelpCenter()')}${b('🆕 Novedades',"switchView('novedades')")}
-      ${b('🔧 Reparar partida','repairGame(true)')}${b('⬇ Exportar partida','exportSave()')}
+      ${b('🔧 Reparar partida','repairGame(true)')}${b('⬇ Exportar partida','exportSave()')}${window.PRES?b('🎨 Cambiar tema (Retro / Palco)','PRES.toggleSkin()'):''}
       <label class="btn" style="width:100%;min-height:44px;display:flex;align-items:center">⬆ Cargar partida<input type="file" accept=".json,application/json" hidden onchange="importSave(event);closeModal()"></label>
       <button class="btn btn-d" style="width:100%;min-height:44px" onclick="closeModal();confirmNewGame()">⟳ Nueva partida</button>
     </div>
@@ -2933,6 +2942,14 @@ function toggleZB(){try{localStorage.setItem('rfm_zb_collapsed',zbCollapsed()?'0
 
 /* ---------- NOVEDADES / CHANGELOG ---------- */
 const CHANGELOG=[
+ {v:'1.9',fecha:'4 oct 2026',titulo:'Modo Presidente, club desde cero, cantera y probador 3D',items:[
+  ['🏛','Modo Presidente','Presides un club existente: contratas director técnico y cuerpo técnico (fisio, preparador, ojeador, analista, psicólogo…), cuidas caja, estadio y apoyo de los socios. El DT dirige los partidos por ti.'],
+  ['🌱','Fundar un club','Nace desde cero en la Liga Amateur (8 equipos, 14 fechas). El campeón asciende a Tercera División.'],
+  ['🗳','Elecciones y puente DT → presidente','Como DT puedes postularte a presidente con reputación y campañas; promete, haz campaña y gana la asamblea. Si te destituyen, vuelves a recibir ofertas como DT.'],
+  ['🎓','Cantera','Academia con 5 niveles: cada temporada llega una camada de juveniles que puedes subir, soltar o evaluar.'],
+  ['👔','Probador 3D','Tu DT o presidente ahora es un personaje 3D con 34 objetos de apariencia. Requiere WebGL; si tu teléfono no lo soporta verás una tarjeta alterna.'],
+  ['🎨','Tema Palco','El modo Presidente estrena un diseño nuevo, con barra inferior en teléfono. El modo DT conserva el estilo retro.']
+ ]},
  {v:'1.8',fecha:'2 oct 2026',titulo:'Calendario real, noticias con vida y mercado más realista',items:[
   ['📰','Noticias arregladas','Antes solo se veía "club · bueno · gol" porque el texto no se mostraba. Ahora cada noticia dice qué pasó. Además hay noticias de la liga (clásicos, goleadas, nuevo líder) y sucesos ficticios de Centroamérica: derbis, sorpresas y DT despedidos.'],
   ['📅','Calendario día por día','Cada semana muestra lunes a domingo con tus rivales reales: liga, Copa Presidente, Centroamericana y CONCACAF, con local o visita y la posición del rival.'],
@@ -2969,15 +2986,15 @@ function renderNovedades(){
     <div class="center" style="margin-top:10px"><button class="btn btn-p" onclick="startTutorial(true)">📘 Ver tutorial</button> <button class="btn btn-a" onclick="sendFeedback()">📧 Enviar opinión</button> <button class="btn" onclick="exportSave()">⬇ Exportar mi partida</button></div>`;
 }
 function showUpdateModal(){
-  const key='rfm_update_v1_8_seen';
+  const key='rfm_update_v1_9_seen';
   try{if(localStorage.getItem(key)==='1')return false;localStorage.setItem(key,'1');}catch(e){return false;}
-  openModal(`<div class="modal-title">🆕 Actualización v${GAME_VERSION}</div><p><b class="green">Más realismo en tu carrera.</b></p>
-    <div class="offer"><b class="gold">📰 Noticias con contenido</b><br><small>Clásicos, goleadas, derbis de Centroamérica y DT despedidos.</small></div>
-    <div class="offer"><b class="gold">📅 Calendario día por día</b><br><small>Con tus rivales reales de liga y copas.</small></div>
-    <div class="offer"><b class="gold">📨 Ofertas con rumores y plazo</b><br><small>Los clubes te avisan antes y la oferta vence.</small></div>
-    <div class="offer"><b class="gold">🔎 Buscador de jugadores</b><br><small>En Mercado, de El Salvador a Nicaragua.</small></div>
+  openModal(`<div class="modal-title">🆕 Actualización v${GAME_VERSION}</div><p><b class="green">Nuevo: modo Presidente y probador 3D.</b></p>
+    <div class="offer"><b class="gold">🏛 Presidente</b><br><small>Contrata DT y cuerpo técnico; tú manejas caja y socios.</small></div>
+    <div class="offer"><b class="gold">🌱 Fundar un club y cantera</b><br><small>Liga Amateur → Tercera, y academia de juveniles.</small></div>
+    <div class="offer"><b class="gold">🗳 Elecciones</b><br><small>Postúlate a presidente desde tu carrera de DT.</small></div>
+    <div class="offer"><b class="gold">👔 Probador 3D</b><br><small>Tu DT o presidente en 3D con 34 objetos.</small></div>
     <div class="center"><button class="btn btn-p" onclick="closeModal();switchView('novedades')">🆕 Ver novedades</button> <button class="btn" onclick="closeModal()">▶ Seguir mi carrera</button></div>`);
-  if(G)pushNews(`🆕 Actualización v${GAME_VERSION}: noticias con contenido, calendario real y buscador de jugadores.`,'info','club');
+  if(G)pushNews(`🆕 Actualización v${GAME_VERSION}: modo Presidente, fundar club, cantera y probador 3D.`,'info','club');
   return true;
 }
 function showLaunchModal(kind){
@@ -3498,7 +3515,7 @@ function showIntro(){
   $('app').classList.add('hidden');$('intro').classList.remove('hidden');applyDevice(PICK_DEVICE);
   document.querySelectorAll('#device-chooser .div-tab').forEach(b=>b.classList.toggle('active',b.dataset.device===PICK_DEVICE));
   const dt=$('intro-divs');dt.innerHTML=[1,2,3].map(l=>`<button class="div-tab ${l===PICK_DIV?'active':''}" onclick="pickDiv(${l})">${DIV_NAMES[l]}</button>`).join('');
-  renderIntroClubs();
+  renderIntroClubs();if(window.PRES)PRES.introHook();
   $('intro-foot').textContent='Modo Carrera · Apertura/Clausura · Copa Presidente con grupos · Supercopa · gestión económica · guardado automático';
 }
 function pickDiv(l){PICK_DIV=l;PICK_CLUB=null;document.querySelectorAll('#intro-divs .div-tab').forEach((b,i)=>b.classList.toggle('active',i===(l-1)));renderIntroClubs();}
@@ -3510,11 +3527,11 @@ function renderIntroClubs(){
 function G_division_static(lvl){return DEF.filter(d=>d[0]===lvl).map(d=>d[1]);}
 function staticClub(id){const d=DEF.find(x=>x[1]===id);return{id:d[1],nombre:d[2],ciudad:d[3],color:d[4],tier:d[5],estadioPropio:d[6]};}
 function pickClub(id,el){PICK_CLUB=id;document.querySelectorAll('.club-pick').forEach(x=>x.style.outline='');if(el)el.style.outline='2px solid var(--green)';}
-function promptDT(){if(!PICK_CLUB){toast('Elegí un club primero');return;}
-  openModal(`<div class="modal-title">🎽 Nombre del Director Técnico</div><p class="muted">Así aparecerás en noticias y en el ranking.</p><input id="dt-name-input" maxlength="20" value="DT" style="width:100%;margin:10px 0" onkeydown="if(event.key==='Enter')confirmDT()"><div class="center"><button class="btn btn-p" onclick="confirmDT()">▶ Empezar</button> <button class="btn" onclick="closeModal()">Cancelar</button></div>`);
+function promptDT(){if(window.PRES&&PRES.mode()==='fund'){PRES.openFoundation();return;}if(!PICK_CLUB){toast('Elegí un club primero');return;}
+  openModal(`<div class="modal-title">🎽 Nombre del ${(window.PRES&&PRES.mode()==='pres')?'Presidente':'Director Técnico'}</div><p class="muted">Así aparecerás en noticias y en el ranking.</p><input id="dt-name-input" maxlength="20" value="DT" style="width:100%;margin:10px 0" onkeydown="if(event.key==='Enter')confirmDT()"><div class="center"><button class="btn btn-p" onclick="confirmDT()">▶ Empezar</button> <button class="btn" onclick="closeModal()">Cancelar</button></div>`);
   setTimeout(()=>{const i=$('dt-name-input');if(i){i.focus();i.select();}},60);}
-function confirmDT(){const i=$('dt-name-input');const nm=((i&&i.value)||'').trim().replace(/\s+/g,' ').slice(0,20)||'DT';closeModal();startGame(PICK_CLUB,nm);}
-function startGame(clubId,nm){touchLocalActivity();try{localStorage.setItem('rfm_update_v1_8_seen','1');localStorage.setItem('rfm_novedades_seen',GAME_VERSION);}catch(e){}applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);G.device=PICK_DEVICE;pushNews(`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(!showLaunchModal('new'))startTutorial(false);},400);tryResumeMusic();startOnlineServices();updatePresence();submitRanking();}
+function confirmDT(){const i=$('dt-name-input');const nm=((i&&i.value)||'').trim().replace(/\s+/g,' ').slice(0,20)||'DT';closeModal();startGame(PICK_CLUB,nm,window.PRES?PRES.mode():null);}
+function startGame(clubId,nm,gmode){touchLocalActivity();try{localStorage.setItem('rfm_update_v1_9_seen','1');localStorage.setItem('rfm_novedades_seen',GAME_VERSION);}catch(e){}applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);G.device=PICK_DEVICE;if(window.PRES)PRES.newGameHook(gmode);pushNews(gmode==='fund'?`🌱 ${nm} funda ${userClub().nombre}.`:gmode==='pres'?`🏛 ${nm} asume la presidencia de ${userClub().nombre}.`:`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(window.PRES&&PRES.welcome())return;if(!showLaunchModal('new'))startTutorial(false);},400);tryResumeMusic();startOnlineServices();updatePresence();submitRanking();}
 
 function boot(){
   touchLocalActivity();applyVisualPrefs();
@@ -3523,7 +3540,7 @@ function boot(){
   const proceed=()=>{
     const s=loadSave();
     if(s&&s.clubes&&s.userClubId&&s.meta&&(s.meta.v===2||s.meta.v===3||s.meta.v===4)){
-      G=s;migrateState();autoSave();
+      G=s;migrateState();if(window.PRES)PRES.onLoad();autoSave();
       if(!maybePrepareConcacafEvent()&&!maybePrepareCentroEvent())maybePrepareCupEvent();
       $('intro').classList.add('hidden');
       $('app').classList.remove('hidden');
