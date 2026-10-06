@@ -1,5 +1,5 @@
-/* Retro Football Manager SV — Service Worker v8 (audio + video range support, caché ligera) */
-const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v8';
+/* Retro Football Manager SV — Service Worker v9 (audio + video range support, caché ligera) */
+const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v9';
 const RUNTIME_CACHE = 'rfm-runtime-v1';
 const MUSIC_CACHE = 'rfm-music-offline-v4';
 const INTRO_CACHE = 'rfm-intro-offline-v1';
@@ -254,7 +254,7 @@ self.addEventListener('fetch', event => {
     const u = new URL(request.url);
     if (u.origin === self.location.origin) {
       if (/\/three-lite\.js$/i.test(u.pathname)) { event.respondWith(cacheFirstRuntime(request)); return; }
-      if (/\/(avatar3d|modo-presidente)\.js$/i.test(u.pathname) || /\/palco\.css$/i.test(u.pathname)) { event.respondWith(networkFirst(request)); return; }
+      if (/\/(avatar3d|modo-presidente|seleccion|retos)\.js$/i.test(u.pathname) || /\/palco\.css$/i.test(u.pathname)) { event.respondWith(networkFirst(request)); return; }
     }
   } catch (e) {}
 

@@ -75,3 +75,8 @@ Para consultas institucionales, reporte de fallos técnicos o solicitudes de aut
 - **Cantera**: academia nivel 1–5, camada anual de juveniles.
 - **Probador 3D** (Three.js, 34 objetos) en DT y Presidente; sin WebGL muestra tarjeta alterna. Tema visual *Palco* solo en modo Presidente.
 - Archivos nuevos que deben subirse junto a index.html: `avatar3d.js`, `modo-presidente.js`, `palco.css`, `three-lite.js`, y `sw.js` (v8).
+
+## v2.0 — Selección de El Salvador y Retos cortos (5 oct 2026)
+- **Selección** (modo DT, pestaña 🇸🇻): se ofrece con reputación ≥ 56. Convocatoria de 23 (jugadores salvadoreños de la liga + 8 legionarios generados por semilla), esquema y mentalidad, ventanas FIFA tras las jornadas 8 y 16 de cada campaña. Ciclo de 4 años: Liga de Naciones → Copa Oro → Eliminatorias → Mundial (48 selecciones). Los partidos no afectan al club; pagan al monedero del probador. Solo se guardan resultados y una semilla (≈7 KB), no plantillas.
+- **Retos cortos** (🎯): 5 escenarios (descenso, ascenso, Tercera, cuentas en rojo, racha), estrellas, reto del día con racha y compartir. Partida aparte (`rfm_sv_reto`), sin ranking online.
+- Archivos nuevos: `seleccion.js`, `retos.js`; `sw.js` v9. Subir junto a los de v1.9.
