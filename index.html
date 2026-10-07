@@ -560,6 +560,7 @@ body.device-phone .tab.go{order:-1;left:0;right:auto;margin-left:0;margin-right:
 <script src="modo-presidente.js"></script>
 <script src="seleccion.js"></script>
 <script src="retos.js"></script>
+<script src="economia.js"></script>
 <script>
 "use strict";
 /* =========================================================================
@@ -1034,8 +1035,8 @@ const TOTAL_JORNADAS=22;
 /* ---------- ESTADO ---------- */
 let G=null;
 const SAVE_KEY='rfm_sv_save_v2';
-const GAME_VERSION='2.0';
-const BUILD_ID='2.0-seleccion-retos';
+const GAME_VERSION='2.1';
+const BUILD_ID='2.1-economia-balance';
 const FORMACIONES={'Libre':{def:0,med:0,del:0,l:'XI Libre (sin esquema)'},'4-4-2':{def:4,med:4,del:2,l:'4-4-2 Equilibrada'},'4-3-3':{def:4,med:3,del:3,l:'4-3-3 Ofensiva'},'3-5-2':{def:3,med:5,del:2,l:'3-5-2 Control'},'5-3-2':{def:5,med:3,del:2,l:'5-3-2 Muralla'},'4-2-3-1':{def:4,med:5,del:1,l:'4-2-3-1 Moderna'}};
 const MENTALIDADES={'Defensiva':{atk:0.80,def:1.20},'Contraataque':{atk:1.05,def:1.05},'Equilibrada':{atk:1.0,def:1.0},'Ofensiva':{atk:1.20,def:0.85}};
 const PRESIONES={'Baja':{atk:.96,def:1.04,energy:.92},'Media':{atk:1,def:1,energy:1},'Alta':{atk:1.07,def:.96,energy:1.18}};
@@ -1380,7 +1381,7 @@ function migrateState(){
   if(!G.weekPrep||G.weekPrep.week!==G.jornadaActual)G.weekPrep={week:G.jornadaActual,recovery:false,train1:false,train2:false,concentration:false,bonusAtk:0,bonusDef:0,focus:0};if(G.tactics){if(!G.tactics.presion)G.tactics.presion='Media';if(!G.tactics.ritmo)G.tactics.ritmo='Normal';}if(!G.copa||!G.copa.groups)G.copa=initCopa(Object.keys(G.clubes));
   if(!G.matchMode)G.matchMode='league';
   if(!G.finanzas)G.finanzas=[];if(!G.rankingOnline)G.rankingOnline=[];if(G.concacafCup===undefined)G.concacafCup=null;if(G.nextConcacafSeeds===undefined)G.nextConcacafSeeds=null;if(!G.concacafStats)G.concacafStats=null;if(!G.regional)G.regional=initRegionalWorld();if(G.centroCup===undefined)G.centroCup=null;if(G.concacafCup===undefined)G.concacafCup=null;if(G.nextConcacafSeeds===undefined)G.nextConcacafSeeds=null;if(!G.transferNews)G.transferNews=[];if(!G.regionalNews)G.regionalNews=[];normalizeBudget('Ajuste económico de actualización');
-  purgeDuplicateElites(false);if(window.PRES)PRES.migrate();if(window.SEL)SEL.migrate();
+  purgeDuplicateElites(false);if(window.PRES)PRES.migrate();if(window.SEL)SEL.migrate();if(window.ECO)ECO.migrate();
   if(!G.namesV17){G.namesFixedCount=dedupeNames();G.namesV17=1;}
   if(G.meta)G.meta.v=4;
   validateGameState(false);
@@ -1622,19 +1623,42 @@ function topPlayerStat(key){const all=Object.values(G.clubes).flatMap(c=>c.plant
 function sponsorIncome(win){return G.sponsor?(G.sponsor.base+(win?G.sponsor.win:0)):0;}
 function tvIncome(lvl){return{1:18000,2:7000,3:2500}[lvl]||2500;}
 function stadiumCost(u){const e=u.estadio||initStadium(u.id,u.nivel,u.estadioPropio,u.ciudad);let c=e.propio?Math.round(e.aforo*(0.42+(e.nivel||1)*0.05)):e.alquiler;if(e.construccion&&e.construccion.weeks>0)c+=Math.round((e.alquiler||12000)*0.85);return c;}
-function stadiumRevenue(isHome,u,opp){
-  const e=u.estadio||initStadium(u.id,u.nivel,u.estadioPropio,u.ciudad);const lvl=u.nivel;
+function stadiumFair(lvl){return{1:8,2:5,3:3.5}[lvl]||4;}
+function stadiumMaxPrice(lvl){return{1:30,2:20,3:12}[lvl]||12;}
+function stadiumNorm(e,lvl){/* migra estadios viejos */
+  if(e.palcosN==null)e.palcosN=e.palcos?Math.round(e.aforo*0.06):0;
+  if(e.precioPalco==null)e.precioPalco=Math.round(e.precio*4);
+  if(e.tienda==null)e.tienda=0;if(e.accesos==null)e.accesos=0;
+  return e;}
+function stadiumDemand(e,u,opp,isHome){
+  stadiumNorm(e,u.nivel);const lvl=u.nivel,fair=stadiumFair(lvl);
   const appeal=clamp((teamRating(u)+teamRating(opp))/125,0.55,1.35);
-  const fair={1:8,2:5,3:3.5}[lvl]||4;
-  const quality=1+((e.nivel||1)-1)*0.08+(e.iluminacion?0.08:0)+(e.palcos?0.08:0)+(e.cancha?0.05:0);
-  const pricePenalty=e.precio>fair?clamp(1-((e.precio-fair)/(fair*1.6))*0.55,0.38,1):1+(fair-e.precio)*0.035;
+  const quality=1+((e.nivel||1)-1)*0.06+(e.iluminacion?0.07:0)+(e.cancha?0.05:0)+(e.accesos||0)*0.05;
   const fan=(e.fans==null?70:e.fans)/100;
-  const occupancy=clamp((0.42+appeal*0.26)*pricePenalty*quality*fan,0.18,0.96);
-  const attendance=Math.round((isHome?e.aforo:e.aforo*0.25)*occupancy);
+  const mkt=(G.eco&&G.eco.mkt&&G.eco.mkt.gate>0)?1+G.eco.mkt.boost:1;
+  const racha=(u.stats&&u.stats.racha)?clamp(u.stats.racha,-5,5)*0.012:0;
+  const pg=e.precio>fair?clamp(1-((e.precio-fair)/(fair*1.4))*0.62,0.22,1):1+(fair-e.precio)/fair*0.12;
+  const occG=clamp((0.40+appeal*0.27)*pg*quality*fan*mkt+racha,0.08,1);
+  const fairP=fair*4.2*(1+(e.nivel-1)*0.06);
+  const pp=e.precioPalco>fairP?clamp(1-((e.precioPalco-fairP)/(fairP*1.2))*0.7,0.12,1):1+(fairP-e.precioPalco)/fairP*0.08;
+  const occP=clamp((0.35+appeal*0.3)*pp*fan*mkt*(1+(e.palcosNivel||0)*0.04)+racha,0.05,1);
+  return{occG,occP,pg,pp,fair,fairP};
+}
+function stadiumBreakdown(isHome,u,opp){
+  const e=u.estadio||(u.estadio=initStadium(u.id,u.nivel,u.estadioPropio,u.ciudad));const d=stadiumDemand(e,u,opp,isHome);const lvl=u.nivel;
+  const k=isHome?1:0.25,mult=lvl===1?3.4:lvl===2?2.6:2.1;
+  const seatsG=Math.max(0,e.aforo-e.palcosN),seatsP=e.palcosN;
+  const aG=Math.round(seatsG*k*d.occG),aP=Math.round(seatsP*k*d.occP);
+  const gG=Math.round(aG*e.precio*mult),gP=Math.round(aP*e.precioPalco*mult);
+  const merch=isHome&&e.propio?Math.round((e.tienda||0)*(lvl===1?7500:lvl===2?3200:1400)*(0.6+0.4*(e.fans||70)/100)):0;
+  const f=e.propio?1:0.55;
+  return{aG,aP,gG:Math.round(gG*f),gP:Math.round(gP*f),merch,occG:d.occG,occP:d.occP,d};
+}
+function stadiumRevenue(isHome,u,opp){
+  const e=u.estadio||initStadium(u.id,u.nivel,u.estadioPropio,u.ciudad);const b=stadiumBreakdown(isHome,u,opp);const fair=b.d.fair;
   if(isHome&&e.precio>fair*1.55&&Math.random()<0.55){e.fans=clamp((e.fans==null?70:e.fans)-1-rnd(3),25,100);}
   else if(isHome&&e.precio<=fair&&Math.random()<0.35){e.fans=clamp((e.fans==null?70:e.fans)+1,25,100);}
-  const gross=Math.round(attendance*e.precio*(lvl===1?3.4:lvl===2?2.6:2.1));
-  return e.propio?gross:Math.round(gross*0.55);
+  return b.gG+b.gP+b.merch;
 }
 
 function resultBonus(gf,ga,lvl){if(gf>ga)return{1:18000,2:9000,3:4500}[lvl];if(gf===ga)return{1:7000,2:3500,3:1800}[lvl];return{1:2500,2:1200,3:700}[lvl];}
@@ -1642,8 +1666,8 @@ function estimateMatchBalance(roundOffset){const u=userClub();const lvl=u.nivel;
   if(!j)return{income:0,wage:weeklyWage(),cost:stadiumCost(u),net:-weeklyWage()-stadiumCost(u),detail:'Sin fecha'};
   const m=j.find(x=>x.h===G.userClubId||x.a===G.userClubId);if(!m)return{income:0,wage:weeklyWage(),cost:0,net:-weeklyWage(),detail:'Libre'};
   const opp=G.clubes[m.h===G.userClubId?m.a:m.h],isHome=m.h===G.userClubId;
-  const income=stadiumRevenue(isHome,u,opp)+(G.sponsor?G.sponsor.base:0)+resultBonus(1,1,lvl)+tvIncome(lvl);
-  const cost=weeklyWage()+stadiumCost(u);return{income,wage:weeklyWage(),cost,net:income-cost,detail:(isHome?'Local':'Visita')+' vs '+opp.nombre,opp,isHome};}
+  const income=stadiumRevenue(isHome,u,opp)+(G.sponsor?G.sponsor.base:0)+resultBonus(1,1,lvl)+tvIncome(lvl)+(window.ECO?ECO.projIncome():0);
+  const cost=weeklyWage()+stadiumCost(u)+(window.ECO?ECO.projCost():0);return{income,wage:weeklyWage(),cost,net:income-cost,detail:(isHome?'Local':'Visita')+' vs '+opp.nombre,opp,isHome};}
 function estimateNextBalance(){return estimateMatchBalance(0);}
 function financeProjection(n){const arr=[];for(let i=0;i<n;i++)arr.push(estimateMatchBalance(i));return arr;}
 function financeSignal(){const total=financeProjection(3).reduce((s,x)=>s+x.net,0);return{total,cls:total>=40000?'good':total>=-25000?'mid':'bad',label:total>=40000?'VERDE':total>=-25000?'ÁMBAR':'ROJO'};}
@@ -1713,7 +1737,7 @@ function finishJornada(userGF,userGA,matchLogs){
   const oppName=(()=>{const m=G.calendarios[lvl][jor-1].find(x=>x.h===G.userClubId||x.a===G.userClubId);const oid=m.h===G.userClubId?m.a:m.h;return G.clubes[oid].nombre;})();
   pushNews(`📅 F${jor}: ${u.nombre} ${userGF}-${userGA} vs ${oppName}.`,userGF>userGA?'bueno':userGF<userGA?'malo':'info');
   pushNews(`💰 Taquilla ${money(gate)} + TV ${money(tv)} + bonus ${money(bonus)}${sp?` + patrocinador ${money(sp)}`:''} − nómina/estadio ${money(wage+stadCost)} = ${net>=0?'+':''}${money(net)}.`,net>=0?'bueno':'malo');
-  processStadiumConstruction();if(window.PRES)PRES.afterMatchday(userGF,userGA);if(window.RETOS)RETOS.afterMatchday(userGF,userGA);if(window.SEL)SEL.afterMatchday();
+  processStadiumConstruction();if(window.PRES)PRES.afterMatchday(userGF,userGA);if(window.ECO)ECO.afterMatchday();if(window.RETOS)RETOS.afterMatchday(userGF,userGA);if(window.SEL)SEL.afterMatchday();
   const inj=u.plantilla.filter(p=>p.lesionado);if(inj.length)pushNews(`🩹 Lesionados: ${inj.map(p=>p.nombre.split(' ').slice(-1)[0]+' ('+p.lesionJor+'f)').join(', ')}.`,'malo');
   if(jor%4===0){G.mercado.splice(0,2);G.mercado.push(...genMarket(2));}simulateWorldNews();worldNews();svNews(jor);
   // ============ FIX 2 (Opción B a profundidad) ============
@@ -1808,7 +1832,7 @@ function simulatePrimeraPlayoff(sorted){
   const res={temp:G.temporada,champion:final.w,rows,qualified:q.map(c=>c.id)};G.playoffs=G.playoffs||[];G.playoffs.unshift(res);return res;
 }
 function budgetSoftCap(lvl){return{1:2600000,2:900000,3:380000}[lvl]||500000;}
-function normalizeBudget(reason){const cap=budgetSoftCap(userClub().nivel);if(G.budget>cap){const surplus=G.budget-cap;const cut=Math.round(surplus*0.72);G.budget-=cut;G.clubReserve=(G.clubReserve||0)+cut;fin('Directiva','reserva',-cut,reason||'Excedente guardado en la reserva del club');pushNews(`🏦 La directiva guarda ${money(cut)} del excedente en la reserva del club. Podés retirarlo desde Finanzas cuando tu presupuesto baje.`, 'info');}}
+function normalizeBudget(reason){return;const cap=budgetSoftCap(userClub().nivel);if(G.budget>cap){const surplus=G.budget-cap;const cut=Math.round(surplus*0.72);G.budget-=cut;G.clubReserve=(G.clubReserve||0)+cut;fin('Directiva','reserva',-cut,reason||'Excedente guardado en la reserva del club');pushNews(`🏦 La directiva guarda ${money(cut)} del excedente en la reserva del club. Podés retirarlo desde Finanzas cuando tu presupuesto baje.`, 'info');}}
 function withdrawReserve(pct){if(blockIfLive('retirar reserva'))return;const r=G.clubReserve||0;if(r<=0){toast('No hay reserva para retirar');return;}const cap=budgetSoftCap(userClub().nivel);const room=Math.max(0,cap-G.budget);const amt=Math.min(Math.round(r*pct/100),room);if(amt<=0){toast('Tu presupuesto está en el tope ('+money(cap)+'). Gastá primero para retirar reserva.');return;}G.budget+=amt;G.clubReserve=r-amt;fin('Directiva','ingreso',amt,'Retiro de la reserva del club');pushNews(`🏦 Retiraste ${money(amt)} de la reserva del club.`,'info');autoSave();renderAll();toast('Retiraste '+money(amt));}
 function unlockAchievement(id,name,desc){G.achievements=G.achievements||[];if(G.achievements.some(a=>a.id===id))return;G.achievements.unshift({id,name,desc,temp:G.temporada,campania:G.campania});pushNews(`🏅 Logro desbloqueado: ${name}.`,'gol');}
 function buyAvatarItem(id,name,cost){G.avatar=G.avatar||{items:[]};G.managerWallet=G.managerWallet||0;if(G.avatar.items.includes(id)){toast('Ya comprado');return;}if(G.managerWallet<cost){toast('No alcanza sueldo DT');return;}G.managerWallet-=cost;G.avatar.items.push(id);unlockAchievement('style_'+id,'Estilo DT: '+name,'Compraste un elemento cosmético');autoSave();renderAll();toast('Compra personal realizada');}
@@ -1862,7 +1886,7 @@ function hallStats(){
 function dtLeverage(){const h=hallStats();return clamp((G.confianza||50)*0.45+(G.reputacion||50)*0.35+h.titles*5+h.promotions*4+h.centroTitles*18+h.copaTitles*8+(G.historia||[]).length*1.2,0,140);}
 function negotiateDTSalary(pct){if(blockIfLive('negociar contrato'))return;G.dtContract=G.dtContract||{campaignsLeft:2,lastRaise:0};const lev=dtLeverage();const ask=Math.round((G.salarioDT||12000)*(1+pct/100));const difficulty=35+pct*0.9+(G.dtContract.lastRaise?18:0);if(lev>=difficulty){G.salarioDT=ask;G.dtContract.campaignsLeft=Math.max(G.dtContract.campaignsLeft||0,4);G.dtContract.lastRaise=G.temporada+' '+G.campania;G.confianza=clamp((G.confianza||50)+3,0,100);pushNews(`📝 La directiva acepta mejorar el sueldo del DT a ${money(G.salarioDT)}.`, 'bueno','club');toast('Aumento aprobado');}else{G.confianza=clamp((G.confianza||50)-4,0,100);pushNews('📝 La directiva rechaza la solicitud salarial del DT.', 'malo','club');toast('La directiva rechazó la propuesta');}autoSave();renderAll();}
 function processDTContractEnd(){if(G.rol==='presidente')return;G.dtContract=G.dtContract||{campaignsLeft:2,lastRaise:0};G.dtContract.campaignsLeft--;if(G.dtContract.campaignsLeft===1)pushNews('📄 Tu contrato como DT termina en una campaña. Podés negociar o esperar decisión directiva.','info','club');if(G.dtContract.campaignsLeft<=0){const lev=dtLeverage();if(lev>=45){const raise=lev>95?1.35:lev>75?1.20:1.08;G.salarioDT=Math.round((G.salarioDT||12000)*raise/100)*100;G.dtContract.campaignsLeft=4;pushNews(`📄 La directiva renueva tu contrato. Nuevo sueldo: ${money(G.salarioDT)}.`, 'bueno','club');}else{G.dtContract.campaignsLeft=1;G.confianza=clamp((G.confianza||50)-15,0,100);pushNews('📄 La directiva no está convencida de renovar. Tenés una campaña para cambiar la situación.', 'malo','club');}}}
-function renderDTContract(){G.dtContract=G.dtContract||{campaignsLeft:2,lastRaise:0};const lev=Math.round(dtLeverage());return`<div class="panel-title">📄 Contrato del DT</div><div class="offer"><b class="green">Sueldo personal:</b> ${money(G.salarioDT||0)} / campaña<br><b>Contrato restante:</b> ${G.dtContract.campaignsLeft} campaña(s)<br><b>Fuerza negociadora:</b> <span class="${lev>=75?'green':lev>=45?'amber':'red'}">${lev}/140</span><br><small>Influyen confianza, reputación, títulos, ascensos, Copa Presidente, Copa Centroamericana y tiempo en el club.</small><div style="margin-top:8px"><button class="btn btn-sm" onclick="negotiateDTSalary(15)">Pedir +15%</button> <button class="btn btn-a btn-sm" onclick="negotiateDTSalary(35)">Pedir +35%</button> <button class="btn btn-p btn-sm" onclick="negotiateDTSalary(75)">Pedir contrato estrella</button></div></div>`;}
+function renderDTContract(){G.dtContract=G.dtContract||{campaignsLeft:2,lastRaise:0};const lev=Math.round(dtLeverage());return`<div class="panel-title">📄 Contrato del DT</div><div class="offer"><b class="green">Sueldo personal:</b> ${money(G.salarioDT||0)} / campaña<br><b>Contrato restante:</b> ${G.dtContract.campaignsLeft} campaña(s)<br><b>Fuerza negociadora:</b> <span class="${lev>=75?'green':lev>=45?'amber':'red'}">${lev}/140</span><br><small>Influyen confianza, reputación, títulos, ascensos, Copa Presidente, Copa Centroamericana y tiempo en el club.</small><div style="margin-top:8px"><button class="btn btn-sm" onclick="negotiateDTSalary(15)">Pedir +15%</button> <button class="btn btn-a btn-sm" onclick="negotiateDTSalary(35)">Pedir +35%</button> <button class="btn btn-p btn-sm" onclick="negotiateDTSalary(75)">Pedir contrato estrella</button></div></div>${window.ECO?ECO.resignBtn():''}`;}
 
 function renderHallOfFame(){
   const h=hallStats();
@@ -2316,7 +2340,7 @@ function endSeason(){
   }
   // CONCACAF: misma lógica. Si hay nextConcacafSeeds pendientes y la CONCACAF no
   // está activa, la creamos para la nueva campaña. Si ya está activa, la conservamos.
-  if(G.nextConcacafSeeds&&!G.concacafCup){
+  if(G.nextConcacafSeeds&&(!G.concacafCup||G.concacafCup.champion||!G.concacafCup.active)){
     G.concacafCup=initConcacafCup(buildConcacafParticipants(G.nextConcacafSeeds));
     G.nextConcacafSeeds=null;
   }
@@ -2378,6 +2402,7 @@ function generateOffers(fired){
   return offers;
 }
 function acceptOffer(clubId,nivel,sal){
+  if(window.ECO)ECO.onClubChange();
   if(G.rol==='presidente'){G.rol='DT';if(G.pres){G.pres.dt=null;G.pres.camp=null;}}
   G.userClubId=clubId;G.budget=G.clubes[clubId].budget;G.salarioDT=sal;
   G.tactics.alineacion=bestXI(G.clubes[clubId].plantilla,G.tactics.formacion).map(p=>p.id);
@@ -2655,19 +2680,34 @@ function buyPlayer(id){if(blockIfLive('fichar jugadores'))return;const eliteChec
   G.budget-=total;p.contrato=1+rnd(3);p.moral=70+rnd(20);p.scouted=true;u.plantilla.push(p);G[pool].splice(i,1);fin('Mercado','gasto',-p.precio,`Fichaje: ${p.nombre}`);if(p.comision)fin('Agente','gasto',-p.comision,`Comisión: ${p.nombre}`);pushNews(`✍️ Fichaje: ${p.nombre} (${p.posicion},${p.media}) por ${money(total)} incluyendo agente.`, 'bueno','mercado');pushTransferNews(`${userClub().nombre} ficha a ${p.nombre} desde ${p.equipoOrigen||'mercado'} por ${money(total)}.`);autoSave();renderAll();toast('¡Fichaje!');}
 function refreshMarket(pay){if(blockIfLive('refrescar mercado'))return;if(pay){if(G.budget<15000){toast('Necesitas $15.000');return;}G.budget-=15000;fin('Agente','gasto',-15000,'Scouting y llamadas de agentes');}G.mercado=genMarket(10);G.agentOffers=genAgentOffers(userClub().nivel);autoSave();renderMarket();toast('Mercado renovado');}
 function renewContract(id){if(blockIfLive('renovar contratos'))return;const u=userClub();const p=u.plantilla.find(x=>x.id===id);if(!p)return;const cost=Math.round(p.salario*(0.8+Math.random()*0.6));if(G.budget<cost){toast('No alcanza prima de renovación: '+money(cost));return;}G.budget-=cost;p.contrato=3;p.moral=clamp((p.moral||60)+18,0,100);p.quiereIrse=false;fin('Plantilla','gasto',-cost,'Renovación: '+p.nombre);pushNews(`📝 Renovación: ${p.nombre} firma 3 años.`, 'bueno');autoSave();renderAll();}
-function adjustSalary(id,pct){if(blockIfLive('ajustar salarios'))return;const u=userClub();const p=u.plantilla.find(x=>x.id===id);if(!p)return;const old=p.salario;const min=Math.round((p.media*p.media*0.48)/10)*10;
-  if(pct<0&&p.salario<=min){toast('El agente no acepta bajar más');return;}
-  const nuevo=Math.max(min,Math.round(p.salario*(1+pct/100)/10)*10);const diff=old-nuevo;
-  p.salario=nuevo;
+function fairWage(p){return Math.round((p.media*p.media*0.9+p.media*15)/10)*10;}
+function adjustSalary(id,pct){if(blockIfLive('ajustar salarios'))return;const u=userClub();const p=u.plantilla.find(x=>x.id===id);if(!p)return;const old=p.salario;const fair=fairWage(p);
+  const camKeyNow=G.temporada+'-'+G.campania;
   if(pct<0){
-    const cutPct=diff/Math.max(1,old);let loss=Math.max(1,Math.round(cutPct*18));
-    if((p.moral||60)>75)loss=Math.max(1,loss-1);if(p.personalidad==='Leal')loss=Math.max(1,loss-2);if(p.personalidad==='Ambicioso')loss+=2;if(p.personalidad==='Conflictivo')loss+=3;if(p.personalidad==='Líder')loss=Math.max(1,loss-1);if(p.contrato<=1)loss+=1;if(Math.random()<0.25)loss+=2;
-    p.moral=clamp((p.moral||60)-loss,0,100);
-  }else{
-    const gain=2+rnd(4);p.moral=clamp((p.moral||60)+gain,0,100);
+    const floor=Math.round(fair*0.85/10)*10;
+    if(p.salario<=floor){toast('El agente no acepta menos de '+money(floor)+' para un '+p.media+' de media');return;}
+    if(p.cutKey===camKeyNow){toast('Ya le tocaste el sueldo esta campaña. Su agente no vuelve a negociar a la baja.');return;}
   }
-  if(pct<0&&p.moral<30)pushNews(`😡 ${p.nombre} está molesto por la rebaja salarial.`,'malo');
-  fin('Plantilla',pct>0?'gasto':'ahorro',old-p.salario,`Ajuste salarial: ${p.nombre}`);autoSave();renderAll();toast('Salario ajustado');}
+  let nuevo=Math.round(p.salario*(1+pct/100)/10)*10;
+  if(pct<0){
+    nuevo=Math.max(Math.round(fair*0.85/10)*10,nuevo);
+    const diff=old-nuevo;const cutPct=diff/Math.max(1,old);
+    const pers={Leal:0.75,Líder:0.85,Profesional:0.9,Ambicioso:1.25,Conflictivo:1.5};const m=pers[p.personalidad]||1;
+    // el malestar depende del recorte y de cuánto queda por debajo de lo justo para su media
+    const under=Math.max(0,(fair-nuevo)/fair);
+    let loss=Math.round((cutPct*70+under*45)*m)+(p.contrato<=1?3:0)+(Math.random()<0.3?3:0);
+    if((p.moral||60)>80)loss=Math.round(loss*0.8);
+    loss=Math.max(2,loss);
+    // un recorte brutal puede ser rechazado de plano
+    if(cutPct>0.30||(under>0.12&&Math.random()<0.5)){p.moral=clamp((p.moral||60)-Math.round(loss/2),0,100);p.cutKey=camKeyNow;pushNews(`😤 ${p.nombre} rechaza la rebaja a ${money(nuevo)} y se siente irrespetado.`,'malo');autoSave();renderAll();toast('Rechazó la rebaja (moral -'+Math.round(loss/2)+')');return;}
+    p.salario=nuevo;p.cutKey=camKeyNow;p.moral=clamp((p.moral||60)-loss,0,100);
+    if(p.moral<35&&p.personalidad!=='Leal')p.quiereIrse=true;
+    toast('Rebaja aplicada · moral -'+loss);
+    if(p.moral<35)pushNews(`😡 ${p.nombre} está molesto por la rebaja salarial.`,'malo');
+  }else{
+    p.salario=Math.max(old+10,nuevo);const gain=2+rnd(4);p.moral=clamp((p.moral||60)+gain,0,100);toast('Salario ajustado');
+  }
+  fin('Plantilla',pct>0?'gasto':'ahorro',old-p.salario,`Ajuste salarial: ${p.nombre}`);autoSave();renderAll();}
 
 function offerSellPlayer(id){if(blockIfLive('vender jugadores'))return;const u=userClub();const p=u.plantilla.find(x=>x.id===id);if(!p)return;if(u.plantilla.length<=14){toast('Mínimo 14 jugadores');return;}
   const clubs=Object.values(G.clubes).filter(c=>c.id!==G.userClubId&&c.nivel<=u.nivel+1).map(c=>c.nombre);
@@ -2738,20 +2778,22 @@ function scoutBid(i,pct){if(blockIfLive('fichar jugadores'))return;const r=SC_RE
   fin('Mercado','gasto',-tot,'Fichaje: '+np.nombre);pushNews(`✅ Fichaje: ${np.nombre} llega desde ${r.club} (${r.country}) por ${money(tot)}.`,'bueno','mercado');pushTransferNews(`${u.nombre} ficha a ${np.nombre} desde ${r.club} por ${money(tot)}.`);
   autoSave();closeModal();renderAll();toast('¡Fichaje cerrado!');}
 function signSponsor(id){if(blockIfLive('firmar patrocinador'))return;const o=(G.sponsorOffers||[]).find(x=>x.id===id);if(!o)return;G.sponsor=o;G.budget+=o.up;fin('Patrocinador','ingreso',o.up,'Prima de firma: '+o.nombre);pushNews(`🤝 Patrocinador firmado: ${o.nombre}. Prima ${money(o.up)} + ${money(o.base)}/fecha.`, 'bueno');autoSave();renderAll();toast('Patrocinador firmado');}
-function stadiumProjectCost(kind,e){const lvl=userClub().nivel;if(kind==='aforo')return Math.round(e.aforo*(95+(e.nivel||1)*22));if(kind==='iluminacion')return{1:420000,2:190000,3:85000}[lvl];if(kind==='palcos')return{1:650000,2:260000,3:110000}[lvl];if(kind==='cancha')return{1:260000,2:120000,3:55000}[lvl];return 100000;}
+function stadiumProjectCost(kind,e){const lvl=userClub().nivel;if(kind==='aforo')return Math.round(e.aforo*(95+(e.nivel||1)*40));if(kind==='iluminacion')return{1:420000,2:190000,3:85000}[lvl];if(kind==='palcos')return Math.round({1:650000,2:260000,3:110000}[lvl]*(1+(e.palcosNivel||0)*0.9));if(kind==='cancha')return{1:260000,2:120000,3:55000}[lvl];if(kind==='tienda')return Math.round({1:380000,2:170000,3:70000}[lvl]*(1+(e.tienda||0)*0.8));if(kind==='accesos')return Math.round({1:300000,2:140000,3:60000}[lvl]*(1+(e.accesos||0)*0.7));return 100000;}
 function startStadiumProject(kind){if(blockIfLive('obra de estadio'))return;const u=userClub();const e=u.estadio||(u.estadio=initStadium(u.id,u.nivel,u.estadioPropio,u.ciudad));if(!e.propio){toast('Primero comprá un estadio');return;}if(e.construccion&&e.construccion.weeks>0){toast('Ya hay una obra en marcha');return;}const cost=stadiumProjectCost(kind,e);if(G.budget<cost){toast('No alcanza para obra: '+money(cost));return;}G.budget-=cost;e.construccion={kind,weeks:kind==='aforo'?5:3,cost};fin('Estadio','gasto',-cost,'Obra iniciada: '+kind);pushNews(`🏗 Obra iniciada en estadio: ${kind}. Mientras dure, hay costos extra de alquiler/logística.`, 'info');autoSave();renderAll();}
-function processStadiumConstruction(){const e=userClub().estadio;if(!e||!e.construccion||e.construccion.weeks<=0)return;e.construccion.weeks--;if(e.construccion.weeks<=0){const k=e.construccion.kind;if(k==='aforo'){e.nivel=(e.nivel||1)+1;e.aforo+=1600+e.nivel*550;}if(k==='iluminacion')e.iluminacion=true;if(k==='palcos')e.palcos=true;if(k==='cancha')e.cancha=true;e.fans=clamp((e.fans==null?70:e.fans)+5,25,100);pushNews(`🏟 Obra terminada: ${k}. Mejora la asistencia y el valor del estadio.`, 'bueno');e.construccion=null;}}
+function processStadiumConstruction(){const e=userClub().estadio;if(!e||!e.construccion||e.construccion.weeks<=0)return;e.construccion.weeks--;if(e.construccion.weeks<=0){const k=e.construccion.kind;if(k==='aforo'){e.nivel=(e.nivel||1)+1;e.aforo+=Math.round(e.aforo*0.16)+800;}if(k==='iluminacion')e.iluminacion=true;if(k==='palcos'){stadiumNorm(e,userClub().nivel);e.palcos=true;e.palcosNivel=(e.palcosNivel||0)+1;e.palcosN+=Math.round(e.aforo*0.035)+40;}if(k==='tienda')e.tienda=(e.tienda||0)+1;if(k==='accesos')e.accesos=(e.accesos||0)+1;if(k==='cancha')e.cancha=true;e.fans=clamp((e.fans==null?70:e.fans)+5,25,100);pushNews(`🏟 Obra terminada: ${k}. Mejora la asistencia y el valor del estadio.`, 'bueno');e.construccion=null;}}
 function improveStadium(){startStadiumProject('aforo');}
-function changeTicket(delta){if(blockIfLive('cambiar boletos'))return;const e=userClub().estadio||(userClub().estadio=initStadium(userClub().id,userClub().nivel,userClub().estadioPropio,userClub().ciudad));e.precio=clamp(e.precio+delta,2,12);autoSave();renderAll();toast('Precio de boleto: '+money(e.precio));}
+function changeTicket(delta){if(blockIfLive('cambiar boletos'))return;const e=userClub().estadio||(userClub().estadio=initStadium(userClub().id,userClub().nivel,userClub().estadioPropio,userClub().ciudad));e.precio=clamp(e.precio+delta,1,stadiumMaxPrice(userClub().nivel));autoSave();renderAll();toast('Boleto de gradas: '+money(e.precio));}
+function changePalcoTicket(delta){if(blockIfLive('cambiar precio de palcos'))return;const u=userClub(),e=stadiumNorm(u.estadio||(u.estadio=initStadium(u.id,u.nivel,u.estadioPropio,u.ciudad)),u.nivel);const mx=stadiumMaxPrice(u.nivel)*10;e.precioPalco=clamp(e.precioPalco+delta,Math.max(5,e.precio),mx);autoSave();renderAll();toast('Palco: '+money(e.precioPalco));}
 function renderFinanzas(){const u=userClub();const est=estimateNextBalance();const sp=G.sponsor;const sig=financeSignal();const proj=financeProjection(3);const e=u.estadio||(u.estadio=initStadium(u.id,u.nivel,u.estadioPropio,u.ciudad));
   const stadiumOps=(e.opciones||stadiumOptions(u.id,u.nivel,u.ciudad)).map(o=>`<div class="offer"><b>${esc(o.nombre)}</b><br>Aforo ${o.aforo.toLocaleString('en-US')} · Alquiler ${money(o.alquiler)}/fecha · Compra ${money(o.precio)}<br><button class="btn btn-sm" onclick="rentStadium('${o.id}')">Alquilar</button> <button class="btn btn-p btn-sm" onclick="buyStadium('${o.id}')">Comprar</button></div>`).join('');
   const offers=(G.sponsorOffers||genSponsorOffers(u.nivel)).map(o=>`<div class="offer"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><div><b class="cyan">${esc(o.nombre)}</b> <span class="tag amber">Riesgo ${o.riesgo}</span><br><span class="muted">Firma ${money(o.up)} · Fijo ${money(o.base)}/fecha · Victoria ${money(o.win)} · Objetivo ${money(o.obj)}</span></div><button class="btn btn-p btn-sm" ${sp?'disabled':''} onclick="signSponsor('${o.id}')">Firmar</button></div></div>`).join('');
   const rows=(G.finanzas||[]).slice(0,18).map(x=>`<tr><td class="center">${x.temp}</td><td class="center">F${x.j}</td><td>${esc(x.tipo)}</td><td class="${x.monto>=0?'green':'red'} right">${x.monto>=0?'+':''}${money(x.monto)}</td><td class="muted">${esc(x.detalle)}</td></tr>`).join('')||'<tr><td colspan="5" class="muted center">Sin movimientos registrados todavía.</td></tr>';
-  const projectBtns=e.propio?(e.construccion&&e.construccion.weeks>0?`<span class="tag amber">Obra: ${e.construccion.kind} · ${e.construccion.weeks} fechas</span>`:`<button class="btn btn-a btn-sm" onclick="startStadiumProject('aforo')">Ampliar aforo (${money(stadiumProjectCost('aforo',e))})</button> <button class="btn btn-sm" onclick="startStadiumProject('iluminacion')">Iluminación (${money(stadiumProjectCost('iluminacion',e))})</button> <button class="btn btn-sm" onclick="startStadiumProject('palcos')">Palcos (${money(stadiumProjectCost('palcos',e))})</button> <button class="btn btn-sm" onclick="startStadiumProject('cancha')">Cancha (${money(stadiumProjectCost('cancha',e))})</button>`):'';
+  const projectBtns=e.propio?(e.construccion&&e.construccion.weeks>0?`<span class="tag amber">Obra: ${e.construccion.kind} · ${e.construccion.weeks} fechas</span>`:`<button class="btn btn-a btn-sm" onclick="startStadiumProject('aforo')">Ampliar aforo (${money(stadiumProjectCost('aforo',e))})</button> <button class="btn btn-sm" onclick="startStadiumProject('iluminacion')">Iluminación (${money(stadiumProjectCost('iluminacion',e))})</button> <button class="btn btn-sm" onclick="startStadiumProject('palcos')">Palcos (${money(stadiumProjectCost('palcos',e))})</button> <button class="btn btn-sm" onclick="startStadiumProject('cancha')">Cancha (${money(stadiumProjectCost('cancha',e))})</button> <button class="btn btn-sm" onclick="startStadiumProject('tienda')">Tienda oficial (${money(stadiumProjectCost('tienda',e))})</button> <button class="btn btn-sm" onclick="startStadiumProject('accesos')">Accesos/parqueo (${money(stadiumProjectCost('accesos',e))})</button>`):'';
   $('finanzas-panel').innerHTML=`<div class="panel-title">💰 Finanzas, Patrocinadores y Estadio</div>
-  <div class="grid g3"><div><span class="muted">Presupuesto operativo</span><div class="pxl ${G.budget<0?'red':'green'}" style="font-size:15px">${money(G.budget)}</div><small>Reserva del club: ${money(G.clubReserve||0)}</small>${(G.clubReserve||0)>0?'<div style="margin-top:5px"><button class="btn btn-sm" onclick="withdrawReserve(25)">Retirar 25%</button> <button class="btn btn-sm" onclick="withdrawReserve(100)">Retirar todo</button></div><small class="muted">Se retira mientras el presupuesto esté bajo el tope de '+money(budgetSoftCap(u.nivel))+'.</small>':''}</div><div><span class="muted">Semáforo 3 fechas</span><div class="pxl ${sig.cls==='good'?'green':sig.cls==='bad'?'red':'amber'}" style="font-size:14px">${sig.label} · ${sig.total>=0?'+':''}${money(sig.total)}</div><small>Ingreso aprox. ${money(est.income)} − costos ${money(est.cost)}</small></div><div><span class="muted">TV por fecha</span><div class="cyan">${money(tvIncome(u.nivel))}</div></div></div>
+  <div class="grid g3"><div><span class="muted">Presupuesto operativo</span><div class="pxl ${G.budget<0?'red':'green'}" style="font-size:15px">${money(G.budget)}</div><small>Reserva del club: ${money(G.clubReserve||0)} (más abajo)</small></div><div><span class="muted">Semáforo 3 fechas</span><div class="pxl ${sig.cls==='good'?'green':sig.cls==='bad'?'red':'amber'}" style="font-size:14px">${sig.label} · ${sig.total>=0?'+':''}${money(sig.total)}</div><small>Ingreso aprox. ${money(est.income)} − costos ${money(est.cost)}</small></div><div><span class="muted">TV por fecha</span><div class="cyan">${money(tvIncome(u.nivel))}</div></div></div>
   <div class="finance-strip">${proj.map((x,i)=>`<div class="finance-card ${x.net>=0?'good':x.net>=-15000?'mid':'bad'}"><b>Fecha ${G.jornadaActual+i}</b><br>${esc(x.detail)}<br><span class="green">Ing ${money(x.income)}</span><br><span class="red">Cost ${money(x.cost)}</span><br><b class="${x.net>=0?'green':'red'}">${x.net>=0?'+':''}${money(x.net)}</b></div>`).join('')}</div>
-  <hr class="sep"><div class="grid g2"><div><div class="panel-title">🏟 Estadio</div><div class="offer"><b class="amber">${esc(stadiumName(u))}</b><br>${e.propio?'Propio · ingreso íntegro y ampliable':'Alquilado · recibís menos taquilla'}<br>Aforo: <b>${e.aforo.toLocaleString('en-US')}</b> · Boleto: <button class="btn btn-sm" onclick="changeTicket(-1)">−</button> <b>${money(e.precio)}</b> <button class="btn btn-sm" onclick="changeTicket(1)">+</button><br>Costo por fecha: <span class="red">${money(stadiumCost(u))}</span><br>${e.propio?`Fans: <b class="${(e.fans||70)>=60?'green':'red'}">${Math.round(e.fans||70)}/100</b><br>Instalaciones: ${e.iluminacion?'💡':''}${e.palcos?' VIP':''}${e.cancha?' 🌱':''}<hr class="sep">${projectBtns}`:`<hr class="sep"><b>Opciones en ${esc(u.ciudad)}</b>${stadiumOps}`}</div></div><div><div class="panel-title">📨 Ofertas rivales por tus jugadores</div>${renderInboxOffers()}</div></div>
+  ${window.ECO?ECO.finBox():''}
+  <hr class="sep"><div class="grid g2"><div><div class="panel-title">🏟 Estadio</div><div class="offer"><b class="amber">${esc(stadiumName(u))}</b><br>${e.propio?'Propio · ingreso íntegro y ampliable':'Alquilado · recibís menos taquilla'}<br>Aforo: <b>${e.aforo.toLocaleString('en-US')}</b>${stadiumNorm(e,u.nivel).palcosN?` (palcos ${e.palcosN})`:''}<br>Gradas: <button class="btn btn-sm" onclick="changeTicket(-1)">−</button> <b>${money(e.precio)}</b> <button class="btn btn-sm" onclick="changeTicket(1)">+</button> · ocupación esperada <b>${Math.round(stadiumDemand(e,u,u,true).occG*100)}%</b>${e.palcosN?`<br>Palcos: <button class="btn btn-sm" onclick="changePalcoTicket(-5)">−</button> <b>${money(e.precioPalco)}</b> <button class="btn btn-sm" onclick="changePalcoTicket(5)">+</button> · ocupación <b>${Math.round(stadiumDemand(e,u,u,true).occP*100)}%</b>`:''}<br>Costo por fecha: <span class="red">${money(stadiumCost(u))}</span><br>${e.propio?`Fans: <b class="${(e.fans||70)>=60?'green':'red'}">${Math.round(e.fans||70)}/100</b><br>Instalaciones: ${e.iluminacion?'💡':''}${e.palcos?' VIP×'+(e.palcosNivel||1):''}${e.cancha?' 🌱':''}${e.tienda?' 🛍×'+e.tienda:''}${e.accesos?' 🚪×'+e.accesos:''}<hr class="sep">${projectBtns}`:`<hr class="sep"><b>Opciones en ${esc(u.ciudad)}</b>${stadiumOps}`}</div></div><div><div class="panel-title">📨 Ofertas rivales por tus jugadores</div>${renderInboxOffers()}</div></div>
   <hr class="sep"><div class="panel-title">🤝 Patrocinador actual</div>${sp?`<div class="offer" style="border-color:var(--green)"><b class="green">${esc(sp.nombre)}</b><br>Fijo ${money(sp.base)}/fecha · Victoria ${money(sp.win)} · Bono objetivo ${money(sp.obj)}</div>`:'<p class="red">Sin patrocinador. Firmá uno para estabilizar caja.</p>'}<div class="panel-title">📋 Ofertas disponibles</div>${offers}<hr class="sep"><div class="panel-title">📒 Últimos movimientos</div><div class="scroll" style="max-height:260px"><table class="tbl"><thead><tr><th>Temp</th><th>F</th><th>Tipo</th><th class="right">Monto</th><th>Detalle</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
 function setTraining(k,v){G.training=G.training||{};G.training[k]=v;autoSave();renderEntreno();toast('Plan actualizado');}
 function renderEntreno(){const tr=G.training||{intensidad:'Normal',enfoque:'Equilibrado'};const injured=userClub().plantilla.filter(p=>p.lesionado);
@@ -2945,6 +2987,18 @@ function toggleZB(){try{localStorage.setItem('rfm_zb_collapsed',zbCollapsed()?'0
 
 /* ---------- NOVEDADES / CHANGELOG ---------- */
 const CHANGELOG=[
+ {v:'2.1',fecha:'6 oct 2026',titulo:'Economía, balance y arreglos',items:[
+  ['🏆','CONCACAF corregido','Si ganás la Copa Centroamericana, ahora sí clasificás a la CONCACAF de la siguiente edición.'],
+  ['💰','Sin tope de dinero','Se eliminó el límite que reiniciaba tu caja (~$5M). Podés ahorrar para el estadio.'],
+  ['🏦','Reserva y préstamos','Depositá en la reserva y pedí préstamos eligiendo monto y plazo; se devuelven solos con los ingresos de cada fecha.'],
+  ['📣','Más formas de gastar y ganar','Campañas de marketing, tienda oficial, accesos, palcos por niveles, patrocinador secundario y decisiones de la directiva.'],
+  ['🏟','Estadio nuevo','Gradas y palcos con precios separados, más aforo por obra y la asistencia depende del precio, el rival, los fans y las mejoras.'],
+  ['🏛','Más poder para el presidente','Centro de entrenamiento, centro médico, fundación y oficina comercial dan ventajas reales.'],
+  ['🌱','Cantera balanceada','Ya no salen todos cracks: la mayoría son jugadores normales y los diamantes son raros.'],
+  ['📝','Contratos más justos','Bajar sueldos tiene piso según la media del jugador, castiga la moral y puede ser rechazado.'],
+  ['👔','Staff y DT más realistas','Los de 5 estrellas son raros. Más objetos 3D para presidente y DT.'],
+  ['🚪','Renunciar y retos','Podés renunciar como DT o presidente, y pausar un reto para volver a tu carrera.']
+ ]},
  {v:'2.0',fecha:'5 oct 2026',titulo:'Selección de El Salvador y Retos cortos',items:[
   ['🇸🇻','Selección de El Salvador','Con buena reputación la federación te ofrece el cargo (pestaña Selección). Convocas 23 jugadores de la liga más legionarios y juegas Liga de Naciones, Copa Oro, Eliminatorias y Mundial en ventanas FIFA. Los partidos de selección no afectan a tu club.'],
   ['🎯','Retos cortos','Escenarios de 8 a 10 fechas: salva al club del descenso, sube a Primera, cierra con la caja en positivo, racha de fuego y más. Hay un reto del día con racha y estrellas. Son partidas aparte: tu carrera no se toca.'],
@@ -2994,14 +3048,14 @@ function renderNovedades(){
     <div class="center" style="margin-top:10px"><button class="btn btn-p" onclick="startTutorial(true)">📘 Ver tutorial</button> <button class="btn btn-a" onclick="sendFeedback()">📧 Enviar opinión</button> <button class="btn" onclick="exportSave()">⬇ Exportar mi partida</button></div>`;
 }
 function showUpdateModal(){
-  const key='rfm_update_v2_0_seen';
+  const key='rfm_update_v2_1_seen';
   try{if(localStorage.getItem(key)==='1')return false;localStorage.setItem(key,'1');}catch(e){return false;}
-  openModal(`<div class="modal-title">🆕 Actualización v${GAME_VERSION}</div><p><b class="green">Nuevo: Selección y Retos cortos.</b></p>
-    <div class="offer"><b class="gold">🇸🇻 Selección de El Salvador</b><br><small>Convoca 23 y juega Liga de Naciones, Copa Oro, Eliminatorias y Mundial.</small></div>
+  openModal(`<div class="modal-title">🆕 Actualización v${GAME_VERSION}</div><p><b class="green">Nuevo: economía, préstamos, estadio y balance.</b></p>
+    <div class="offer"><b class="gold">🏦 Reserva, préstamos y marketing</b><br><small>Más formas de ganar y gastar. Sin tope de caja.</small></div><div class="offer"><b class="gold">🏟 Estadio, cantera y contratos rebalanceados</b><br><small>CONCACAF corregida, renuncia al cargo y más accesorios 3D.</small></div>
     <div class="offer"><b class="gold">🎯 Retos cortos</b><br><small>Salva al club del descenso y más. Botón 🎯 arriba. Reto del día con racha.</small></div>
     <div class="offer"><b class="gold">🏛 Presidente, 🌱 fundar club y 👔 probador 3D</b><br><small>Novedades de la v1.9 siguen disponibles.</small></div>
     <div class="center"><button class="btn btn-p" onclick="closeModal();switchView('novedades')">🆕 Ver novedades</button> <button class="btn" onclick="closeModal()">▶ Seguir mi carrera</button></div>`);
-  if(G)pushNews(`🆕 Actualización v${GAME_VERSION}: Selección de El Salvador y Retos cortos.`,'info','club');
+  if(G)pushNews(`🆕 Actualización v${GAME_VERSION}: economía, préstamos y balance.`,'info','club');
   return true;
 }
 function showLaunchModal(kind){
@@ -3260,7 +3314,7 @@ function validateGameState(show){
   ['mercado','agentOffers'].forEach(k=>{G[k]=G[k]||[];G[k].forEach(p=>{validatePlayer(p,p.equipoOrigen||'Mercado',issues);p.precio=clamp(Number(p.precio||p.valorMercado),0,expectedValue(p)*5);p.comision=clamp(Number(p.comision||0),0,Math.max(1,p.precio));});});
   [1,2,3].forEach(l=>{G.divisiones[l]=G.divisiones[l]||[];G.divisiones[l]=G.divisiones[l].filter(id=>G.clubes[id]);if(G.divisiones[l].length!==12)issues.push(`División ${l} tiene ${G.divisiones[l].length} clubes`);});
   if(!G.calendarios||!G.calendarios[1]){G.calendarios={1:roundRobinFull(G.divisiones[1]),2:roundRobinFull(G.divisiones[2]),3:roundRobinFull(G.divisiones[3])};issues.push('Calendario regenerado');}
-  const cap=budgetSoftCap(userClub().nivel);if(Number(G.budget||0)>cap*2){normalizeBudget('Excedente guardado en la reserva del club');issues.push('Excedente de presupuesto guardado en reserva');}G.budget=clamp(Number(G.budget||0),-5000000,cap*2);
+  G.budget=clamp(Number(G.budget||0),-50000000,2000000000);
   const sig=G._signatureStatus;if(sig==='invalid'){issues.push('Firma de guardado inválida');G.security.tampered=true;}
   G.security.lastCheck=Date.now();G.security.issues=issues.slice(0,20);G.security.valid=!G.security.tampered;G.security.rankEligible=!G.security.tampered;
   if(show)toast(issues.length?`Revisión: ${issues.length} ajustes`:'Partida válida');return{ok:G.security.valid,issues};
@@ -3539,7 +3593,7 @@ function promptDT(){if(window.PRES&&PRES.mode()==='fund'){PRES.openFoundation();
   openModal(`<div class="modal-title">🎽 Nombre del ${(window.PRES&&PRES.mode()==='pres')?'Presidente':'Director Técnico'}</div><p class="muted">Así aparecerás en noticias y en el ranking.</p><input id="dt-name-input" maxlength="20" value="DT" style="width:100%;margin:10px 0" onkeydown="if(event.key==='Enter')confirmDT()"><div class="center"><button class="btn btn-p" onclick="confirmDT()">▶ Empezar</button> <button class="btn" onclick="closeModal()">Cancelar</button></div>`);
   setTimeout(()=>{const i=$('dt-name-input');if(i){i.focus();i.select();}},60);}
 function confirmDT(){const i=$('dt-name-input');const nm=((i&&i.value)||'').trim().replace(/\s+/g,' ').slice(0,20)||'DT';closeModal();startGame(PICK_CLUB,nm,window.PRES?PRES.mode():null);}
-function startGame(clubId,nm,gmode){touchLocalActivity();try{localStorage.setItem('rfm_update_v2_0_seen','1');localStorage.setItem('rfm_novedades_seen',GAME_VERSION);}catch(e){}applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);G.device=PICK_DEVICE;if(window.PRES)PRES.newGameHook(gmode);if(window.SEL)SEL.migrate();pushNews(gmode==='fund'?`🌱 ${nm} funda ${userClub().nombre}.`:gmode==='pres'?`🏛 ${nm} asume la presidencia de ${userClub().nombre}.`:`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(window.PRES&&PRES.welcome())return;if(!showLaunchModal('new'))startTutorial(false);},400);tryResumeMusic();startOnlineServices();updatePresence();submitRanking();}
+function startGame(clubId,nm,gmode){touchLocalActivity();try{localStorage.setItem('rfm_update_v2_1_seen','1');localStorage.setItem('rfm_novedades_seen',GAME_VERSION);}catch(e){}applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);G.device=PICK_DEVICE;if(window.PRES)PRES.newGameHook(gmode);if(window.SEL)SEL.migrate();pushNews(gmode==='fund'?`🌱 ${nm} funda ${userClub().nombre}.`:gmode==='pres'?`🏛 ${nm} asume la presidencia de ${userClub().nombre}.`:`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(window.PRES&&PRES.welcome())return;if(!showLaunchModal('new'))startTutorial(false);},400);tryResumeMusic();startOnlineServices();updatePresence();submitRanking();}
 
 function boot(){
   touchLocalActivity();applyVisualPrefs();

@@ -76,6 +76,14 @@ Para consultas institucionales, reporte de fallos técnicos o solicitudes de aut
 - **Probador 3D** (Three.js, 34 objetos) en DT y Presidente; sin WebGL muestra tarjeta alterna. Tema visual *Palco* solo en modo Presidente.
 - Archivos nuevos que deben subirse junto a index.html: `avatar3d.js`, `modo-presidente.js`, `palco.css`, `three-lite.js`, y `sw.js` (v8).
 
+## v2.1 — Economía, balance y arreglos (6 oct 2026)
+- CONCACAF: el campeón/subcampeón de la Centroamericana ahora clasifica de verdad (se reemplazaba mal la edición terminada).
+- Sin tope de caja (antes reseteaba ~$5M). Nuevo `economia.js`: reserva con depósitos y préstamos (monto + plazo), campañas de marketing, centros de entrenamiento/médico, fundación, oficina comercial, patrocinador secundario y decisiones de la directiva.
+- Estadio: gradas y palcos con precios separados, tienda oficial, accesos, aforo por obra, asistencia según precio/rival/fans/marketing.
+- Cantera, staff y DT rebalanceados; contratos con piso salarial 85% del valor justo, castigo de moral proporcional y un recorte por campaña.
+- Renunciar como DT o presidente; pausar un reto y volver a la carrera; 11 objetos 3D nuevos.
+- Archivos nuevos/cambiados: index.html, economia.js, modo-presidente.js, avatar3d.js, retos.js, sw.js (v10).
+
 ## v2.0 — Selección de El Salvador y Retos cortos (5 oct 2026)
 - **Selección** (modo DT, pestaña 🇸🇻): se ofrece con reputación ≥ 56. Convocatoria de 23 (jugadores salvadoreños de la liga + 8 legionarios generados por semilla), esquema y mentalidad, ventanas FIFA tras las jornadas 8 y 16 de cada campaña. Ciclo de 4 años: Liga de Naciones → Copa Oro → Eliminatorias → Mundial (48 selecciones). Los partidos no afectan al club; pagan al monedero del probador. Solo se guardan resultados y una semilla (≈7 KB), no plantillas.
 - **Retos cortos** (🎯): 5 escenarios (descenso, ascenso, Tercera, cuentas en rojo, racha), estrellas, reto del día con racha y compartir. Partida aparte (`rfm_sv_reto`), sin ranking online.

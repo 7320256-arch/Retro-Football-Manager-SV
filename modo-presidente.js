@@ -39,12 +39,12 @@ function dtWage(d, level) { const L = ovrStars(dtOvr(d)); return Math.round(2600
 function staffWage(s, level) { return Math.round(1100 * (0.5 + 0.35 * s.nivel) * LVF[level || lvlN()] / 10) * 10; }
 function genDT(q) {
   q = clamp(q + rnd(3) - 1, 1, 5);
-  const base = q * 16 + 8, j = () => clamp(Math.round(base + rnd(25) - 12), 15, 96);
+  const base = q * 12 + 12, top = Math.random() < 0.05 ? 9 : 0, j = () => clamp(Math.round(base + top + rnd(25) - 12), 15, 94);
   const d = Object.assign(mkPerson(), { edad: 38 + rnd(26), apodo: Math.random() < 0.45 ? pick(APODOS) : '', tactico: j(), motivador: j(), cantera: j(), disciplina: j(), estilo: pick(ESTILOS), formPref: pick(['4-4-2', '4-3-3', '3-5-2', '5-3-2', '4-2-3-1']), rep: clamp(q * 17 + rnd(15), 5, 98), satisf: 75 });
   return d;
 }
 function genStaff(rol, q) {
-  const L = clamp(q + rnd(3) - 1, 1, 5);
+  let L = clamp(q + rnd(3) - 2, 1, 5); if (L === 5 && Math.random() > 0.25) L = 4; if (L === 4 && q < 4 && Math.random() > 0.5) L = 3;
   return Object.assign(mkPerson(), { rol, nivel: L, edad: 30 + rnd(30) });
 }
 function clubQ() { const u = userClub(); const tier = u.tier || 3; return clamp(Math.round(4.6 - (lvlN() - 1) * 1.0 - (tier - 3) * 0.35), 1, 5); }
@@ -81,7 +81,8 @@ function dtEdgeValue() {
   const s = S(); let e = 0;
   if (s && s.dt) { e += (dtOvr(s.dt) - 55) / 55 * 0.10; e += ((s.dt.satisf == null ? 70 : s.dt.satisf) - 60) / 100 * 0.03; } else e -= 0.05;
   e += lvl('analista') * 0.012 + lvl('prepFisico') * 0.006;
-  return clamp(e, -0.1, 0.16);
+  if (root.ECO) e += ECO.edge();
+  return clamp(e, -0.1, 0.2);
 }
 function edgeFor(homeId, awayId) {
   if (!isPres() || !G.userClubId) return null;
@@ -90,7 +91,7 @@ function edgeFor(homeId, awayId) {
   if (awayId === G.userClubId) return { h: c, a: f };
   return null;
 }
-function injuryChance() { return isPres() ? 0.025 * (1 - 0.1 * lvl('fisio')) : 0.025; }
+function injuryChance() { return isPres() ? 0.025 * (1 - 0.1 * lvl('fisio')) * (root.ECO ? ECO.inj() : 1) : 0.025; }
 function dietaValue() {
   const base = { 1: 36000, 2: 20000, 3: 11000 }[lvlN()] || 11000;
   const k = DIETAS[(S() && S().dieta) || 'normal'] || DIETAS.normal;
@@ -358,8 +359,12 @@ function upgradeCantera() {
 function mkProspect() {
   const c = S().cantera, jc = lvl('jefeCantera'), dt = S().dt;
   const pos = pick(['POR', 'DEF', 'DEF', 'MED', 'MED', 'DEL', 'DEL']);
-  const pot = clamp(50 + c.nivel * 5 + rnd(24) + jc * 2 + (dt ? Math.round(dt.cantera / 25) : 0), 50, 93);
-  const med0 = clamp(pot - 24 - rnd(12), 24, 52);
+  const base = 50 + c.nivel * 3.2 + jc * 1.5 + (dt ? dt.cantera / 40 : 1);
+  let pot = Math.round(base + (rnd(15) + rnd(15) - 14) * 0.9);
+  // diamante: raro, crece con nivel y jefe de cantera
+  if (Math.random() < 0.012 + c.nivel * 0.012 + jc * 0.006) pot += 8 + rnd(8);
+  pot = clamp(pot, 38, 92);
+  const med0 = clamp(pot - 26 - rnd(14), 20, 50);
   const f = v => clamp(Math.round(v + rnd(9) - 4), 8, 90);
   const a = { ataque: f(med0), defensa: f(med0), fisico: f(med0 - 4), porteria: f(med0 * 0.4) };
   if (pos === 'POR') { a.porteria = f(med0 + 12); a.ataque = f(med0 * 0.2); }
@@ -380,7 +385,7 @@ function canteraSeasonEnd(res) {
   if (!c) return msgs;
   const dtC = s.dt ? s.dt.cantera : 40;
   (c.jugadores || []).forEach(p => {
-    const gap = Math.max(0, p.potencial - p.media); const g = Math.round(gap * (0.16 + 0.03 * c.nivel + dtC / 1000) + rnd(3));
+    const gap = Math.max(0, p.potencial - p.media); const g = Math.min(gap, Math.round(gap * (0.12 + 0.015 * c.nivel + dtC / 1500) + rnd(3) - 1));
     ['ataque', 'defensa', 'fisico'].forEach(k => p.atributos[k] = clamp(p.atributos[k] + Math.round(g * (0.7 + Math.random() * 0.6)), 1, 95));
     if (p.posicion === 'POR') p.atributos.porteria = clamp(p.atributos.porteria + g, 1, 95);
     p.media = calcMedia(p); if (res && res.campania === 'Clausura') p.edad++;
@@ -509,7 +514,7 @@ function openMandato() {
   <div class="pr-prom">${(s.promesas || []).length ? s.promesas.map(p => `<div class="pr-pr ${p.hecha ? 'on' : p.fallida ? 'bad' : ''}"><b>${p.hecha ? '✅' : p.fallida ? '❌' : '⏳'} ${esc(p.desc)}</b><small>${p.hecha ? 'Cumplida' : p.fallida ? 'Incumplida' : `Plazo: ${Math.max(0, p.limite - (p.edad || 0))} campaña(s)`}</small></div>`).join('') : '<p class="muted">No hiciste promesas de campaña.</p>'}</div>
   <div class="panel-title" style="font-size:10px;margin-top:10px">Tu dieta de presidente</div>
   <div class="pr-acts">${Object.keys(DIETAS).map(k => `<button class="btn btn-sm ${s.dieta === k ? 'btn-p' : ''}" onclick="PRES.setDieta('${k}');PRES.openMandato()">${DIETAS[k].n} · ${money(Math.round(({ 1: 36000, 2: 20000, 3: 11000 }[lvlN()]) * DIETAS[k].mult / 100) * 100)}</button>`).join('')}</div><small class="muted">${DIETAS[s.dieta].d} Se paga del presupuesto del club al cerrar cada campaña.</small>
-  <div class="center" style="margin-top:12px"><button class="btn" onclick="closeModal()">Cerrar</button></div>`);
+  <div class="center" style="margin-top:12px"><button class="btn" onclick="closeModal()">Cerrar</button> <button class="btn btn-sm" onclick="closeModal();ECO.resign()">🚪 Renunciar</button></div>`);
 }
 function voteResult(kind) {
   const s = S() || {}; const c = (G.pres && G.pres.camp);
@@ -689,7 +694,7 @@ const SECT_PRO = [
   { id: 'club', ico: '⚽', n: 'Club', subs: [['plantilla', 'Plantel'], ['tecnico', 'Cuerpo técnico'], ['cantera', 'Cantera']] },
   { id: 'mercado', ico: '💼', n: 'Fichajes', subs: [['mercado', 'Mercado']] },
   { id: 'liga', ico: '🏆', n: 'Torneos', subs: [['calendario', 'Calendario'], ['clasificacion', 'Tabla'], ['copa', 'Copa'], ['centro', 'Centroamérica'], ['concacaf', 'CONCACAF'], ['stats', 'Estadísticas']] },
-  { id: 'finanzas', ico: '💰', n: 'Finanzas', subs: [['finanzas', 'Finanzas']] },
+  { id: 'finanzas', ico: '💰', n: 'Finanzas', subs: [['finanzas', 'Finanzas'], ['inversiones', 'Inversiones']] },
   { id: 'prensa', ico: '📰', n: 'Prensa', subs: [['noticias', 'Noticias'], ['novedades', 'Novedades']] }
 ];
 function sections() {
@@ -707,6 +712,7 @@ function ensureViews() {
   ['despacho', 'probador', 'tecnico', 'cantera', 'ligaam'].forEach(id => {
     if (!$('view-' + id)) { const s = document.createElement('section'); s.id = 'view-' + id; s.className = 'view hidden'; s.innerHTML = '<div class="panel pr-panel" id="' + id + '-panel"></div>'; main.appendChild(s); }
   });
+  if (root.ECO) ECO.ensureView();
   if (!$('pr-subnav')) { const d = document.createElement('div'); d.id = 'pr-subnav'; d.className = 'pr-subnav hidden'; main.insertBefore(d, main.firstChild); }
 }
 let ORIGNAV = null;
@@ -746,7 +752,7 @@ function onSwitch(v) {
   if (sn) { if (s && s.subs.length > 1) { sn.classList.remove('hidden'); sn.innerHTML = s.subs.map(x => `<button class="${x[0] === v ? 'on' : ''}" onclick="switchView('${x[0]}')">${x[1]}</button>`).join(''); } else { sn.classList.add('hidden'); sn.innerHTML = ''; } }
   document.body.dataset.view = v;
   if (v !== 'despacho' && v !== 'probador' && root.AV3D) AV3D.destroy();
-  if (v === 'despacho') renderDespacho(); else if (v === 'probador') renderProbador(); else if (v === 'tecnico') renderTecnico(); else if (v === 'cantera') renderCantera(); else if (v === 'ligaam') renderLigaAm();
+  if (v === 'despacho') renderDespacho(); else if (v === 'probador') renderProbador(); else if (v === 'tecnico') renderTecnico(); else if (v === 'cantera') renderCantera(); else if (v === 'ligaam') renderLigaAm(); else if (v === 'inversiones' && root.ECO) { ECO.ensureView(); ECO.renderInv(); }
   const m = document.querySelector('main'); if (m) m.scrollTop = 0;
 }
 
@@ -781,6 +787,7 @@ function alertList() {
   else { if (s.dt.satisf < 35) a.push(['red', '😤', `${s.dt.nombre.split(' ').slice(-1)[0]} está molesto (${Math.round(s.dt.satisf)}%).`, 'tecnico']); if (s.dt.contrato <= 1) a.push(['amber', '📄', `Contrato del DT: ${s.dt.contrato} campaña(s).`, 'tecnico']); }
   const vac = STAFF_ORDER.filter(r => !s.staff[r]).length; if (vac >= 5) a.push(['amber', '🧩', `${vac} puestos del cuerpo técnico vacíos.`, 'tecnico']);
   STAFF_ORDER.forEach(r => { const p = s.staff[r]; if (p && p.contrato <= 1) a.push(['amber', STAFF_ROLES[r].icon, `${STAFF_ROLES[r].nombre}: contrato por vencer.`, 'tecnico']); });
+  if (root.ECO && ECO.pending()) a.push(['amber', '📬', 'La directiva espera tu decisión.', 'inversiones']);
   if (G.budget < 0) a.push(['red', '💸', `Caja en rojo (${money(G.budget)}): los socios se inquietan.`, 'finanzas']);
   if ((G.inboxOffers || []).length) a.push(['green', '📨', `${G.inboxOffers.length} oferta(s) por tus jugadores.`, 'despacho']);
   if (s.cantera && s.cantera.jugadores.some(p => p.edad >= 18)) a.push(['green', '🌱', 'Hay canteranos listos para subir.', 'cantera']);

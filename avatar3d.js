@@ -49,6 +49,17 @@
     ['cuadro', 'Cuadro del escudo', 'backR', 5000, 'c', '🖼', 'El escudo del club, enmarcado.'],
     ['banderin', 'Banderín histórico', 'flag', 3000, 'c', '🚩', 'Banderín de la fundación.'],
     ['bandera', 'Bandera de El Salvador', 'flag', 6500, 'r', '🇸🇻', 'Azul, blanco y azul.'],
+    ['bombin', 'Bombín inglés', 'head', 6800, 'r', '🎩', 'El sombrero de los técnicos de la vieja escuela.'],
+    ['gorro', 'Gorro de lana', 'head', 2200, 'c', '🧶', 'Para los partidos de madrugada en Chalatenango.'],
+    ['visera', 'Visera de sol', 'head', 2600, 'c', '🧢', 'Para los mediodías en el Cuscatlán.'],
+    ['aviador', 'Gafas aviador', 'face', 5200, 'r', '🕶', 'Cristal ahumado, estilo de gran presidente.'],
+    ['monoculo', 'Monóculo dorado', 'face', 15000, 'e', '🧐', 'Para firmar los contratos con calma.'],
+    ['mono', 'Moño de gala', 'neck', 3800, 'c', '🎀', 'Elegancia para la noche de premios.'],
+    ['panuelo', 'Pañuelo de la barra', 'neck', 2400, 'c', '🧣', 'Rojo y blanco, atado al cuello.'],
+    ['pulsera', 'Pulsera del club', 'wrist', 2200, 'c', '📿', 'Con los colores de tu escudo.'],
+    ['copa', 'Copa en mano', 'hand', 21000, 'e', '🏆', 'La que soñás levantar.'],
+    ['cafe', 'Café de la mañana', 'hand', 1800, 'c', '☕', 'Sin café no hay conferencia de prensa.'],
+    ['tablet', 'Tablet de análisis', 'hand', 7800, 'r', '📱', 'Estadísticas en tiempo real.'],
     ['alfombra', 'Alfombra roja', 'floor', 6000, 'r', '🟥', 'Entrada de campeones.'],
     ['tarima', 'Tarima dorada', 'floor', 19000, 'e', '🥇', 'Te eleva sobre todos los demás.']
   ];
@@ -210,6 +221,14 @@
       mk(new T.TorusGeometry(0.115, 0.045, 8, 18), kit, { p: [0, 0.58, 0], r: [Math.PI / 2, 0, 0], s: [1, 1.05, 1], parent: torso });
       mk(box(0.09, 0.32, 0.035), kit, { p: [0.07, 0.4, 0.17], parent: torso }); mk(box(0.092, 0.04, 0.037), '#ffffff', { p: [0.07, 0.34, 0.17], parent: torso, ol: false }); mk(box(0.092, 0.04, 0.037), '#ffffff', { p: [0.07, 0.26, 0.17], parent: torso, ol: false });
     }
+    if (eq.neck === 'mono') {
+      mk(sph(0.03, 8, 6), '#b3202a', { p: [0, 0.58, 0.18], parent: torso, ol: false });
+      [-1, 1].forEach(sg => mk(new T.ConeGeometry(0.05, 0.1, 4), '#b3202a', { p: [sg * 0.07, 0.58, 0.18], r: [0, 0, sg * -Math.PI / 2], parent: torso, ol: false }));
+    }
+    if (eq.neck === 'panuelo') {
+      mk(new T.TorusGeometry(0.108, 0.03, 8, 18), '#d9d9d9', { p: [0, 0.58, 0], r: [Math.PI / 2, 0, 0], parent: torso });
+      mk(new T.ConeGeometry(0.06, 0.13, 4), '#b3202a', { p: [0, 0.5, 0.17], r: [Math.PI, Math.PI / 4, 0], parent: torso, ol: false });
+    }
     if (eq.neck === 'cadena') {
       mk(new T.TorusGeometry(0.13, 0.014, 8, 24), '#f4c430', { p: [0, 0.52, 0.04], r: [Math.PI / 2.4, 0, 0], parent: torso, ol: false, m: { emissive: 0x3b2a00 } });
       mk(new T.CylinderGeometry(0.035, 0.035, 0.012, 18), '#f4c430', { p: [0, 0.4, 0.165], r: [Math.PI / 2, 0, 0], parent: torso, ol: false, m: { emissive: 0x3b2a00 } });
@@ -231,6 +250,10 @@
     if (eq.wrist === 'reloj') {
       mk(cyl(0.07, 0.07, 0.04, 14), '#f4c430', { p: [0, -0.37, 0], parent: P.armL, ol: false, m: { emissive: 0x3b2a00 } });
       mk(cyl(0.045, 0.045, 0.045, 14), '#10243a', { p: [0.035, -0.37, 0.0], r: [0, 0, Math.PI / 2], parent: P.armL, ol: false });
+    }
+    if (eq.wrist === 'pulsera') {
+      mk(cyl(0.065, 0.065, 0.05, 14), kit, { p: [0, -0.37, 0], parent: P.armL, ol: false });
+      mk(cyl(0.067, 0.067, 0.012, 14), '#ffffff', { p: [0, -0.37, 0], parent: P.armL, ol: false });
     }
     // cabeza
     const head = new T.Group(); head.position.y = 1.05 + 0.2; torso.add(head); head.position.y = 0.88; P.head = head;
@@ -292,6 +315,28 @@
       mk(cyl(0.27, 0.25, 0.1, 22, 1), '#f4c430', { p: [0, 0.27, 0], parent: head, m: { emissive: 0x4a3300 } });
       for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; mk(new T.ConeGeometry(0.04, 0.14, 5), '#f4c430', { p: [Math.cos(a) * 0.26, 0.38, Math.sin(a) * 0.26], parent: head, m: { emissive: 0x4a3300 } }); mk(sph(0.018, 6, 5), k % 2 ? '#d62828' : '#2ec4b6', { p: [Math.cos(a) * 0.26, 0.46, Math.sin(a) * 0.26], parent: head, ol: false }); }
     }
+    if (eq.head === 'bombin') {
+      mk(cyl(0.25, 0.27, 0.2, 20), '#1d1d26', { p: [0, 0.3, 0], parent: head });
+      mk(cyl(0.34, 0.34, 0.02, 24), '#1d1d26', { p: [0, 0.2, 0], parent: head });
+      mk(cyl(0.262, 0.262, 0.04, 20), '#b3202a', { p: [0, 0.23, 0], parent: head, ol: false });
+    }
+    if (eq.head === 'gorro') {
+      mk(new T.SphereGeometry(0.31, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.55), '#6b2d2d', { p: [0, 0.04, 0], parent: head, olw: 1.04 });
+      mk(cyl(0.315, 0.315, 0.06, 18), '#e9e2d0', { p: [0, 0.06, 0], parent: head, ol: false });
+      mk(sph(0.06, 8, 6), '#e9e2d0', { p: [0, 0.35, 0], parent: head, ol: false });
+    }
+    if (eq.head === 'visera') {
+      mk(cyl(0.3, 0.3, 0.06, 20, 1, true), kit, { p: [0, 0.12, 0], parent: head, ol: false });
+      mk(cyl(0.2, 0.2, 0.025, 20, 1), kit, { p: [0, 0.12, 0.26], r: [0.1, 0, 0], s: [1.15, 1, 0.9], parent: head, ol: true });
+    }
+    if (eq.face === 'aviador') {
+      [-1, 1].forEach(sg => mk(sph(0.062, 12, 8), '#161a22', { p: [sg * 0.095, 0.02, 0.262], s: [1, 0.85, 0.3], parent: head, ol: false, m: { transparent: true, opacity: 0.92 } }));
+      mk(box(0.07, 0.01, 0.01), '#c9c9c9', { p: [0, 0.04, 0.268], parent: head, ol: false });
+    }
+    if (eq.face === 'monoculo') {
+      mk(new T.TorusGeometry(0.058, 0.01, 6, 16), '#f4c430', { p: [0.095, 0.02, 0.265], parent: head, ol: false, m: { emissive: 0x4a3300 } });
+      mk(cyl(0.004, 0.004, 0.3, 4), '#f4c430', { p: [0.15, -0.12, 0.26], parent: head, ol: false });
+    }
     // objetos de mano (derecha)
     const hr = P.handR;
     if (eq.hand === 'libreta') {
@@ -307,6 +352,19 @@
     if (eq.hand === 'baston') {
       mk(cyl(0.015, 0.018, 1.05, 8), '#3a2415', { p: [0, -0.2, 0.0], parent: hr });
       mk(sph(0.05, 12, 8), '#f4c430', { p: [0, 0.33, 0], parent: hr, m: { emissive: 0x4a3300 } });
+    }
+    if (eq.hand === 'copa') {
+      mk(cyl(0.015, 0.03, 0.14, 8), '#f4c430', { p: [0, 0.0, 0.1], parent: hr, ol: false, m: { emissive: 0x4a3300 } });
+      mk(cyl(0.1, 0.05, 0.14, 14), '#f4c430', { p: [0, 0.14, 0.1], parent: hr, m: { emissive: 0x4a3300 } });
+      [-1, 1].forEach(sg => mk(new T.TorusGeometry(0.05, 0.012, 6, 10), '#f4c430', { p: [sg * 0.11, 0.15, 0.1], parent: hr, ol: false }));
+    }
+    if (eq.hand === 'cafe') {
+      mk(cyl(0.05, 0.04, 0.1, 12), '#f2efe6', { p: [0, 0.02, 0.1], parent: hr });
+      mk(cyl(0.044, 0.044, 0.01, 12), '#3a2415', { p: [0, 0.07, 0.1], parent: hr, ol: false });
+    }
+    if (eq.hand === 'tablet') {
+      const n = mk(box(0.24, 0.32, 0.02), '#1b1b24', { p: [0.02, 0.0, 0.1], r: [0.4, 0.4, 0.1], parent: hr });
+      mk(box(0.2, 0.28, 0.005), '#2ec4b6', { p: [0, 0, 0.012], parent: n, ol: false });
     }
     // balón
     if (eq.ball === 'balon') {

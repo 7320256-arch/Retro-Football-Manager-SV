@@ -126,6 +126,13 @@ function share() {
   const txt = `🎯 Retro Football Manager SV — «${T.n}» ${stars(r.result.stars || 0)} (${r.result.txt}). ¿Puedes superarlo?`;
   try { if (navigator.share) { navigator.share({ text: txt }).catch(() => { }); return; } navigator.clipboard.writeText(txt).then(() => toast('Resultado copiado')); } catch (e) { toast('No se pudo copiar'); }
 }
+function toCareer() {
+  if (!G || !G.reto) return; const r = G.reto; if (r.done) { exit(); return; }
+  save(true); const c = typeof loadSave === 'function' ? loadSave() : null;
+  if (!c) { toast('No tienes una carrera guardada: empieza una desde el menú'); return; }
+  G = c; migrateState(); if (root.PRES && PRES.onLoad) PRES.onLoad(); if (root.ECO) ECO.migrate();
+  closeModal(); renderAll(); switchView('dashboard'); chrome(); toast('Reto en pausa · de vuelta en tu carrera (🎯 → Continuar reto)');
+}
 function exit() { try { localStorage.removeItem(RKEY); } catch (e) { } try { location.reload(); } catch (e) { } }
 function confirmExit() {
   openModal(`<div class="modal-title">🎯 Salir del reto</div><p>Se abandona el reto actual. Tu carrera no se toca.</p><div class="center" style="margin-top:10px"><button class="btn btn-d" onclick="RETOS.exit()">Salir del reto</button> <button class="btn" onclick="closeModal()">Seguir en el reto</button></div>`);
@@ -153,9 +160,9 @@ function chrome() {
   const app = $('app'), nav = $('nav'); if (!app || !nav) return;
   if (!bar) { bar = document.createElement('div'); bar.id = 'reto-bar'; bar.style.cssText = 'padding:6px 10px;background:#2a2000;border-bottom:1px solid var(--gold);color:var(--gold);font-size:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap'; nav.parentNode.insertBefore(bar, nav); }
   const T = TPL[r.id];
-  bar.innerHTML = `<b>${T.ico} RETO</b> <span style="flex:1;min-width:140px">${E(T.n)} · ${E(T.status(G))}</span><button class="btn btn-sm" onclick="RETOS.confirmExit()">Salir</button>`;
+  bar.innerHTML = `<b>${T.ico} RETO</b> <span style="flex:1;min-width:140px">${E(T.n)} · ${E(T.status(G))}</span><button class="btn btn-sm" onclick="RETOS.toCareer()">⏸ Mi carrera</button><button class="btn btn-sm" onclick="RETOS.confirmExit()">Salir</button>`;
 }
-function status() { const r = G.reto, T = TPL[r.id]; openModal(`<div class="modal-title">${T.ico} ${E(T.n)}</div><div class="offer"><b class="gold">🎯 Meta</b><br>${E(T.goal)}<br><small class="muted">${E(T.status(G))}</small></div><div class="center" style="margin-top:10px"><button class="btn btn-p" onclick="closeModal()">Seguir</button> <button class="btn" onclick="RETOS.confirmExit()">Salir del reto</button></div>`); }
+function status() { const r = G.reto, T = TPL[r.id]; openModal(`<div class="modal-title">${T.ico} ${E(T.n)}</div><div class="offer"><b class="gold">🎯 Meta</b><br>${E(T.goal)}<br><small class="muted">${E(T.status(G))}</small></div><div class="center" style="margin-top:10px"><button class="btn" onclick="RETOS.toCareer()">⏸ Pausar y volver a mi carrera</button> <button class="btn btn-p" onclick="closeModal()">Seguir</button> <button class="btn" onclick="RETOS.confirmExit()">Salir del reto</button></div>`); }
 function introHook() {
   chrome();
   const box = $('pr-modes'); if (!box || $('intro-retos')) return;
@@ -164,5 +171,5 @@ function introHook() {
   box.parentNode.insertBefore(d, box.nextSibling);
 }
 
-root.RETOS = { TPL, ORDER, start, retry, share, exit, confirmExit, open, resume, status, save, afterMatchday, endSeasonHook, chrome, introHook, showResult, daily, prog };
+root.RETOS = { toCareer, TPL, ORDER, start, retry, share, exit, confirmExit, open, resume, status, save, afterMatchday, endSeasonHook, chrome, introHook, showResult, daily, prog };
 })(typeof window !== 'undefined' ? window : globalThis);
