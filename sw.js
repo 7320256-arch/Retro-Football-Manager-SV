@@ -1,5 +1,5 @@
-/* Retro Football Manager SV — Service Worker v9 (audio + video range support, caché ligera) */
-const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v10';
+/* Retro Football Manager SV — Service Worker v11 (anti-caché rancia: valida que la navegación cacheada sea el juego) */
+const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v11';
 const RUNTIME_CACHE = 'rfm-runtime-v1';
 const MUSIC_CACHE = 'rfm-music-offline-v4';
 const INTRO_CACHE = 'rfm-intro-offline-v1';
@@ -215,14 +215,23 @@ async function networkFirst(request) {
     return fresh;
   } catch (err) {
     const cached = await cache.match(request);
-    if (cached) return cached;
+    // Nunca servir como "app" un documento cacheado que no sea el juego
+    // (p. ej. una página de redirección o error que haya quedado en caché).
+    if (cached && (request.mode !== 'navigate' || await isGameDoc(cached))) return cached;
     const fallback = await cache.match(SCOPE_PATH + 'index.html') || await cache.match(SCOPE_PATH);
-    if (fallback) return fallback;
+    if (fallback && await isGameDoc(fallback)) return fallback;
     return new Response('Retro Football Manager SV no está disponible sin conexión todavía.', {
       status: 503,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' }
     });
   }
+}
+
+async function isGameDoc(res) {
+  try {
+    const t = await res.clone().text();
+    return t.includes('Retro Football Manager') && t.includes('id="app"');
+  } catch (e) { return false; }
 }
 
 self.addEventListener('fetch', event => {
