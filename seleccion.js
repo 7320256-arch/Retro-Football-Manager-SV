@@ -56,7 +56,9 @@ function newSel() {
 }
 function S() { if (!G.sel) G.sel = newSel(); return G.sel; }
 function isPres() { return !!(root.PRES && PRES.isPres && PRES.isPres()); }
-function usable() { return !!(typeof G !== 'undefined' && G && G.clubes && !G.reto && !isPres() && !(root.PRES && PRES.isFund && PRES.isFund())); }
+function usable() { return !!(typeof G !== 'undefined' && G && G.clubes && !G.reto); }
+function owner() { return !isPres() && !(root.PRES && PRES.isFund && PRES.isFund()); }
+function hum() { return !!(G && G.sel && G.sel.on && owner()); }
 
 /* ---------- jugadores: club + legionarios (semilla) ---------- */
 let LEGC = null;
@@ -235,7 +237,7 @@ function runMatchday(c, userRes) {
   fx.forEach(f => {
     const isMine = f.a === 'SLV' || f.b === 'SLV'; let r;
     if (isMine && userRes) { r = userRes; applyResult(c, f, r); mine = { f, r }; }
-    else { r = playFix(c, f); if (isMine) mine = { f, r }; else digest.push({ f, r }); }
+    else { r = playFix(c, f); if (isMine) { mine = { f, r }; if (!hum()) autoSlv(c, f, r); } else digest.push({ f, r }); }
   });
   c.si++; if (c.si >= c.slots.length) finishComp(c);
   return { mine, digest };
@@ -252,7 +254,7 @@ function stageOfSLV(c) {
 function finishComp(c) {
   const s = S(); c.done = true;
   const fin = c.ko.find(x => x.lab === 'F'); c.champ = fin && fin.ties[0] ? fin.ties[0].w : null;
-  c.res = s.on ? stageOfSLV(c) : '—';
+  c.res = stageOfSLV(c);
   if (c.k === 'WCQ') {
     const rows = c.groups.map((_, i) => gRows(c, i)); const w = rows.map(r => r[0]);
     const seconds = rows.map(r => r[1]).sort((a, b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf).slice(0, 2);
@@ -264,10 +266,10 @@ function finishComp(c) {
     const up = s.B.slice().sort((a, b) => base(b) - base(a)).slice(0, 4);
     s.A = s.A.filter(id => !rel.includes(id)).concat(up); s.B = s.B.filter(id => !up.includes(id)).concat(rel);
     c.rel = rel; c.up = up;
-    if (s.on) { if (rel.includes('SLV')) c.res += ' · Descendió a Liga B'; }
+    if (rel.includes('SLV')) c.res += ' · Descendió a Liga B';
   }
-  if (s.on && c.res !== 'No participó') rewardComp(c);
-  s.hist.unshift({ y: c.y, k: c.k, name: c.name, res: c.res, champ: c.champ, on: s.on }); if (s.hist.length > 24) s.hist.length = 24;
+  if (hum() && c.res !== 'No participó') rewardComp(c); else if (c.res !== 'No participó') pushNews(`${KICON[c.k]} ${c.name} ${c.y}: El Salvador terminó · ${c.res}.`, /Campe|Clasific|Final|Semi/.test(c.res) && !/No clasific/.test(c.res) ? 'bueno' : 'info', 'club');
+  s.hist.unshift({ y: c.y, k: c.k, name: c.name, res: c.res, champ: c.champ, on: hum() }); if (s.hist.length > 24) s.hist.length = 24;
 }
 function rewardComp(c) {
   const s = S(), r = c.res || ''; let rep = 0, conf = 0, wal = 0;
@@ -280,7 +282,7 @@ function rewardComp(c) {
   pushNews(`${KICON[c.k]} ${c.name} ${c.y}: ${r}${wal ? ' · premio ' + money$(wal) : ''}.`, conf >= 0 ? 'bueno' : 'malo', 'club');
 }
 function addConf(d) {
-  const s = S(); if (!d || !s.on) return; s.conf = cl(s.conf + d, 0, 100);
+  const s = S(); if (!d || !hum()) return; s.conf = cl(s.conf + d, 0, 100);
   if (s.conf <= 0) { s.on = false; s.ban = G.temporada + 2; s.win = null; pushNews('🏛 La federación te destituye como seleccionador. Podrás volver a ser candidato en 2 temporadas.', 'malo', 'club'); setTimeout(() => { try { openModal('<div class="modal-title">🚪 Destituido de la selección</div><p>La federación perdió la confianza en ti. Tu club sigue siendo tuyo; en dos temporadas podrás volver a ser candidato.</p><div class="center"><button class="btn btn-p" onclick="closeModal()">Entendido</button></div>'); } catch (e) { } }, 60); }
 }
 
@@ -292,15 +294,15 @@ function windowNow() { // índice de la última ventana cuyo punto de apertura y
 function ensureYear() {
   const s = S(); if (!usable()) return;
   if (s.year === G.temporada && s.comp) return;
-  if (s.comp && !s.comp.done) { while (!s.comp.done) runMatchday(s.comp, null); }
+  if (s.comp && !s.comp.done) { QUIET = true; try { while (!s.comp.done) runMatchday(s.comp, null); } finally { QUIET = false; } }
   s.win = null; s.year = G.temporada; LEGC = null; driftYear(s.year); if (!s.conv.length) autoConv();
   s.comp = buildComp(kindOf(s.year), s.year);
-  if (s.on) { fixConv(); catchUp(); }
+  if (hum()) { fixConv(); catchUp(); }
 }
 function catchUp() { // resuelve en automático las ventanas ya pasadas del año en curso
   const s = S(), c = s.comp; if (!c) return; const wn = windowNow();
   while (!c.done && Math.floor(c.si / 2) <= wn) {
-    const f = s.on ? userFix(c, c.si) : null;
+    const f = hum() ? userFix(c, c.si) : null;
     if (f) { const r = userMatch(f, true); finishUserMatch(f, r, true); } else runMatchday(c, null);
   }
 }
@@ -309,14 +311,14 @@ function openWindow(n) {
   const idx = [2 * n, 2 * n + 1].filter(i => i < c.slots.length && i >= c.si);
   if (!idx.length) { s.win = null; return; }
   s.win = { n, open: G.jornadaActual, camp: G.campania, left: idx.length };
-  if (s.on) fixConv();
+  if (hum()) fixConv(); else { autoConv(); callupNews(c); }
   autoSkip();
-  if (s.on && s.win && s.win.left > 0) { const f = userFix(c, c.si); if (f) { const op = f.a === 'SLV' ? f.b : f.a; pushNews(`📅 Ventana FIFA: ${KNAME[c.k]} · El Salvador vs ${nm(op)}.`, 'info', 'club'); try { toast('📅 Ventana FIFA abierta: juega en 🇸🇻 Selección'); } catch (e) { } } }
+  if (hum() && s.win && s.win.left > 0) { const f = userFix(c, c.si); if (f) { const op = f.a === 'SLV' ? f.b : f.a; pushNews(`📅 Ventana FIFA: ${KNAME[c.k]} · El Salvador vs ${nm(op)}.`, 'info', 'club'); try { toast('📅 Ventana FIFA abierta: juega en 🇸🇻 Selección'); } catch (e) { } } }
 }
 function autoSkip() { // partidos sin la selección del usuario o con el cargo inactivo: se juegan solos
   const s = S(), c = s.comp; if (!c || !s.win) return;
   while (s.win && s.win.left > 0 && !c.done) {
-    if (s.on && userFix(c, c.si)) break;
+    if (hum() && userFix(c, c.si)) break;
     runMatchday(c, null); s.win.left--;
   }
   if (s.win && (s.win.left <= 0 || c.done)) s.win = null;
@@ -325,11 +327,32 @@ function resolveWindow() { // el usuario no jugó: simulamos con la convocatoria
   const s = S(), c = s.comp; if (!s.win || !c) return;
   let n = 0;
   while (s.win && s.win.left > 0 && !c.done) {
-    const f = s.on ? userFix(c, c.si) : null;
+    const f = hum() ? userFix(c, c.si) : null;
     if (f) { const r = userMatch(f, true); finishUserMatch(f, r, true); n++; } else { runMatchday(c, null); s.win.left--; }
   }
   s.win = null;
-  if (n && s.on) pushNews('🏛 La federación simuló la ventana FIFA que no jugaste (convocatoria automática).', 'info', 'club');
+  if (n && hum()) pushNews('🏛 La federación simuló la ventana FIFA que no jugaste (convocatoria automática).', 'info', 'club');
+}
+function clubIn(x) { return x && x.cid != null && x.cid === G.userClubId; }
+function callupNews(c) { // aviso de parón FIFA con los convocados del club del usuario
+  const s = S(), m = pmap(), mine = s.conv.map(id => m[id]).filter(clubIn);
+  const op = (() => { const f = userFix(c, c.si); return f ? nm(f.a === 'SLV' ? f.b : f.a) : null; })();
+  pushNews(`📅 Parón FIFA: ${KNAME[c.k]}${op ? ' · El Salvador vs ' + op : ''}.` + (mine.length ? ` Convocados de tu club: ${mine.slice(0, 6).map(x => x.p.nombre.split(' ').slice(-1)[0]).join(', ')}${mine.length > 6 ? ' y ' + (mine.length - 6) + ' más' : ''}.` : ' Ninguno de tu club fue convocado.'), 'info', 'club');
+}
+let QUIET = false;
+function autoSlv(c, f, r) {
+  if (QUIET) return; // partido de la selección dirigida por la federación: noticia + desgaste de tus convocados
+  try {
+    const s = S(), slvA = f.a === 'SLV', gs = slvA ? r.ga : r.gb, go = slvA ? r.gb : r.ga, opp = nm(slvA ? f.b : f.a);
+    const won = r.w === (slvA ? 'a' : 'b'), draw = r.w === 'd';
+    s.rec.pj++; s.rec.gf += gs; s.rec.gc += go; if (won) s.rec.g++; else if (draw) s.rec.e++; else s.rec.p++;
+    const m = pmap(), mine = s.conv.map(id => m[id]).filter(clubIn), hurt = [];
+    mine.forEach(x => { const p = x.p; p.energia = cl((p.energia || 70) - 8 - rnd(10), 25, 100); if (won) p.moral = cl((p.moral || 60) + 2, 0, 100); else if (!draw) p.moral = cl((p.moral || 60) - 1, 0, 100);
+      if (!p.lesionado && Math.random() < 0.025) { p.lesionado = true; p.lesionJor = 1 + rnd(3); hurt.push(p.nombre.split(' ').slice(-1)[0]); } });
+    const pen = r.pen ? ` (pen. ${slvA ? r.pen[0] : r.pen[1]}-${slvA ? r.pen[1] : r.pen[0]})` : '';
+    const sc = [...Array(Math.min(gs, 3))].length ? '' : '';
+    pushNews(`🇸🇻 ${KICON[c.k]} El Salvador ${gs}-${go} ${opp}${pen} · ${won ? 'victoria' : draw ? 'empate' : 'derrota'}.` + (mine.length ? ` Jugaron ${mine.length} de tu club.` : '') + (hurt.length ? ` 🩹 Lesión en selección: ${hurt.join(', ')}.` : ''), won ? 'bueno' : draw ? 'info' : 'malo', 'club');
+  } catch (e) { console.error('SEL.autoSlv', e); }
 }
 function afterMatchday() {
   if (!usable()) return;
@@ -337,7 +360,7 @@ function afterMatchday() {
   const j = G.jornadaActual, ap = (G.campania || 'Apertura') === 'Apertura';
   if (s.win && (j - s.win.open >= 3 || s.win.camp !== G.campania)) resolveWindow();
   if (WINJOR.includes(j)) { if (s.win) resolveWindow(); openWindow((ap ? 0 : 2) + WINJOR.indexOf(j)); }
-  if (!s.on && j === 5 && ap && eligible().ok && s.offerY !== G.temporada) { s.offerY = G.temporada; pushNews('🇸🇻 La federación está interesada en ti como seleccionador. Revisa la pestaña Selección.', 'bueno', 'club'); }
+  if (owner() && !hum() && j === 5 && ap && eligible().ok && s.offerY !== G.temporada) { s.offerY = G.temporada; pushNews('🇸🇻 La federación está interesada en ti como seleccionador. Revisa la pestaña Selección.', 'bueno', 'club'); }
   try { chrome(); } catch (e) { }
 }
 
@@ -422,7 +445,7 @@ function chrome() {
 function cod(id) { return `<span class="sel-cod ${id === 'SLV' ? 'me' : ''}">${E(id)}</span>`; }
 function onSwitch(v) { if (v === 'seleccion') { ensureView(); css(); ensureYear(); render(); } }
 function render() {
-  ensureView(); css(); const host = $('seleccion-panel'); if (!host || !usable()) { if (host) host.innerHTML = '<p class="muted">La selección solo está disponible en modo Director técnico.</p>'; return; }
+  ensureView(); css(); const host = $('seleccion-panel'); if (!host || !usable() || !owner()) { if (host) host.innerHTML = '<p class="muted">Como presidente, la federación dirige a la selección: tus jugadores salvadoreños son convocados y verás los partidos en Noticias.</p>'; return; }
   ensureYear(); const s = S(), c = s.comp, e = eligible();
   if (!s.on) { host.innerHTML = offerHTML(e); return; }
   const tabs = [['res', 'Resumen'], ['conv', 'Convocatoria'], ['torneo', 'Torneo'], ['rank', 'Ranking'], ['hist', 'Historial']];

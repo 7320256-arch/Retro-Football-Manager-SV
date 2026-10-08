@@ -1035,8 +1035,8 @@ const TOTAL_JORNADAS=22;
 /* ---------- ESTADO ---------- */
 let G=null;
 const SAVE_KEY='rfm_sv_save_v2';
-const GAME_VERSION='2.1';
-const BUILD_ID='2.1-economia-balance';
+const GAME_VERSION='2.2';
+const BUILD_ID='2.2-liguilla-seleccion'
 const FORMACIONES={'Libre':{def:0,med:0,del:0,l:'XI Libre (sin esquema)'},'4-4-2':{def:4,med:4,del:2,l:'4-4-2 Equilibrada'},'4-3-3':{def:4,med:3,del:3,l:'4-3-3 Ofensiva'},'3-5-2':{def:3,med:5,del:2,l:'3-5-2 Control'},'5-3-2':{def:5,med:3,del:2,l:'5-3-2 Muralla'},'4-2-3-1':{def:4,med:5,del:1,l:'4-2-3-1 Moderna'}};
 const MENTALIDADES={'Defensiva':{atk:0.80,def:1.20},'Contraataque':{atk:1.05,def:1.05},'Equilibrada':{atk:1.0,def:1.0},'Ofensiva':{atk:1.20,def:0.85}};
 const PRESIONES={'Baja':{atk:.96,def:1.04,energy:.92},'Media':{atk:1,def:1,energy:1},'Alta':{atk:1.07,def:.96,energy:1.18}};
@@ -1097,12 +1097,18 @@ function makeCentroTeamSV(id,source){const c=G.clubes[id];return{id:c.id,nombre:
 function makeCentroTeamRegional(c,source){return{id:c.id,nombre:c.nombre,country:c.country,source,sv:false,rating:c.rating,color:'#0b6b8f',plantilla:centroVirtualSquad(c.rating)};}
 function centroTeam(id){if(G.clubes&&G.clubes[id])return G.clubes[id];if(G.centroCup&&G.centroCup.teams)return G.centroCup.teams.find(t=>t.id===id);return null;}
 function centroTeamName(id){const t=centroTeam(id);return t?t.nombre:id;}
+const CENTRO_CUPOS={'El Salvador':3,'Guatemala':3,'Honduras':3,'Costa Rica':3,'Panamá':2,'Nicaragua':2};
 function buildCentroParticipants(localSorted,localChampId){
   if(!G.regional)G.regional=initRegionalWorld();const teams=[],used=new Set();
-  const addSV=(id,source)=>{if(id&&!used.has(id)&&G.clubes[id]){teams.push(makeCentroTeamSV(id,source));used.add(id);}};
-  addSV(localChampId,'Campeón salvadoreño');localSorted.forEach((c,i)=>{if(teams.filter(t=>t.country==='El Salvador').length<4)addSV(c.id,`Liga SV puesto ${i+1}`);});
+  const addSV=(id,source)=>{if(id&&!used.has(id)&&G.clubes[id]){teams.push(makeCentroTeamSV(id,source));used.add(id);return true;}return false;};
+  // El Salvador: el campeón y los mejores de la tabla, hasta completar su cupo
+  addSV(localChampId,'El Salvador · campeón (cupo 1/'+CENTRO_CUPOS['El Salvador']+')');
+  let n=1;localSorted.forEach(c=>{if(n<CENTRO_CUPOS['El Salvador']&&addSV(c.id,'El Salvador · Liga puesto '+(localSorted.indexOf(c)+1)+' (cupo '+(n+1)+'/'+CENTRO_CUPOS['El Salvador']+')'))n++;});
   const last=G.regional.lastSim&&G.regional.lastSim.results?G.regional.lastSim.results:simulateRegionalCampaign();
-  last.forEach(r=>{if(teams.length<16){teams.push(makeCentroTeamRegional(r.champion,`Campeón ${r.country}`));used.add(r.champion.id);}if(teams.length<16){teams.push(makeCentroTeamRegional(r.runner,`Subcampeón ${r.country}`));used.add(r.runner.id);}});
+  last.forEach(r=>{
+    const k=CENTRO_CUPOS[r.country]||2;const order=(r.table&&r.table.length?r.table:[r.champion,r.runner]);
+    order.slice(0,k).forEach((c,i)=>{if(!used.has(c.id)){teams.push(makeCentroTeamRegional(c,r.country+' · '+(i===0?'campeón':'puesto '+(i+1))+' (cupo '+(i+1)+'/'+k+')'));used.add(c.id);}});
+  });
   regionalRanking().filter(r=>r.kind==='regional').forEach(r=>{if(teams.length<16){const c=regionalAllClubs().find(x=>x.nombre===r.name&&x.country===r.country);if(c&&!used.has(c.id)){teams.push(makeCentroTeamRegional(c,'Ranking regional'));used.add(c.id);}}});
   return teams.slice(0,16);
 }
@@ -1120,7 +1126,7 @@ function quickSimCentro(a,b){return quickSim(centroTeam(a),centroTeam(b));}
 function applyCentroTabla(gr,h,a,gh,ga){applyCupTabla(gr,h,a,gh,ga);}
 function simulateCentroRound(userRes){const c=G.centroCup;if(!c||!c.current)return;const rows=[];let userPlayed=false,userAdvanced=false;
   if(c.current.stage==='groups'){c.current.fixtures.forEach(f=>{let gh,ga;if(userRes&&(f.h===G.userClubId||f.a===G.userClubId)){gh=f.h===G.userClubId?userRes.gf:userRes.ga;ga=f.h===G.userClubId?userRes.ga:userRes.gf;userPlayed=true;}else{const r=quickSimCentro(f.h,f.a);gh=r.gh;ga=r.ga;}const gr=c.groups.find(x=>x.name===f.group);applyCentroTabla(gr,f.h,f.a,gh,ga);rows.push(`Grupo ${f.group}: ${centroTeamName(f.h)} ${gh}-${ga} ${centroTeamName(f.a)}`);});c.history.unshift({temp:G.temporada,campania:G.campania,week:c.current.week,name:c.current.name,rows});c.playedWeeks.push(c.current.week);c.round++;if(userPlayed){const prize=85000;G.budget+=prize;fin('Copa Centroamericana','ingreso',prize,'Participación regional');pushNews(`🌎 Premio Copa Centroamericana: ${money(prize)}.`, 'bueno','regional');}if(c.round>=3)buildCentroKnockout();}
-  else{const winners=[];c.current.fixtures.forEach(f=>{let gh,ga,w,pen='';if(userRes&&(f.h===G.userClubId||f.a===G.userClubId)){gh=f.h===G.userClubId?userRes.gf:userRes.ga;ga=f.h===G.userClubId?userRes.ga:userRes.gf;userPlayed=true;}else{const r=quickSimCentro(f.h,f.a);gh=r.gh;ga=r.ga;}if(gh===ga){if(userRes&&userRes.penWinner&&(f.h===G.userClubId||f.a===G.userClubId)){w=userRes.penWinner;pen=` (penales ${userRes.penText})`;}else{const ph=penaltyScore(centroTeam(f.h)),pa=penaltyScore(centroTeam(f.a));w=ph>=pa?f.h:f.a;pen=` (penales ${Math.round(ph)}-${Math.round(pa)})`;}}else w=gh>ga?f.h:f.a;winners.push(w);if(w===G.userClubId)userAdvanced=true;rows.push(`${centroTeamName(f.h)} ${gh}-${ga} ${centroTeamName(f.a)}${pen}`);});c.history.unshift({temp:G.temporada,campania:G.campania,week:c.current.week,name:c.current.name,rows,alive:winners.slice()});c.playedWeeks.push(c.current.week);c.round++;if(userPlayed){const prize=userAdvanced?180000:55000;G.budget+=prize;fin('Copa Centroamericana','ingreso',prize,userAdvanced?'Premio por avanzar':'Participación eliminatoria');pushNews(`🌎 Copa Centroamericana: ${userAdvanced?'avanzaste':'eliminado'} (+${money(prize)}).`,userAdvanced?'bueno':'malo','regional');}if(winners.length<=1){c.champion=winners[0];const finalFix=c.current.fixtures[0]||{};const runner=(finalFix.h===winners[0]?finalFix.a:finalFix.h);G.nextConcacafSeeds={champion:winners[0],runner};c.active=false;addChampionHistory('Copa Centroamericana',centroTeam(c.champion),'Campeón regional');pushRegionalNews(`Copa Centroamericana: ${centroTeamName(c.champion)} campeón regional. Clasifica a CONCACAF Champions Cup.`);if(c.champion===G.userClubId)unlockAchievement('copa_centroamericana','Copa Centroamericana','Ganaste el título regional más importante.');}else{c.knockout=[];for(let i=0;i<winners.length;i+=2)c.knockout.push({h:winners[i],a:winners[i+1],gh:null,ga:null});}}
+  else{const winners=[];c.current.fixtures.forEach(f=>{let gh,ga,w,pen='';if(userRes&&(f.h===G.userClubId||f.a===G.userClubId)){gh=f.h===G.userClubId?userRes.gf:userRes.ga;ga=f.h===G.userClubId?userRes.ga:userRes.gf;userPlayed=true;}else{const r=quickSimCentro(f.h,f.a);gh=r.gh;ga=r.ga;}if(gh===ga){if(userRes&&userRes.penWinner&&(f.h===G.userClubId||f.a===G.userClubId)){w=userRes.penWinner;pen=` (penales ${userRes.penText})`;}else{const ph=penaltyScore(centroTeam(f.h)),pa=penaltyScore(centroTeam(f.a));w=ph>=pa?f.h:f.a;pen=` (penales ${Math.round(ph)}-${Math.round(pa)})`;}}else w=gh>ga?f.h:f.a;winners.push(w);if(w===G.userClubId)userAdvanced=true;rows.push(`${centroTeamName(f.h)} ${gh}-${ga} ${centroTeamName(f.a)}${pen}`);});c.history.unshift({temp:G.temporada,campania:G.campania,week:c.current.week,name:c.current.name,rows,alive:winners.slice()});c.playedWeeks.push(c.current.week);c.round++;if(userPlayed){const prize=userAdvanced?180000:55000;G.budget+=prize;fin('Copa Centroamericana','ingreso',prize,userAdvanced?'Premio por avanzar':'Participación eliminatoria');pushNews(`🌎 Copa Centroamericana: ${userAdvanced?'avanzaste':'eliminado'} (+${money(prize)}).`,userAdvanced?'bueno':'malo','regional');}if(winners.length<=1){c.champion=winners[0];const finalFix=c.current.fixtures[0]||{};const runner=(finalFix.h===winners[0]?finalFix.a:finalFix.h);{const third=centroThird(c,winners[0],runner),info={};[winners[0],runner,third].forEach(id=>{const t=id&&centroTeam(id);if(t)info[id]={nombre:t.nombre,country:t.country,rating:Math.round(t.rating||teamRating(t)),color:t.color,sv:!!(G.clubes&&G.clubes[id])};});G.nextConcacafSeeds={champion:winners[0],runner,third,info};}c.active=false;addChampionHistory('Copa Centroamericana',centroTeam(c.champion),'Campeón regional');pushRegionalNews(`Copa Centroamericana: ${centroTeamName(c.champion)} campeón regional. Clasifica a CONCACAF Champions Cup.`);if(c.champion===G.userClubId)unlockAchievement('copa_centroamericana','Copa Centroamericana','Ganaste el título regional más importante.');}else{c.knockout=[];for(let i=0;i<winners.length;i+=2)c.knockout.push({h:winners[i],a:winners[i+1],gh:null,ga:null});}}
   c.current=null;G.matchMode='league';autoSave();}
 function startPenaltyShootout(comp,gf,ga){
   const f=comp==='centro'?userCentroFixture():userCupFixture();if(!f)return false;const oppId=f.h===G.userClubId?f.a:f.h;
@@ -1139,21 +1145,42 @@ function finishPenaltyShootout(){const winner=PEN.scoreU>=PEN.scoreR?G.userClubI
 function finishCentroMatch(gf,ga){recordPlayerStats(gf,ga);applyNonLeagueMatchWear('Centroamericana');if(gf===ga&&G.centroCup&&G.centroCup.current&&G.centroCup.current.stage==='knockout'&&startPenaltyShootout('centro',gf,ga))return;simulateCentroRound({gf,ga});renderAll();const h=G.centroCup.history[0];openModal(`<div class="modal-title">🌎 Copa Centroamericana — ${h.name}</div><p class="center">Tu partido terminó <b class="amber">${gf}-${ga}</b>.</p><hr class="sep"><div class="scroll" style="max-height:240px">${h.rows.map(r=>`<div class="news">${esc(r)}</div>`).join('')}</div><hr class="sep"><div class="center"><button class="btn btn-p" onclick="closeModal();switchView('centro')">Ver torneo</button> <button class="btn" onclick="closeModal()">Seguir</button></div>`);}
 
 const CONCACAF_CLUBS=[
-  ['América MX','México',91],['Rayados MTY','México',88],['Tigres Norte','México',87],['Cruz Azulino','México',85],['Pachuca Real','México',84],['Chivas GDL','México',83],
-  ['Inter Miami CF','Estados Unidos',86],['LA Galaxy Stars','Estados Unidos',82],['Seattle Emeralds','Estados Unidos',83],['Columbus Crewmen','Estados Unidos',82],['Atlanta United FC','Estados Unidos',81],['LAFC Gold','Estados Unidos',84],
+  ['América MX','México',91],['Rayados MTY','México',88],['Tigres Norte','México',87],['Cruz Azulino','México',85],['Pachuca Real','México',84],['Chivas GDL','México',83],['Toluca Diablos','México',82],['Santos Laguna FC','México',80],
+  ['Inter Miami CF','Estados Unidos',86],['LA Galaxy Stars','Estados Unidos',82],['Seattle Emeralds','Estados Unidos',83],['Columbus Crewmen','Estados Unidos',82],['Atlanta United FC','Estados Unidos',81],['LAFC Gold','Estados Unidos',84],['FC Cincinnati Orange','Estados Unidos',80],['NY Red Stars','Estados Unidos',79],
   ['Toronto Reds','Canadá',78],['Vancouver North','Canadá',77],['Montréal Bleu','Canadá',76],
-  ['Cavalier Kingston','Jamaica',72],['Violette AC','Haití',71],['Cibao Dorado','Rep. Dominicana',70],['Moca FC','Rep. Dominicana',69]
+  ['Cavalier Kingston','Jamaica',72],['Violette AC','Haití',71],['Cibao Dorado','Rep. Dominicana',70],['Moca FC','Rep. Dominicana',69],['Portmore United','Jamaica',68]
 ];
+/* Cupos de la CONCACAF Champions Cup (16): Copa Centroamericana 3 · Copa del Caribe 2 · Leagues Cup 1 · México 5 · EE. UU. 4 · Canadá 1 */
+const CONCACAF_SLOTS={centro:3,caribe:2,leagues:1,mex:5,usa:4,can:1};
 function makeConcacafTeam(name,country,rating,source){return{id:('CC_'+name.replace(/[^A-Z0-9]/gi,'').slice(0,10)).toUpperCase(),nombre:name,country,source:source||'Clasificado CONCACAF',sv:false,concacaf:true,rating,color:'#1740a0',plantilla:centroVirtualSquad(rating)};}
 function concacafTeam(id){if(G.clubes&&G.clubes[id])return G.clubes[id];if(G.centroCup&&G.centroCup.teams){const t=G.centroCup.teams.find(x=>x.id===id);if(t)return t;}if(G.concacafCup&&G.concacafCup.teams)return G.concacafCup.teams.find(t=>t.id===id);return centroTeam(id);}
 function concacafTeamName(id){const t=concacafTeam(id);return t?t.nombre:id;}
-function buildConcacafParticipants(seeds){const teams=[],used=new Set();const add=t=>{if(t&&t.id&&!used.has(t.id)){teams.push(t);used.add(t.id);}};
-  if(seeds&&seeds.champion){const t=centroTeam(seeds.champion);if(t)add(Object.assign({},t,{source:'Campeón Copa Centroamericana'}));}
-  if(seeds&&seeds.runner){const t=centroTeam(seeds.runner);if(t)add(Object.assign({},t,{source:'Subcampeón Copa Centroamericana'}));}
-  // Mejor salvadoreño por ranking local como invitado si no entró por Centroamericana.
-  sortedDivision(1).slice(0,2).forEach((c,i)=>add(makeCentroTeamSV(c.id,i===0?'Invitado SV por liga':'Ranking SV')));
-  CONCACAF_CLUBS.forEach(c=>{if(teams.length<16)add(makeConcacafTeam(c[0],c[1],c[2],c[1]));});
+function buildConcacafParticipants(seeds){
+  const teams=[],used=new Set();const add=t=>{if(t&&t.id&&!used.has(t.id)){teams.push(t);used.add(t.id);return true;}return false;};
+  // 1) Copa Centroamericana: campeón, subcampeón y tercer lugar (cupos reales, nada de "invitados")
+  const cs=[['champion','Campeón Copa Centroamericana'],['runner','Subcampeón Copa Centroamericana'],['third','3° Copa Centroamericana']];
+  cs.forEach(x=>{const id=seeds&&seeds[x[0]];if(id){let t=centroTeam(id);if(!t&&seeds.info&&seeds.info[id]){const f=seeds.info[id];t={id,nombre:f.nombre,country:f.country,rating:f.rating,color:f.color||'#0b6b8f',sv:false,plantilla:centroVirtualSquad(f.rating)};}if(t)add(Object.assign({},t,{source:x[1]}));}});
+  const pool=c=>CONCACAF_CLUBS.filter(x=>x[1]===c||(c==='Caribe'&&['Jamaica','Haití','Rep. Dominicana'].includes(x[1]))).map(x=>({n:x[0],c:x[1],r:x[2]+rnd(7)-3}));
+  const takeBest=(arr,k,label)=>{arr.sort((a,b)=>b.r-a.r);let n=0;for(const x of arr){if(n>=k)break;const t=makeConcacafTeam(x.n,x.c,Math.max(60,Math.round(x.r)),label(n));if(add(t))n++;}};
+  // 2) Copa del Caribe: simulada entre 4 clubes caribeños -> campeón y subcampeón
+  const car=pool('Caribe').sort(()=>Math.random()-.5).slice(0,4);car.sort((a,b)=>(b.r+rnd(10))-(a.r+rnd(10)));
+  car.slice(0,2).forEach((x,i)=>add(makeConcacafTeam(x.n,x.c,Math.max(60,Math.round(x.r)),i===0?'Campeón Copa del Caribe':'Subcampeón Copa del Caribe')));
+  // 3) Ligas: México 5, EE. UU. 4, Canadá 1
+  const mex=pool('México'),usa=pool('Estados Unidos'),can=pool('Canadá');
+  takeBest(mex,CONCACAF_SLOTS.mex,i=>i===0?'Liga MX · campeón':i===1?'Liga MX · subcampeón':'Liga MX · cupo '+(i+1));
+  takeBest(usa,CONCACAF_SLOTS.usa,i=>i===0?'MLS · campeón MLS Cup':i===1?'MLS · Supporters\' Shield':'MLS · cupo '+(i+1));
+  takeBest(can,CONCACAF_SLOTS.can,()=>'Campeonato Canadiense');
+  // 4) Leagues Cup: el mejor de los clubes de México/EE. UU. que quedaron fuera
+  const rest=mex.concat(usa).filter(x=>!used.has(('CC_'+x.n.replace(/[^A-Z0-9]/gi,'').slice(0,10)).toUpperCase()));
+  takeBest(rest,CONCACAF_SLOTS.leagues,()=>'Campeón Leagues Cup');
+  // relleno de seguridad solo si faltan (p. ej. por clubes repetidos): siempre con clubes de la región, nunca "invitados" salvadoreños
+  CONCACAF_CLUBS.slice().sort((a,b)=>b[2]-a[2]).forEach(c=>{if(teams.length<16)add(makeConcacafTeam(c[0],c[1],c[2],'Leagues Cup · cupo extra'));});
   return teams.slice(0,16);
+}
+function centroThird(c,champ,runner){
+  try{const qf=c.history.find(h=>h.alive&&h.alive.length===4);if(!qf)return null;const cand=qf.alive.filter(id=>id!==champ&&id!==runner);
+    const pts=id=>{for(const g of c.groups||[]){if(g.tabla[id])return g.tabla[id].pts*10+(g.tabla[id].dg||0);}return 0;};
+    cand.sort((a,b)=>pts(b)-pts(a));return cand[0]||null;}catch(e){return null;}
 }
 function initConcacafCup(teams){const shuffled=shuffle(teams),groups=[];for(let g=0;g<4;g++){const ids=shuffled.slice(g*4,(g+1)*4).map(t=>t.id),tabla={};ids.forEach(id=>tabla[id]=emptyCupTabla());groups.push({name:String.fromCharCode(65+g),ids,tabla});}
   const groupRounds=[];for(let r=0;r<3;r++){const fixtures=[];groups.forEach(gr=>{const rr=cupGroupRounds(gr.ids)[r]||[];rr.forEach(m=>fixtures.push(Object.assign({group:gr.name},m)));});groupRounds.push(fixtures);}return{active:true,stage:'groups',teams,groups,groupRounds,round:0,current:null,playedWeeks:[],history:[],knockout:[],champion:null};}
@@ -1286,20 +1313,20 @@ function setObjectiveFor(club,divs){
       const opts=[
         {t:1,d:'Pelear el campeonato: terminar 1° en fase regular',p:'alta'},
         {t:4,d:'Ser protagonista: terminar en Top 4 de Primera',p:'alta'},
-        {t:8,d:'Clasificar a cuartos de final: terminar en Top 8',p:'media'}
-      ];const o=pick(opts);tgt=o.t;desc=o.d;prioridad=o.p;tipo=tgt===8?'cuartos':'posicion';
+        {t:6,d:'Clasificar a la liguilla: terminar en el Top 6',p:'media'}
+      ];const o=pick(opts);tgt=o.t;desc=o.d;prioridad=o.p;tipo=tgt===6?'liguilla':'posicion';
     }else if(club.tier<=2){
       const opts=[
-        {t:8,d:'Clasificar a cuartos de final: terminar en Top 8',p:'media'},
+        {t:6,d:'Clasificar a la liguilla: terminar en el Top 6',p:'media'},
         {t:6,d:'Hacer buen torneo: terminar en Top 6',p:'media'},
         {t:9,d:'Evitar la zona de repechaje/descenso: terminar Top 9',p:'baja'}
-      ];const o=pick(opts);tgt=o.t;desc=o.d;prioridad=o.p;tipo=tgt===8?'cuartos':'posicion';
+      ];const o=pick(opts);tgt=o.t;desc=o.d;prioridad=o.p;tipo=tgt===6?'liguilla':'posicion';
     }else{
       const opts=[
         {t:9,d:'Salvar la categoría sin repechaje: terminar Top 9',p:'alta'},
         {t:11,d:'Evitar descenso directo: no terminar último',p:'media'},
-        {t:8,d:'Sorpresa del torneo: meterse en zona de cuartos Top 8',p:'media'}
-      ];const o=pick(opts);tgt=o.t;desc=o.d;prioridad=o.p;tipo=tgt===8?'cuartos':'permanencia';
+        {t:6,d:'Sorpresa del torneo: meterse en la liguilla (Top 6)',p:'media'}
+      ];const o=pick(opts);tgt=o.t;desc=o.d;prioridad=o.p;tipo=tgt===6?'liguilla':'permanencia';
     }
   }else if(lvl===2){
     if(club.tier<=3){
@@ -1821,15 +1848,47 @@ function promotionRelegationMoves(){
   return moves;
 }
 function simulatePrimeraPlayoff(sorted){
-  const q=sorted.slice(0,8);if(q.length<8)return null;
-  const pairs=[[q[0],q[7]],[q[3],q[4]],[q[1],q[6]],[q[2],q[5]]];
-  const cuartos=pairs.map(x=>simKnockoutPair(x[0],x[1]));
-  const cw=cuartos.map(r=>G.clubes[r.w]);
-  const semis=[[cw[0],cw[1]],[cw[2],cw[3]]].map(x=>simKnockoutPair(x[0],x[1]));
+  const q=sorted.slice(0,6);if(q.length<6)return null;
+  // Formato: 1° y 2° pasan directo a semifinales; 3°-6° juegan repechaje (3v6, 4v5); semifinales (1° vs el peor ganador, 2° vs el mejor); final.
+  const rep=[[q[2],q[5]],[q[3],q[4]]].map(x=>simKnockoutPair(x[0],x[1]));
+  const seed=id=>q.findIndex(c=>c.id===id);
+  const rw=rep.map(r=>G.clubes[r.w]).sort((a,b)=>seed(a.id)-seed(b.id));
+  const semis=[[q[0],rw[1]],[q[1],rw[0]]].map(x=>simKnockoutPair(x[0],x[1]));
   const sw=semis.map(r=>G.clubes[r.w]);
   const final=simKnockoutPair(sw[0],sw[1]);
-  const rows=[...cuartos.map(r=>'Cuartos: '+G.clubes[r.a].nombre+' '+r.ga+'-'+r.gb+' '+G.clubes[r.b].nombre+(r.pen?` (pen. ${r.pa}-${r.pb})`:'')),...semis.map(r=>'Semis: '+G.clubes[r.a].nombre+' '+r.ga+'-'+r.gb+' '+G.clubes[r.b].nombre+(r.pen?` (pen. ${r.pa}-${r.pb})`:'')),'Final: '+G.clubes[final.a].nombre+' '+final.ga+'-'+final.gb+' '+G.clubes[final.b].nombre+(final.pen?` (pen. ${final.pa}-${final.pb})`:'')];
+  const fmt=(t,r)=>t+': '+G.clubes[r.a].nombre+' '+r.ga+'-'+r.gb+' '+G.clubes[r.b].nombre+(r.pen?` (pen. ${r.pa}-${r.pb})`:'');
+  const rows=[...rep.map(r=>fmt('Repechaje',r)),...semis.map(r=>fmt('Semis',r)),fmt('Final',final)];
   const res={temp:G.temporada,champion:final.w,rows,qualified:q.map(c=>c.id)};G.playoffs=G.playoffs||[];G.playoffs.unshift(res);return res;
+}
+function liguillaNextPairs(s,winners){
+  // winners: ganadores de la ronda recién jugada, en el orden de sus llaves
+  if(s.byes&&s.round===1){
+    const seed=id=>s.qualified.indexOf(id);
+    const w=winners.filter(Boolean).sort((a,b)=>seed(a)-seed(b));
+    return [[s.byes[0],w[w.length-1]],[s.byes[1],w[0]]];
+  }
+  const out=[];for(let i=0;i<winners.length;i+=2)if(winners[i+1])out.push([winners[i],winners[i+1]]);return out;
+}
+function setupLiguilla(top){
+  const q=top.slice(0,6).map(c=>c.id);
+  const st={kind:'primera_liguilla',campania:G.campania||'Apertura',qualified:q,byes:[q[0],q[1]],
+    rounds:[{name:'Repechaje 3°-6°',pairs:[[q[2],q[5]],[q[3],q[4]]],results:[]},{name:'Semifinal',pairs:[],results:[]},{name:'Final',pairs:[],results:[]}],
+    round:0,current:null,champion:null,rows:[],userEliminated:false};
+  G.playoffStage=st;
+  const nm=id=>(G.clubes[id]||{}).nombre||id;
+  if(st.byes.includes(G.userClubId)){
+    // el usuario se salta el repechaje: lo resolvemos ya y arrancamos en semifinales
+    simulateOtherPlayoffMatches(st);
+    const w=st.rounds[0].results.map(r=>r&&r.w).filter(Boolean);
+    st.round=1;st.rounds[1].pairs=liguillaNextPairs(st,w);
+    ensurePlayoffCurrent(st);
+    pushNews(`🏁 Liguilla: ${userClub().nombre} clasificó directo a semifinales (puesto ${q.indexOf(G.userClubId)+1}°). Repechaje: ${st.rows.slice(0,2).reverse().join(' · ')}.`,'gol');
+  }else{
+    const uq=st.rounds[0].pairs.find(p=>p[0]===G.userClubId||p[1]===G.userClubId);
+    if(uq)st.current={h:uq[0],a:uq[1],gh:null,ga:null};
+    pushNews(`🏁 Liguilla: 1° ${nm(q[0])} y 2° ${nm(q[1])} van directo a semifinales. Tu club juega el repechaje (${nm(uq[0])} vs ${nm(uq[1])}).`,'gol');
+  }
+  return st;
 }
 function budgetSoftCap(lvl){return{1:2600000,2:900000,3:380000}[lvl]||500000;}
 function normalizeBudget(reason){return;const cap=budgetSoftCap(userClub().nivel);if(G.budget>cap){const surplus=G.budget-cap;const cut=Math.round(surplus*0.72);G.budget-=cut;G.clubReserve=(G.clubReserve||0)+cut;fin('Directiva','reserva',-cut,reason||'Excedente guardado en la reserva del club');pushNews(`🏦 La directiva guarda ${money(cut)} del excedente en la reserva del club. Podés retirarlo desde Finanzas cuando tu presupuesto baje.`, 'info');}}
@@ -1944,7 +2003,7 @@ function helpHTML(){return`<div class="modal-title">📘 Manual rápido</div><di
   <div class="offer"><b class="amber">Semana</b><br>Antes de jugar completá 2 entrenamientos y concentración. Recuperación es opcional pero ayuda a energía. Simular preparación sirve si querés avanzar rápido.</div>
   <div class="offer"><b class="cyan">Táctica</b><br>Presión Alta y Ritmo Directo aumentan ataque pero cansan. Presión Baja y Ritmo Pausado protegen energía y defensa. En vivo podés cambiar al descanso.</div>
   <div class="offer"><b class="green">Finanzas</b><br>Presupuesto operativo es dinero usable. Reserva institucional es dinero que la directiva guarda para evitar economías rotas. Vigilá nómina, estadio y proyección a 3 fechas.</div>
-  <div class="offer"><b class="gold">Competiciones</b><br>Primera tiene liguilla Top 8. Copa Presidente incluye las 3 divisiones. Copa Centroamericana es el torneo regional mayor y puede abrir el camino a la CONCACAF Champions Cup.</div><div class="offer"><b class="cyan">Integridad</b><br>El juego valida guardados y corrige dinero, jugadores o datos imposibles. Las partidas alteradas pueden quedar no elegibles para rankings futuros.</div>
+  <div class="offer"><b class="gold">Competiciones</b><br>Primera tiene liguilla: los 2 primeros van directo a semifinales y del 3° al 6° juegan repechaje. Copa Presidente incluye las 3 divisiones. Copa Centroamericana es el torneo regional mayor y puede abrir el camino a la CONCACAF Champions Cup.</div><div class="offer"><b class="cyan">Integridad</b><br>El juego valida guardados y corrige dinero, jugadores o datos imposibles. Las partidas alteradas pueden quedar no elegibles para rankings futuros.</div>
   <div class="offer"><b class="gold">Música offline</b><br>Con internet, tocá <b>Guardar música offline</b> para que las canciones se guarden en este dispositivo. Así el juego puede sonar aunque después no tengas conexión.</div>
   <div class="center"><button class="btn btn-p" onclick="closeModal();startTutorial(true)">Ver tutorial paso a paso</button> <button class="btn btn-a" onclick="downloadOfflineMusic()">🎵 Guardar música offline</button> <button class="btn" onclick="openMusicSelector()">🎧 Elegir música</button> <button class="btn btn-a" onclick="sendFeedback()">📧 Enviar feedback</button> <button class="btn" onclick="repairGame(true)">🔧 Reparar partida</button> <button class="btn" onclick="closeModal()">Cerrar</button></div>`;}
 function openHelpCenter(){openModal(helpHTML());}
@@ -2018,7 +2077,7 @@ function playPlayoffRound(gf,ga){
   // Registrar resultado
   const round=s.rounds[s.round];
   const idx=round.pairs.findIndex(p=>(p[0]===s.current.h&&p[1]===s.current.a));
-  round.results[idx]={h:s.current.h,a:s.current.a,gh,ga,w:winner,pen,pa,pb,penText};
+  round.results[idx]={h:s.current.h,a:s.current.a,gh:(userIsHome?gf:ga),ga:(userIsHome?ga:gf),w:winner,pen,pa,pb,penText};
   // FIX 4: simular YA los otros partidos de esta ronda para tener los
   // ganadores completos antes de armar la siguiente ronda
   simulateOtherPlayoffMatches(s);
@@ -2071,10 +2130,7 @@ function playPlayoffRound(gf,ga){
   }
   // Armar la siguiente ronda con todos los ganadores (usuario + simulados)
   const nextRound=s.rounds[s.round];
-  nextRound.pairs=[];
-  for(let i=0;i<allWinners.length;i+=2){
-    if(allWinners[i+1])nextRound.pairs.push([allWinners[i],allWinners[i+1]]);
-  }
+  nextRound.pairs=liguillaNextPairs(s,allWinners);
   // Setear el current con el partido del usuario (si sigue y juega la siguiente ronda)
   if(!s.userEliminated){
     ensurePlayoffCurrent(s);
@@ -2139,13 +2195,14 @@ function autoResolveNonUserStages(){
         const winners=round.results.map(r=>r&&r.w).filter(Boolean);
         const next=G.playoffStage.rounds[G.playoffStage.round+1];
         if(!next)break;
-        next.pairs=[];
-        for(let i=0;i<winners.length;i+=2)next.pairs.push([winners[i],winners[i+1]]);
         G.playoffStage.round++;
+        next.pairs=liguillaNextPairs(G.playoffStage,winners);
       }else{
         simulateOtherPlayoffMatches(G.playoffStage);
         G.playoffStage.current=null;
+        const wins=round.results.map(r=>r&&r.w).filter(Boolean);
         G.playoffStage.round++;
+        if(G.playoffStage.round<3){const nx=G.playoffStage.rounds[G.playoffStage.round];if(!nx.pairs.length)nx.pairs=liguillaNextPairs(G.playoffStage,wins);}
         if(G.playoffStage.round>=3){
           const r3=G.playoffStage.rounds[2].results.filter(x=>x);
           if(r3.length===1)G.playoffStage.champion=r3[0].w;
@@ -2193,29 +2250,11 @@ function endSeason(){
   let primeraChampion=primeraSorted[0]||sorted[0];
   const playoff=(lvl===1)?primeraPlayoff:null;
   const champ=(lvl===1)?primeraChampion:sorted[0];const titulo=champ.id===G.userClubId;
-  if((G.campania||'Apertura')==='Apertura'&&primeraSorted.length>=8){
-    const top8=primeraSorted.slice(0,8);
-    const userIn=top8.some(c=>c.id===G.userClubId);
+  if((G.campania||'Apertura')==='Apertura'&&primeraSorted.length>=6){
+    const top6=primeraSorted.slice(0,6);
+    const userIn=top6.some(c=>c.id===G.userClubId);
     if(userIn){
-      G.playoffStage={
-        kind:'primera_liguilla',
-        campania:'Apertura',
-        qualified:top8.map(c=>c.id),
-        rounds:[
-          {name:'Cuartos de final',pairs:[[top8[0].id,top8[7].id],[top8[3].id,top8[4].id],[top8[1].id,top8[6].id],[top8[2].id,top8[5].id]],results:[]},
-          {name:'Semifinal',pairs:[],results:[]},
-          {name:'Final',pairs:[],results:[]}
-        ],
-        round:0,
-        current:null,
-        champion:null,
-        rows:[],
-        userEliminated:false
-      };
-      // Inicializar current con el primer partido del usuario en cuartos
-      const uq=G.playoffStage.rounds[0].pairs.find(p=>p[0]===G.userClubId||p[1]===G.userClubId);
-      if(uq)G.playoffStage.current={h:uq[0],a:uq[1],gh:null,ga:null};
-      pushNews('🏁 Liguilla Apertura: 8 clubes clasificados. Tu partido de cuartos está disponible.','gol');
+      setupLiguilla(top6);
     }else{
       // El club del usuario no clasificó: se simula la liguilla completa
       primeraPlayoff=simulatePrimeraPlayoff(primeraSorted);
@@ -2854,17 +2893,17 @@ function renderCentro(){const panel=$('centro-panel'),c=G.centroCup;
   const groups=(c.groups||[]).map(gr=>`<div class="offer"><b class="amber">Grupo ${gr.name}</b><table class="tbl"><tbody>${sortedCentroGroup(gr).map((r,i)=>{const t=r.t;return`<tr class="${r.id===G.userClubId?'me':''}"><td>${i+1}. ${esc(centroTeamName(r.id))}</td><td class="center">${t.pj}</td><td class="center"><b>${t.pts}</b></td><td class="center ${t.dg>=0?'green':'red'}">${t.dg>=0?'+':''}${t.dg}</td></tr>`;}).join('')}</tbody></table></div>`).join('');
   const cur=c.current?c.current.fixtures.map(f=>`<tr><td>${f.group?('Grupo '+f.group):''}</td><td>${esc(centroTeamName(f.h))}</td><td class="center">vs</td><td>${esc(centroTeamName(f.a))}</td></tr>`).join(''):'<tr><td colspan="4" class="muted center">Sin ronda activa ahora.</td></tr>';
   const hist=(c.history||[]).slice(0,6).map(h=>`<div class="offer"><b class="cyan">${esc(h.name)} · J${h.week}</b><br>${h.rows.slice(0,8).map(esc).join('<br>')}${h.rows.length>8?'<br><span class="muted">...</span>':''}</div>`).join('')||'<p class="muted">Aún no se jugó ninguna ronda.</p>';
-  panel.innerHTML=`<div class="panel-title">🌎 Copa Centroamericana</div><p><small>El torneo regional más importante: 16 clubes, con 4 salvadoreños y 12 de Guatemala, Honduras, Costa Rica, Panamá y Nicaragua. Fase de grupos, cuartos, semifinal y final.</small></p><div class="grid g3"><div><span class="muted">Estado</span><div class="gold">${esc(status)}</div></div><div><span class="muted">Ronda</span><div class="amber">${centroRoundName()}</div></div><div><span class="muted">Semanas</span><div>${CENTRO_WEEKS.join(', ')}</div></div></div><hr class="sep"><div class="panel-title">Ronda actual</div><table class="tbl"><tbody>${cur}</tbody></table><hr class="sep"><div class="panel-title">Clasificados</div><div class="scroll" style="max-height:240px"><table class="tbl"><thead><tr><th>Club</th><th>País</th><th>Vía</th><th class="center">Rating</th></tr></thead><tbody>${teams}</tbody></table></div><hr class="sep"><div class="panel-title">Grupos</div><div class="grid g2">${groups}</div><hr class="sep"><div class="panel-title">Historial</div>${hist}`;}
+  panel.innerHTML=`<div class="panel-title">🌎 Copa Centroamericana</div><p><small>El torneo regional más importante: 16 clubes por cupos: El Salvador 3, Guatemala 3, Honduras 3, Costa Rica 3, Panamá 2 y Nicaragua 2. Los 3 mejores pasan a la CONCACAF Champions Cup. Fase de grupos, cuartos, semifinal y final.</small></p><div class="grid g3"><div><span class="muted">Estado</span><div class="gold">${esc(status)}</div></div><div><span class="muted">Ronda</span><div class="amber">${centroRoundName()}</div></div><div><span class="muted">Semanas</span><div>${CENTRO_WEEKS.join(', ')}</div></div></div><hr class="sep"><div class="panel-title">Ronda actual</div><table class="tbl"><tbody>${cur}</tbody></table><hr class="sep"><div class="panel-title">Clasificados</div><div class="scroll" style="max-height:240px"><table class="tbl"><thead><tr><th>Club</th><th>País</th><th>Vía</th><th class="center">Rating</th></tr></thead><tbody>${teams}</tbody></table></div><hr class="sep"><div class="panel-title">Grupos</div><div class="grid g2">${groups}</div><hr class="sep"><div class="panel-title">Historial</div>${hist}`;}
 
 function setNewsFilter(f){NEWS_FILTER=f;renderNoticias();}
 function renderConcacaf(){const panel=$('concacaf-panel'),c=G.concacafCup;
-  if(!c){panel.innerHTML=`<div class="panel-title">🌐 CONCACAF Champions Cup</div><p class="muted">Todavía no hay CONCACAF programada. Se clasifica desde la Copa Centroamericana: campeón y subcampeón regional abren la puerta al torneo continental.</p><div class="offer"><b class="gold">Premios grandes</b><br><small>Participar y avanzar en CONCACAF entrega ingresos altos, reputación y objetivos internacionales.</small></div>`;return;}
+  if(!c){panel.innerHTML=`<div class="panel-title">🌐 CONCACAF Champions Cup</div><p class="muted">Todavía no hay CONCACAF programada. Cupos de 16 clubes: Copa Centroamericana 3 (campeón, subcampeón y 3°), Copa del Caribe 2, Leagues Cup 1, Liga MX 5, MLS 4 y Canadá 1. Tu club entra ganando o llegando lejos en la Centroamericana.</p><div class="offer"><b class="gold">Premios grandes</b><br><small>Participar y avanzar en CONCACAF entrega ingresos altos, reputación y objetivos internacionales.</small></div>`;return;}
   const status=c.champion?`Campeón: ${concacafTeamName(c.champion)}`:(c.active?(c.stage==='groups'?'Fase de grupos':'Eliminatoria'):'No activa');
   const teams=c.teams.map(t=>`<tr class="${t.id===G.userClubId?'me':''}"><td>${esc(t.nombre)}</td><td>${esc(t.country)}</td><td>${esc(t.source||'Clasificado')}</td><td class="center amber">${Math.round(t.rating||teamRating(t))}</td></tr>`).join('');
   const groups=(c.groups||[]).map(gr=>`<div class="offer"><b class="amber">Grupo ${gr.name}</b><table class="tbl"><tbody>${sortedConcacafGroup(gr).map((r,i)=>{const t=r.t;return`<tr class="${r.id===G.userClubId?'me':''}"><td>${i+1}. ${esc(concacafTeamName(r.id))}</td><td class="center">${t.pj}</td><td class="center"><b>${t.pts}</b></td><td class="center ${t.dg>=0?'green':'red'}">${t.dg>=0?'+':''}${t.dg}</td></tr>`;}).join('')}</tbody></table></div>`).join('');
   const cur=c.current?c.current.fixtures.map(f=>`<tr><td>${f.group?('Grupo '+f.group):''}</td><td>${esc(concacafTeamName(f.h))}</td><td class="center">vs</td><td>${esc(concacafTeamName(f.a))}</td></tr>`).join(''):'<tr><td colspan="4" class="muted center">Sin ronda activa ahora.</td></tr>';
   const hist=(c.history||[]).slice(0,7).map(h=>`<div class="offer"><b class="cyan">${esc(h.name)} · J${h.week}</b><br>${h.rows.slice(0,8).map(esc).join('<br>')}${h.rows.length>8?'<br><span class="muted">...</span>':''}</div>`).join('')||'<p class="muted">Aún no se jugó ninguna ronda.</p>';
-  panel.innerHTML=`<div class="panel-title">🌐 CONCACAF Champions Cup</div><p><small>El salto continental: clasificados desde Copa Centroamericana contra clubes de México, MLS, Canadá y Caribe. Los premios son altos, pero el nivel también.</small></p><div class="grid g3"><div><span class="muted">Estado</span><div class="gold">${esc(status)}</div></div><div><span class="muted">Ronda</span><div class="amber">${concacafRoundName()}</div></div><div><span class="muted">Semanas</span><div>${CONCACAF_WEEKS.join(', ')}</div></div></div><hr class="sep"><div class="panel-title">Ronda actual</div><table class="tbl"><tbody>${cur}</tbody></table><hr class="sep"><div class="panel-title">Clasificados</div><div class="scroll" style="max-height:240px"><table class="tbl"><thead><tr><th>Club</th><th>País</th><th>Vía</th><th class="center">Rating</th></tr></thead><tbody>${teams}</tbody></table></div><hr class="sep"><div class="panel-title">Grupos</div><div class="grid g2">${groups}</div><hr class="sep"><div class="panel-title">Historial</div>${hist}`;}
+  panel.innerHTML=`<div class="panel-title">🌐 CONCACAF Champions Cup</div><p><small>Cupos: Centroamericana 3 · Copa del Caribe 2 · Leagues Cup 1 · Liga MX 5 · MLS 4 · Canadá 1 (columna "Cupo" abajo). Los premios son altos, pero el nivel también.</small></p><div class="grid g3"><div><span class="muted">Estado</span><div class="gold">${esc(status)}</div></div><div><span class="muted">Ronda</span><div class="amber">${concacafRoundName()}</div></div><div><span class="muted">Semanas</span><div>${CONCACAF_WEEKS.join(', ')}</div></div></div><hr class="sep"><div class="panel-title">Ronda actual</div><table class="tbl"><tbody>${cur}</tbody></table><hr class="sep"><div class="panel-title">Clasificados</div><div class="scroll" style="max-height:240px"><table class="tbl"><thead><tr><th>Club</th><th>País</th><th>Vía</th><th class="center">Rating</th></tr></thead><tbody>${teams}</tbody></table></div><hr class="sep"><div class="panel-title">Grupos</div><div class="grid g2">${groups}</div><hr class="sep"><div class="panel-title">Historial</div>${hist}`;}
 
 function renderNoticias(){
   const panel=$('noticias-panel');
@@ -2987,6 +3026,12 @@ function toggleZB(){try{localStorage.setItem('rfm_zb_collapsed',zbCollapsed()?'0
 
 /* ---------- NOVEDADES / CHANGELOG ---------- */
 const CHANGELOG=[
+ {v:'2.2',fecha:'7 oct 2026',titulo:'Liguilla, CONCACAF y Selección',items:[
+  ['🏆','Liguilla corregida','Los 2 primeros pasan directo a semifinales; del 3° al 6° juegan repechaje, luego semifinal y final.'],
+  ['🌎','CONCACAF sin invitados','Los 16 cupos salen de Copa Centroamericana, Copa del Caribe, Leagues Cup, México, EE.UU. y Canadá.'],
+  ['📋','Centroamericana por cupos','Cada país manda 2 o 3 equipos según su cupo, y se ve de dónde viene cada clasificado.'],
+  ['🇸🇻','Selección también con presidente','La federación dirige a El Salvador, convoca a tus estrellas salvadoreñas y hay parones FIFA (fechas 8 y 16) con noticias de cada partido, desgaste y lesiones.'],
+  ['🛠','Arreglos','Fundar club ya no queda tapado por la intro y jugar un partido de liguilla ya no falla.']]},
  {v:'2.1',fecha:'6 oct 2026',titulo:'Economía, balance y arreglos',items:[
   ['🏆','CONCACAF corregido','Si ganás la Copa Centroamericana, ahora sí clasificás a la CONCACAF de la siguiente edición.'],
   ['💰','Sin tope de dinero','Se eliminó el límite que reiniciaba tu caja (~$5M). Podés ahorrar para el estadio.'],
@@ -3048,14 +3093,14 @@ function renderNovedades(){
     <div class="center" style="margin-top:10px"><button class="btn btn-p" onclick="startTutorial(true)">📘 Ver tutorial</button> <button class="btn btn-a" onclick="sendFeedback()">📧 Enviar opinión</button> <button class="btn" onclick="exportSave()">⬇ Exportar mi partida</button></div>`;
 }
 function showUpdateModal(){
-  const key='rfm_update_v2_1_seen';
+  const key='rfm_update_v2_2_seen';
   try{if(localStorage.getItem(key)==='1')return false;localStorage.setItem(key,'1');}catch(e){return false;}
-  openModal(`<div class="modal-title">🆕 Actualización v${GAME_VERSION}</div><p><b class="green">Nuevo: economía, préstamos, estadio y balance.</b></p>
-    <div class="offer"><b class="gold">🏦 Reserva, préstamos y marketing</b><br><small>Más formas de ganar y gastar. Sin tope de caja.</small></div><div class="offer"><b class="gold">🏟 Estadio, cantera y contratos rebalanceados</b><br><small>CONCACAF corregida, renuncia al cargo y más accesorios 3D.</small></div>
+  openModal(`<div class="modal-title">🆕 Actualización v${GAME_VERSION}</div><p><b class="green">Nuevo: liguilla corregida, CONCACAF y Selección con presidente.</b></p>
+    <div class="offer"><b class="gold">🏆 Liguilla y CONCACAF corregidas</b><br><small>2 directos a semifinal, repechaje 3°-6°, y cupos reales por país.</small></div><div class="offer"><b class="gold">🇸🇻 Selección con parones FIFA</b><br><small>También como presidente: tus estrellas salvadoreñas son convocadas.</small></div>
     <div class="offer"><b class="gold">🎯 Retos cortos</b><br><small>Salva al club del descenso y más. Botón 🎯 arriba. Reto del día con racha.</small></div>
     <div class="offer"><b class="gold">🏛 Presidente, 🌱 fundar club y 👔 probador 3D</b><br><small>Novedades de la v1.9 siguen disponibles.</small></div>
     <div class="center"><button class="btn btn-p" onclick="closeModal();switchView('novedades')">🆕 Ver novedades</button> <button class="btn" onclick="closeModal()">▶ Seguir mi carrera</button></div>`);
-  if(G)pushNews(`🆕 Actualización v${GAME_VERSION}: economía, préstamos y balance.`,'info','club');
+  if(G)pushNews(`🆕 Actualización v${GAME_VERSION}: liguilla, CONCACAF y selección.`,'info','club');
   return true;
 }
 function showLaunchModal(kind){
@@ -3593,7 +3638,7 @@ function promptDT(){if(window.PRES&&PRES.mode()==='fund'){PRES.openFoundation();
   openModal(`<div class="modal-title">🎽 Nombre del ${(window.PRES&&PRES.mode()==='pres')?'Presidente':'Director Técnico'}</div><p class="muted">Así aparecerás en noticias y en el ranking.</p><input id="dt-name-input" maxlength="20" value="DT" style="width:100%;margin:10px 0" onkeydown="if(event.key==='Enter')confirmDT()"><div class="center"><button class="btn btn-p" onclick="confirmDT()">▶ Empezar</button> <button class="btn" onclick="closeModal()">Cancelar</button></div>`);
   setTimeout(()=>{const i=$('dt-name-input');if(i){i.focus();i.select();}},60);}
 function confirmDT(){const i=$('dt-name-input');const nm=((i&&i.value)||'').trim().replace(/\s+/g,' ').slice(0,20)||'DT';closeModal();startGame(PICK_CLUB,nm,window.PRES?PRES.mode():null);}
-function startGame(clubId,nm,gmode){touchLocalActivity();try{localStorage.setItem('rfm_update_v2_1_seen','1');localStorage.setItem('rfm_novedades_seen',GAME_VERSION);}catch(e){}applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);G.device=PICK_DEVICE;if(window.PRES)PRES.newGameHook(gmode);if(window.SEL)SEL.migrate();pushNews(gmode==='fund'?`🌱 ${nm} funda ${userClub().nombre}.`:gmode==='pres'?`🏛 ${nm} asume la presidencia de ${userClub().nombre}.`:`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(window.PRES&&PRES.welcome())return;if(!showLaunchModal('new'))startTutorial(false);},400);tryResumeMusic();startOnlineServices();updatePresence();submitRanking();}
+function startGame(clubId,nm,gmode){touchLocalActivity();try{localStorage.setItem('rfm_update_v2_2_seen','1');localStorage.setItem('rfm_novedades_seen',GAME_VERSION);}catch(e){}applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);G.device=PICK_DEVICE;if(window.PRES)PRES.newGameHook(gmode);if(window.SEL)SEL.migrate();pushNews(gmode==='fund'?`🌱 ${nm} funda ${userClub().nombre}.`:gmode==='pres'?`🏛 ${nm} asume la presidencia de ${userClub().nombre}.`:`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(window.PRES&&PRES.welcome())return;if(!showLaunchModal('new'))startTutorial(false);},400);tryResumeMusic();startOnlineServices();updatePresence();submitRanking();}
 
 function boot(){
   touchLocalActivity();applyVisualPrefs();
