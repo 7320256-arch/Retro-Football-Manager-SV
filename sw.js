@@ -1,5 +1,5 @@
-/* Retro Football Manager SV — Service Worker v13 (anti-caché rancia: valida que la navegación cacheada sea el juego) */
-const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v13';
+/* Retro Football Manager SV — Service Worker v14 (anti-caché rancia: valida que la navegación cacheada sea el juego) */
+const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v14';
 const RUNTIME_CACHE = 'rfm-runtime-v1';
 const MUSIC_CACHE = 'rfm-music-offline-v4';
 const INTRO_CACHE = 'rfm-intro-offline-v1';

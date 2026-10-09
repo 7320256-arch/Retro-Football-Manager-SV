@@ -1,6 +1,6 @@
 # Retro Football Manager SV
 
-![Version](https://img.shields.io/badge/version-2.3-blue)
+![Version](https://img.shields.io/badge/version-2.3.1-blue)
 ![Platform](https://img.shields.io/badge/platform-Web%20%7C%20PWA-green)
 ![License](https://img.shields.io/badge/license-All%20Rights%20Reserved-red)
 
@@ -75,6 +75,10 @@ Para consultas institucionales, reporte de fallos técnicos o solicitudes de aut
 - **Cantera**: academia nivel 1–5, camada anual de juveniles.
 - **Probador 3D** (Three.js, 34 objetos) en DT y Presidente; sin WebGL muestra tarjeta alterna. Tema visual *Palco* solo en modo Presidente.
 - Archivos nuevos que deben subirse junto a index.html: `avatar3d.js`, `modo-presidente.js`, `palco.css`, `three-lite.js`, y `sw.js` (v8).
+
+## v2.3.1 — Embajador por club (8 oct 2026)
+- Botón «Compartir juego» con mensaje + enlace de descarga del APK + link web. Cada compartida diaria activa la siguiente ventaja en el club actual; se pierden al cambiar de club.
+- Enlace del portafolio corregido. Archivos: index.html, embajador.js, sw.js (v14), README.md.
 
 ## v2.3 — Temporada 1: temas, logros y filtros (8 oct 2026)
 - Filtro/orden de plantilla (nombre, posición, edad, media, estado; orden por atributos).
