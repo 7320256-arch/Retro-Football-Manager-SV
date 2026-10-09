@@ -1,5 +1,5 @@
-/* Retro Football Manager SV — Service Worker v12 (anti-caché rancia: valida que la navegación cacheada sea el juego) */
-const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v12';
+/* Retro Football Manager SV — Service Worker v13 (anti-caché rancia: valida que la navegación cacheada sea el juego) */
+const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v13';
 const RUNTIME_CACHE = 'rfm-runtime-v1';
 const MUSIC_CACHE = 'rfm-music-offline-v4';
 const INTRO_CACHE = 'rfm-intro-offline-v1';
@@ -263,7 +263,7 @@ self.addEventListener('fetch', event => {
     const u = new URL(request.url);
     if (u.origin === self.location.origin) {
       if (/\/three-lite\.js$/i.test(u.pathname)) { event.respondWith(cacheFirstRuntime(request)); return; }
-      if (/\/(avatar3d|modo-presidente|seleccion|retos|economia)\.js$/i.test(u.pathname) || /\/palco\.css$/i.test(u.pathname)) { event.respondWith(networkFirst(request)); return; }
+      if (/\/(avatar3d|modo-presidente|seleccion|retos|economia|embajador)\.js$/i.test(u.pathname) || /\/palco\.css$/i.test(u.pathname)) { event.respondWith(networkFirst(request)); return; }
     }
   } catch (e) {}
 

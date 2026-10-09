@@ -1,6 +1,6 @@
 # Retro Football Manager SV
 
-![Version](https://img.shields.io/badge/version-2.2-blue)
+![Version](https://img.shields.io/badge/version-2.3-blue)
 ![Platform](https://img.shields.io/badge/platform-Web%20%7C%20PWA-green)
 ![License](https://img.shields.io/badge/license-All%20Rights%20Reserved-red)
 
@@ -75,6 +75,15 @@ Para consultas institucionales, reporte de fallos técnicos o solicitudes de aut
 - **Cantera**: academia nivel 1–5, camada anual de juveniles.
 - **Probador 3D** (Three.js, 34 objetos) en DT y Presidente; sin WebGL muestra tarjeta alterna. Tema visual *Palco* solo en modo Presidente.
 - Archivos nuevos que deben subirse junto a index.html: `avatar3d.js`, `modo-presidente.js`, `palco.css`, `three-lite.js`, y `sw.js` (v8).
+
+## v2.3 — Temporada 1: temas, logros y filtros (8 oct 2026)
+- Filtro/orden de plantilla (nombre, posición, edad, media, estado; orden por atributos).
+- 12 patrocinadores (6 por oferta). 8 temas + letra + bordes (☰ → Temas y estilo).
+- Pestaña 🏅 Logros con catálogo completo. Cantera también para el DT.
+- 🎁 Programa Embajador (embajador.js): compartir/invitar desbloquea ventajas permanentes (sin dinero).
+- Economía: taquilla/TV/premio de liga más bajos; Centroamericana y CONCACAF pagan ×2.7–3.3 y dan bono de campeón.
+- Fix: Selección aparecía vacía hasta "reparar partida".
+- Archivos cambiados/nuevos: index.html, embajador.js (nuevo), modo-presidente.js, seleccion.js, sw.js (v13), README.md.
 
 ## v2.2 — Liguilla, CONCACAF y Selección (7 oct 2026)
 - Liguilla del Apertura: 1° y 2° directo a semifinales; 3°–6° juegan repechaje; semifinal y final.

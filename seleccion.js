@@ -436,6 +436,7 @@ function ensureView() {
   if (!$('view-seleccion')) { const sec = document.createElement('section'); sec.id = 'view-seleccion'; sec.className = 'view hidden'; sec.innerHTML = '<div class="panel" id="seleccion-panel"></div>'; main.appendChild(sec); }
 }
 function chrome() {
+  try { ensureView(); } catch (e) { }
   const nav = $('nav'); if (!nav) return; let b = nav.querySelector('[data-v="seleccion"]');
   if (!G || !G.clubes || isPres() || (G.reto)) { if (b) b.remove(); return; }
   if (!b) { b = document.createElement('button'); b.className = 'tab'; b.dataset.v = 'seleccion'; b.setAttribute('onclick', "switchView('seleccion')"); const before = nav.querySelector('[data-v="clasificacion"]') || nav.querySelector('.go'); nav.insertBefore(b, before); }
@@ -443,7 +444,7 @@ function chrome() {
   b.textContent = '🇸🇻 Selección' + dot; if (G && CUR === 'seleccion') b.classList.add('active');
 }
 function cod(id) { return `<span class="sel-cod ${id === 'SLV' ? 'me' : ''}">${E(id)}</span>`; }
-function onSwitch(v) { if (v === 'seleccion') { ensureView(); css(); ensureYear(); render(); } }
+function onSwitch(v) { if (v === 'seleccion') { ensureView(); const sec = $('view-seleccion'); if (sec) sec.classList.remove('hidden'); css(); ensureYear(); render(); } }
 function render() {
   ensureView(); css(); const host = $('seleccion-panel'); if (!host || !usable() || !owner()) { if (host) host.innerHTML = '<p class="muted">Como presidente, la federación dirige a la selección: tus jugadores salvadoreños son convocados y verás los partidos en Noticias.</p>'; return; }
   ensureYear(); const s = S(), c = s.comp, e = eligible();

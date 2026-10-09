@@ -40,6 +40,23 @@ select:focus,input:focus{outline:1px solid var(--green)}
 .neon{text-shadow:0 0 6px currentColor,0 0 2px currentColor}
 .pxl{font-family:var(--font-pixel)}.mono{font-family:var(--font-term)}
 hr.sep{border:none;border-top:1px dashed var(--line2);margin:10px 0}
+.sq-filter{margin-bottom:8px}.sq-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}.sq-row input,.sq-row select{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);padding:5px 7px;font-family:inherit;font-size:15px;min-width:0}.sq-row input[type=number]{width:62px}.sq-row input#sqf-q{width:140px}.sq-row label{font-size:15px;color:var(--ink2)}
+
+/* ===== Temas y estilo (v2.3) ===== */
+body[data-theme="ambar"]{--bg:#0a0700;--bg2:#120c00;--panel:#1a1200;--panel2:#241900;--line:#4a3500;--line2:#6b4d00;--ink:#ffdf9e;--ink2:#e6b95c;--dim:#a07c2c;--dim2:#6b5218;--green:#ffb000;--green-d:#c98700;--cyan:#ffd36b;}
+body[data-theme="oceano"]{--bg:#03080f;--bg2:#06111d;--panel:#091a2b;--panel2:#0d2238;--line:#14395c;--line2:#1d5287;--ink:#cfe6ff;--ink2:#8fc0f0;--dim:#5b87b3;--dim2:#38577a;--green:#38d6ff;--green-d:#1b9dc4;--cyan:#7fe8c8;--amber:#ffd166;}
+body[data-theme="cuscatlan"]{--bg:#030b1c;--bg2:#06142e;--panel:#0a1d42;--panel2:#0f2856;--line:#1b3f86;--line2:#2a5cc0;--ink:#eef4ff;--ink2:#a9c4f5;--dim:#6f8fc8;--dim2:#476197;--green:#5ec2ff;--green-d:#2a8ed1;--cyan:#ffffff;--amber:#ffe27a;--gold:#fff1a8;}
+body[data-theme="rojo"]{--bg:#0a0303;--bg2:#140606;--panel:#1d0a0a;--panel2:#2a0f0f;--line:#4d1818;--line2:#7a2626;--ink:#f6d4d4;--ink2:#e29d9d;--dim:#a86a6a;--dim2:#6d4040;--green:#ff5a4d;--green-d:#c43a30;--cyan:#ffb36b;}
+body[data-theme="neon"]{--bg:#07020f;--bg2:#0e0420;--panel:#150833;--panel2:#1d0d47;--line:#3a1a7a;--line2:#5a2ab0;--ink:#ecdfff;--ink2:#c19dff;--dim:#8d6bd0;--dim2:#5a4291;--green:#c45cff;--green-d:#8d2fd1;--cyan:#38f0ff;--magenta:#ff4fd8;}
+body[data-theme="papel"]{--bg:#f1ead8;--bg2:#e8dfc8;--panel:#fbf6e8;--panel2:#f0e8d2;--line:#c9bd9c;--line2:#a89a72;--ink:#2a2418;--ink2:#4a4030;--dim:#7a6e55;--dim2:#a89a72;--green:#1d7a2b;--green-d:#14591f;--amber:#a86800;--amber-d:#7d4d00;--cyan:#0b6b92;--red:#b3261e;--gold:#8a6500;--magenta:#9a2b7c;}
+body[data-theme="papel"] .topbar,body[data-theme="papel"] .nav{background:var(--bg2)!important;border-color:var(--line2)!important}
+body[data-theme="papel"] .crt-lines,body[data-theme="papel"] .crt-vig{display:none!important}
+body[data-theme="grafito"]{--bg:#0e0f11;--bg2:#15171a;--panel:#1b1e22;--panel2:#23272c;--line:#32373e;--line2:#464d56;--ink:#e6e9ee;--ink2:#b5bbc6;--dim:#818998;--dim2:#555c69;--green:#6ee7a8;--green-d:#3fae78;--cyan:#7cc4ff;}
+body[data-theme="dorado"]{--bg:#0b0803;--bg2:#151006;--panel:#1f1809;--panel2:#2b210d;--line:#5a4412;--line2:#8a6a1c;--ink:#fff1c2;--ink2:#e8c766;--dim:#a88a3c;--dim2:#6e5a22;--green:#ffd24a;--green-d:#c9992a;--cyan:#fff3b0;--gold:#ffe98a;}
+body[data-font="moderna"]{--font-term:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--font-pixel:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;letter-spacing:0;font-size:17px}
+body[data-font="mono"]{--font-term:ui-monospace,'SF Mono',Consolas,monospace;--font-pixel:ui-monospace,'SF Mono',Consolas,monospace;font-size:16px}
+body[data-round="1"] .panel,body[data-round="1"] .offer,body[data-round="1"] .btn,body[data-round="1"] .tab,body[data-round="1"] .modal,body[data-round="1"] input,body[data-round="1"] select{border-radius:12px}
+.th-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:8px 0}.th-card{border:2px solid var(--line2);padding:8px;cursor:pointer;background:var(--panel2);text-align:center}.th-card.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold) inset}.th-sw{display:flex;gap:3px;justify-content:center;margin-bottom:5px}.th-sw i{width:22px;height:22px;display:block;border:1px solid rgba(255,255,255,.25)}
 .crt-lines{position:fixed;inset:0;pointer-events:none;z-index:9998;background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0,rgba(0,0,0,0) 2px,rgba(0,0,0,.16) 3px,rgba(0,0,0,.16) 3px);opacity:.45;mix-blend-mode:multiply}
 .crt-vig{position:fixed;inset:0;pointer-events:none;z-index:9997;box-shadow:inset 0 0 170px 40px rgba(0,0,0,.72)}
 #app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
@@ -416,6 +433,7 @@ body.device-phone .tab.go{order:-1;left:0;right:auto;margin-left:0;margin-right:
   <nav class="nav" id="nav">
     <button class="tab active" data-v="dashboard" onclick="switchView('dashboard')">▣ Casa</button>
     <button class="tab" data-v="carrera" onclick="switchView('carrera')">⭐ Carrera</button>
+    <button class="tab" data-v="logros" onclick="switchView('logros')">🏅 Logros</button>
     <button class="tab" data-v="plantilla" onclick="switchView('plantilla')">👥 Plantilla</button>
     <button class="tab" data-v="tactica" onclick="switchView('tactica')">🧠 Táctica</button>
     <button class="tab" data-v="mercado" onclick="switchView('mercado')">🛒 Mercado</button>
@@ -447,7 +465,7 @@ body.device-phone .tab.go{order:-1;left:0;right:auto;margin-left:0;margin-right:
     </section>
 
     <section id="view-carrera" class="view hidden"><div class="panel" id="carrera-panel"></div></section>
-    <section id="view-plantilla" class="view hidden"><div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px"><div class="panel-title" style="margin:0">👥 Plantilla</div><div id="pl-info" class="muted"></div></div><div class="scroll" style="max-height:70vh"><table class="tbl"><thead><tr><th>Pos</th><th>Jugador</th><th class="center">Edad</th><th class="center">Atq</th><th class="center">Def</th><th class="center">Fís</th><th class="center">Prt</th><th class="center">Med</th><th class="center">Pot</th><th>Personalidad</th><th>Energía</th><th class="center">Moral</th><th class="center">Salario</th><th class="center">Estado</th><th class="right">Valor</th><th class="center">Acción</th></tr></thead><tbody id="squad-body"></tbody></table></div></div></section>
+    <section id="view-plantilla" class="view hidden"><div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px"><div class="panel-title" style="margin:0">👥 Plantilla</div><div id="pl-info" class="muted"></div></div><div class="sq-filter" id="sq-filter"></div><div class="scroll" style="max-height:70vh"><table class="tbl"><thead><tr><th>Pos</th><th>Jugador</th><th class="center">Edad</th><th class="center">Atq</th><th class="center">Def</th><th class="center">Fís</th><th class="center">Prt</th><th class="center">Med</th><th class="center">Pot</th><th>Personalidad</th><th>Energía</th><th class="center">Moral</th><th class="center">Salario</th><th class="center">Estado</th><th class="right">Valor</th><th class="center">Acción</th></tr></thead><tbody id="squad-body"></tbody></table></div></div></section>
 
     <section id="view-tactica" class="view hidden">
       <div class="grid g3">
@@ -478,6 +496,7 @@ body.device-phone .tab.go{order:-1;left:0;right:auto;margin-left:0;margin-right:
     <section id="view-concacaf" class="view hidden"><div class="panel" id="concacaf-panel"></div></section>
     <section id="view-stats" class="view hidden"><div class="panel" id="stats-panel"></div></section>
     <section id="view-noticias" class="view hidden"><div class="panel" id="noticias-panel"></div></section>
+    <section id="view-logros" class="view hidden"><div class="panel" id="logros-panel"></div></section>
     <section id="view-novedades" class="view hidden"><div class="panel" id="novedades-panel"></div></section>
 
     <section id="view-clasificacion" class="view hidden"><div class="panel"><div class="panel-title">🏆 Tabla de Posiciones</div><div class="div-tabs" id="div-switch"></div><div class="scroll"><table class="tbl"><thead><tr><th class="center">#</th><th>Club</th><th class="center">PJ</th><th class="center">PG</th><th class="center">PE</th><th class="center">PP</th><th class="center">GF</th><th class="center">GC</th><th class="center">DG</th><th class="center">Pts</th><th>Forma</th></tr></thead><tbody id="table-body"></tbody></table></div><small>► <span class="green">Verde</span>: 1° asciende directo; 2°/3° repechaje · <span class="red">Rojo</span>: 12° desciende directo; 10°/11° repechaje</small></div></section>
@@ -561,6 +580,7 @@ body.device-phone .tab.go{order:-1;left:0;right:auto;margin-left:0;margin-right:
 <script src="seleccion.js"></script>
 <script src="retos.js"></script>
 <script src="economia.js"></script>
+<script src="embajador.js"></script>
 <script>
 "use strict";
 /* =========================================================================
@@ -901,7 +921,8 @@ function calcPotential(p){
 function potStars(p){const pot=p.potencial||p.media||50;if(pot>=84)return'★★★★★';if(pot>=78)return'★★★★';if(pot>=70)return'★★★';if(pot>=62)return'★★';return'★';}
 function scoutCost(p){return Math.max(1500,Math.round(((p.valorMercado||20000)*0.025)+((p.media||55)*90)));}
 function personalityHint(p){const x=p.personalidad||'Profesional';return{Profesional:'Entrena mejor y protesta menos.',Leal:'Tolera mejor rebajas y ofertas.',Ambicioso:'Pide crecer; puede querer salir.',Conflictivo:'Moral más volátil.',Líder:'Ayuda al grupo y rinde estable.',Promesa:'Mayor margen de potencial.',Veterano:'Experiencia, poco potencial.'}[x]||'';}
-function trainingMultiplier(p){const x=p.personalidad||'Profesional';return x==='Promesa'?1.25:x==='Profesional'?1.15:x==='Líder'?1.08:x==='Conflictivo'?0.9:x==='Veterano'?0.85:1;}
+function EMBX(k){try{return window.EMB?EMB.mult(k):1;}catch(e){return 1;}}
+function trainingMultiplier(p){const x=p.personalidad||'Profesional';return EMBX('train')*x==='Promesa'?1.25:x==='Profesional'?1.15:x==='Líder'?1.08:x==='Conflictivo'?0.9:x==='Veterano'?0.85:1;}
 
 
 /* --- Nombres únicos (v1.7) --- */
@@ -1035,8 +1056,8 @@ const TOTAL_JORNADAS=22;
 /* ---------- ESTADO ---------- */
 let G=null;
 const SAVE_KEY='rfm_sv_save_v2';
-const GAME_VERSION='2.2';
-const BUILD_ID='2.2-liguilla-seleccion'
+const GAME_VERSION='2.3';
+const BUILD_ID='2.3-temporada1-temas'
 const FORMACIONES={'Libre':{def:0,med:0,del:0,l:'XI Libre (sin esquema)'},'4-4-2':{def:4,med:4,del:2,l:'4-4-2 Equilibrada'},'4-3-3':{def:4,med:3,del:3,l:'4-3-3 Ofensiva'},'3-5-2':{def:3,med:5,del:2,l:'3-5-2 Control'},'5-3-2':{def:5,med:3,del:2,l:'5-3-2 Muralla'},'4-2-3-1':{def:4,med:5,del:1,l:'4-2-3-1 Moderna'}};
 const MENTALIDADES={'Defensiva':{atk:0.80,def:1.20},'Contraataque':{atk:1.05,def:1.05},'Equilibrada':{atk:1.0,def:1.0},'Ofensiva':{atk:1.20,def:0.85}};
 const PRESIONES={'Baja':{atk:.96,def:1.04,energy:.92},'Media':{atk:1,def:1,energy:1},'Alta':{atk:1.07,def:.96,energy:1.18}};
@@ -1050,7 +1071,18 @@ const SPONSOR_POOL=[
   {id:'local',nombre:'Comercio Local SV',base:{1:42000,2:24000,3:18000},win:{1:16000,2:8000,3:4000},up:{1:90000,2:45000,3:24000},obj:{1:180000,2:90000,3:45000},riesgo:'Bajo'},
   {id:'banco',nombre:'Banco Cuscatleco',base:{1:62000,2:36000,3:25000},win:{1:23000,2:12000,3:6500},up:{1:60000,2:30000,3:16000},obj:{1:280000,2:140000,3:70000},riesgo:'Medio'},
   {id:'gallo',nombre:'Industrias La Bahía',base:{1:36000,2:22000,3:15000},win:{1:36000,2:18000,3:9000},up:{1:120000,2:60000,3:32000},obj:{1:120000,2:60000,3:30000},riesgo:'Alto'},
-  {id:'tech',nombre:'PixelNet El Salvador',base:{1:52000,2:31000,3:22000},win:{1:18000,2:9000,3:5000},up:{1:75000,2:38000,3:20000},obj:{1:220000,2:110000,3:55000},riesgo:'Medio'}
+  {id:'tech',nombre:'PixelNet El Salvador',base:{1:52000,2:31000,3:22000},win:{1:18000,2:9000,3:5000},up:{1:75000,2:38000,3:20000},obj:{1:220000,2:110000,3:55000},riesgo:'Medio'},
+  {id:'cerveza',nombre:'Cervecería Cuzcatlán',base:{1:58000,2:33000,3:23000},win:{1:20000,2:10000,3:5500},up:{1:70000,2:35000,3:18000},obj:{1:240000,2:120000,3:60000},riesgo:'Medio'},
+  {id:'telecom',nombre:'Telecom Izalco',base:{1:70000,2:40000,3:28000},win:{1:12000,2:6000,3:3500},up:{1:45000,2:22000,3:12000},obj:{1:160000,2:80000,3:40000},riesgo:'Bajo'},
+  {id:'aero',nombre:'Aerolínea Volcán',base:{1:66000,2:38000,3:26000},win:{1:26000,2:13000,3:7000},up:{1:100000,2:50000,3:26000},obj:{1:300000,2:150000,3:75000},riesgo:'Alto'},
+  {id:'cafe',nombre:'Café Pipil',base:{1:40000,2:23000,3:16000},win:{1:22000,2:11000,3:5500},up:{1:85000,2:42000,3:22000},obj:{1:170000,2:85000,3:42000},riesgo:'Medio'},
+  {id:'surf',nombre:'Surf City Crypto',base:{1:30000,2:18000,3:12000},win:{1:45000,2:22000,3:11000},up:{1:150000,2:75000,3:38000},obj:{1:330000,2:165000,3:80000},riesgo:'Alto'},
+  {id:'super',nombre:'Supermercados La Canasta',base:{1:48000,2:28000,3:20000},win:{1:14000,2:7000,3:4000},up:{1:60000,2:30000,3:16000},obj:{1:200000,2:100000,3:50000},riesgo:'Bajo'},
+  {id:'lempa',nombre:'Grupo Energético Lempa',base:{1:60000,2:35000,3:24000},win:{1:17000,2:9000,3:5000},up:{1:65000,2:33000,3:17000},obj:{1:230000,2:115000,3:58000},riesgo:'Medio'},
+  {id:'seguros',nombre:'Seguros Equidad',base:{1:55000,2:32000,3:22000},win:{1:15000,2:8000,3:4500},up:{1:55000,2:28000,3:15000},obj:{1:210000,2:105000,3:52000},riesgo:'Bajo'},
+  {id:'moto',nombre:'Motos Torogoz',base:{1:34000,2:20000,3:14000},win:{1:30000,2:15000,3:8000},up:{1:110000,2:55000,3:28000},obj:{1:150000,2:75000,3:38000},riesgo:'Alto'},
+  {id:'ron',nombre:'Ron Centenario SV',base:{1:64000,2:37000,3:26000},win:{1:19000,2:10000,3:5500},up:{1:80000,2:40000,3:21000},obj:{1:260000,2:130000,3:65000},riesgo:'Medio'},
+  {id:'univ',nombre:'Universidad Tecnológica Nacional',base:{1:44000,2:26000,3:18000},win:{1:12000,2:6500,3:3500},up:{1:50000,2:25000,3:13000},obj:{1:190000,2:95000,3:48000},riesgo:'Bajo'}
 ];
 
 function emptyTabla(){return{pj:0,pg:0,pe:0,pp:0,gf:0,gc:0,pts:0,dg:0};}
@@ -1125,8 +1157,8 @@ function userCentroFixture(){return G.centroCup&&G.centroCup.current?G.centroCup
 function quickSimCentro(a,b){return quickSim(centroTeam(a),centroTeam(b));}
 function applyCentroTabla(gr,h,a,gh,ga){applyCupTabla(gr,h,a,gh,ga);}
 function simulateCentroRound(userRes){const c=G.centroCup;if(!c||!c.current)return;const rows=[];let userPlayed=false,userAdvanced=false;
-  if(c.current.stage==='groups'){c.current.fixtures.forEach(f=>{let gh,ga;if(userRes&&(f.h===G.userClubId||f.a===G.userClubId)){gh=f.h===G.userClubId?userRes.gf:userRes.ga;ga=f.h===G.userClubId?userRes.ga:userRes.gf;userPlayed=true;}else{const r=quickSimCentro(f.h,f.a);gh=r.gh;ga=r.ga;}const gr=c.groups.find(x=>x.name===f.group);applyCentroTabla(gr,f.h,f.a,gh,ga);rows.push(`Grupo ${f.group}: ${centroTeamName(f.h)} ${gh}-${ga} ${centroTeamName(f.a)}`);});c.history.unshift({temp:G.temporada,campania:G.campania,week:c.current.week,name:c.current.name,rows});c.playedWeeks.push(c.current.week);c.round++;if(userPlayed){const prize=85000;G.budget+=prize;fin('Copa Centroamericana','ingreso',prize,'Participación regional');pushNews(`🌎 Premio Copa Centroamericana: ${money(prize)}.`, 'bueno','regional');}if(c.round>=3)buildCentroKnockout();}
-  else{const winners=[];c.current.fixtures.forEach(f=>{let gh,ga,w,pen='';if(userRes&&(f.h===G.userClubId||f.a===G.userClubId)){gh=f.h===G.userClubId?userRes.gf:userRes.ga;ga=f.h===G.userClubId?userRes.ga:userRes.gf;userPlayed=true;}else{const r=quickSimCentro(f.h,f.a);gh=r.gh;ga=r.ga;}if(gh===ga){if(userRes&&userRes.penWinner&&(f.h===G.userClubId||f.a===G.userClubId)){w=userRes.penWinner;pen=` (penales ${userRes.penText})`;}else{const ph=penaltyScore(centroTeam(f.h)),pa=penaltyScore(centroTeam(f.a));w=ph>=pa?f.h:f.a;pen=` (penales ${Math.round(ph)}-${Math.round(pa)})`;}}else w=gh>ga?f.h:f.a;winners.push(w);if(w===G.userClubId)userAdvanced=true;rows.push(`${centroTeamName(f.h)} ${gh}-${ga} ${centroTeamName(f.a)}${pen}`);});c.history.unshift({temp:G.temporada,campania:G.campania,week:c.current.week,name:c.current.name,rows,alive:winners.slice()});c.playedWeeks.push(c.current.week);c.round++;if(userPlayed){const prize=userAdvanced?180000:55000;G.budget+=prize;fin('Copa Centroamericana','ingreso',prize,userAdvanced?'Premio por avanzar':'Participación eliminatoria');pushNews(`🌎 Copa Centroamericana: ${userAdvanced?'avanzaste':'eliminado'} (+${money(prize)}).`,userAdvanced?'bueno':'malo','regional');}if(winners.length<=1){c.champion=winners[0];const finalFix=c.current.fixtures[0]||{};const runner=(finalFix.h===winners[0]?finalFix.a:finalFix.h);{const third=centroThird(c,winners[0],runner),info={};[winners[0],runner,third].forEach(id=>{const t=id&&centroTeam(id);if(t)info[id]={nombre:t.nombre,country:t.country,rating:Math.round(t.rating||teamRating(t)),color:t.color,sv:!!(G.clubes&&G.clubes[id])};});G.nextConcacafSeeds={champion:winners[0],runner,third,info};}c.active=false;addChampionHistory('Copa Centroamericana',centroTeam(c.champion),'Campeón regional');pushRegionalNews(`Copa Centroamericana: ${centroTeamName(c.champion)} campeón regional. Clasifica a CONCACAF Champions Cup.`);if(c.champion===G.userClubId)unlockAchievement('copa_centroamericana','Copa Centroamericana','Ganaste el título regional más importante.');}else{c.knockout=[];for(let i=0;i<winners.length;i+=2)c.knockout.push({h:winners[i],a:winners[i+1],gh:null,ga:null});}}
+  if(c.current.stage==='groups'){c.current.fixtures.forEach(f=>{let gh,ga;if(userRes&&(f.h===G.userClubId||f.a===G.userClubId)){gh=f.h===G.userClubId?userRes.gf:userRes.ga;ga=f.h===G.userClubId?userRes.ga:userRes.gf;userPlayed=true;}else{const r=quickSimCentro(f.h,f.a);gh=r.gh;ga=r.ga;}const gr=c.groups.find(x=>x.name===f.group);applyCentroTabla(gr,f.h,f.a,gh,ga);rows.push(`Grupo ${f.group}: ${centroTeamName(f.h)} ${gh}-${ga} ${centroTeamName(f.a)}`);});c.history.unshift({temp:G.temporada,campania:G.campania,week:c.current.week,name:c.current.name,rows});c.playedWeeks.push(c.current.week);c.round++;if(userPlayed){const prize=Math.round(230000*intlRoundMult(c));G.budget+=prize;fin('Copa Centroamericana','ingreso',prize,'Participación regional');pushNews(`🌎 Premio Copa Centroamericana: ${money(prize)}.`, 'bueno','regional');}if(c.round>=3)buildCentroKnockout();}
+  else{const winners=[];c.current.fixtures.forEach(f=>{let gh,ga,w,pen='';if(userRes&&(f.h===G.userClubId||f.a===G.userClubId)){gh=f.h===G.userClubId?userRes.gf:userRes.ga;ga=f.h===G.userClubId?userRes.ga:userRes.gf;userPlayed=true;}else{const r=quickSimCentro(f.h,f.a);gh=r.gh;ga=r.ga;}if(gh===ga){if(userRes&&userRes.penWinner&&(f.h===G.userClubId||f.a===G.userClubId)){w=userRes.penWinner;pen=` (penales ${userRes.penText})`;}else{const ph=penaltyScore(centroTeam(f.h)),pa=penaltyScore(centroTeam(f.a));w=ph>=pa?f.h:f.a;pen=` (penales ${Math.round(ph)}-${Math.round(pa)})`;}}else w=gh>ga?f.h:f.a;winners.push(w);if(w===G.userClubId)userAdvanced=true;rows.push(`${centroTeamName(f.h)} ${gh}-${ga} ${centroTeamName(f.a)}${pen}`);});c.history.unshift({temp:G.temporada,campania:G.campania,week:c.current.week,name:c.current.name,rows,alive:winners.slice()});c.playedWeeks.push(c.current.week);c.round++;if(userPlayed){const prize=Math.round((userAdvanced?480000:140000)*intlRoundMult(c));G.budget+=prize;fin('Copa Centroamericana','ingreso',prize,userAdvanced?'Premio por avanzar':'Participación eliminatoria');pushNews(`🌎 Copa Centroamericana: ${userAdvanced?'avanzaste':'eliminado'} (+${money(prize)}).`,userAdvanced?'bueno':'malo','regional');}if(winners.length<=1){c.champion=winners[0];try{intlChampBonus('Copa Centroamericana',c.champion,1100000);}catch(e){}const finalFix=c.current.fixtures[0]||{};const runner=(finalFix.h===winners[0]?finalFix.a:finalFix.h);{const third=centroThird(c,winners[0],runner),info={};[winners[0],runner,third].forEach(id=>{const t=id&&centroTeam(id);if(t)info[id]={nombre:t.nombre,country:t.country,rating:Math.round(t.rating||teamRating(t)),color:t.color,sv:!!(G.clubes&&G.clubes[id])};});G.nextConcacafSeeds={champion:winners[0],runner,third,info};}c.active=false;addChampionHistory('Copa Centroamericana',centroTeam(c.champion),'Campeón regional');pushRegionalNews(`Copa Centroamericana: ${centroTeamName(c.champion)} campeón regional. Clasifica a CONCACAF Champions Cup.`);if(c.champion===G.userClubId)unlockAchievement('copa_centroamericana','Copa Centroamericana','Ganaste el título regional más importante.');}else{c.knockout=[];for(let i=0;i<winners.length;i+=2)c.knockout.push({h:winners[i],a:winners[i+1],gh:null,ga:null});}}
   c.current=null;G.matchMode='league';autoSave();}
 function startPenaltyShootout(comp,gf,ga){
   const f=comp==='centro'?userCentroFixture():userCupFixture();if(!f)return false;const oppId=f.h===G.userClubId?f.a:f.h;
@@ -1194,8 +1226,8 @@ function maybePrepareConcacafEvent(){const c=G.concacafCup;if(!c||!c.active||c.c
 function userConcacafFixture(){return G.concacafCup&&G.concacafCup.current?G.concacafCup.current.fixtures.find(f=>f.h===G.userClubId||f.a===G.userClubId):null;}
 function quickSimConcacaf(a,b){return quickSim(concacafTeam(a),concacafTeam(b));}
 function simulateConcacafRound(userRes){const c=G.concacafCup;if(!c||!c.current)return;const rows=[];let userPlayed=false,userAdvanced=false;
-  if(c.current.stage==='groups'){c.current.fixtures.forEach(f=>{let gh,ga;if(userRes&&(f.h===G.userClubId||f.a===G.userClubId)){gh=f.h===G.userClubId?userRes.gf:userRes.ga;ga=f.h===G.userClubId?userRes.ga:userRes.gf;userPlayed=true;}else{const r=quickSimConcacaf(f.h,f.a);gh=r.gh;ga=r.ga;}const gr=c.groups.find(x=>x.name===f.group);applyCupTabla(gr,f.h,f.a,gh,ga);rows.push(`Grupo ${f.group}: ${concacafTeamName(f.h)} ${gh}-${ga} ${concacafTeamName(f.a)}`);});c.history.unshift({temp:G.temporada,campania:G.campania,week:c.current.week,name:c.current.name,rows});c.playedWeeks.push(c.current.week);c.round++;if(userPlayed){G.concacafStats={season:G.temporada,campania:G.campania,played:(G.concacafStats?.played||0)+1,advanced:G.concacafStats?.advanced||0};const prize=220000;G.budget+=prize;fin('CONCACAF','ingreso',prize,'Participación continental');pushNews(`🌐 Premio CONCACAF: ${money(prize)}.`, 'bueno','regional');}if(c.round>=3)buildConcacafKnockout();}
-  else{const winners=[];c.current.fixtures.forEach(f=>{let gh,ga,w,pen='';if(userRes&&(f.h===G.userClubId||f.a===G.userClubId)){gh=f.h===G.userClubId?userRes.gf:userRes.ga;ga=f.h===G.userClubId?userRes.ga:userRes.gf;userPlayed=true;}else{const r=quickSimConcacaf(f.h,f.a);gh=r.gh;ga=r.ga;}if(gh===ga){if(userRes&&userRes.penWinner&&(f.h===G.userClubId||f.a===G.userClubId)){w=userRes.penWinner;pen=` (penales ${userRes.penText})`;}else{const ph=penaltyScore(concacafTeam(f.h)),pa=penaltyScore(concacafTeam(f.a));w=ph>=pa?f.h:f.a;pen=` (penales ${Math.round(ph)}-${Math.round(pa)})`;}}else w=gh>ga?f.h:f.a;winners.push(w);if(w===G.userClubId)userAdvanced=true;rows.push(`${concacafTeamName(f.h)} ${gh}-${ga} ${concacafTeamName(f.a)}${pen}`);});c.history.unshift({temp:G.temporada,campania:G.campania,week:c.current.week,name:c.current.name,rows,alive:winners.slice()});c.playedWeeks.push(c.current.week);c.round++;if(userPlayed){G.concacafStats={season:G.temporada,campania:G.campania,played:(G.concacafStats?.played||0)+1,advanced:(G.concacafStats?.advanced||0)+(userAdvanced?1:0)};const prize=userAdvanced?420000:150000;G.budget+=prize;fin('CONCACAF','ingreso',prize,userAdvanced?'Premio por avanzar':'Participación eliminatoria');pushNews(`🌐 CONCACAF: ${userAdvanced?'avanzaste':'eliminado'} (+${money(prize)}).`,userAdvanced?'bueno':'malo','regional');}if(winners.length<=1){c.champion=winners[0];c.active=false;addChampionHistory('CONCACAF Champions Cup',concacafTeam(c.champion),'Campeón continental');pushNews(`🌐 ${concacafTeamName(c.champion)} gana la CONCACAF Champions Cup.`, 'gol','regional');if(c.champion===G.userClubId)unlockAchievement('concacaf_champions','CONCACAF Champions Cup','Ganaste el título continental.');}else{c.knockout=[];for(let i=0;i<winners.length;i+=2)c.knockout.push({h:winners[i],a:winners[i+1],gh:null,ga:null});}}
+  if(c.current.stage==='groups'){c.current.fixtures.forEach(f=>{let gh,ga;if(userRes&&(f.h===G.userClubId||f.a===G.userClubId)){gh=f.h===G.userClubId?userRes.gf:userRes.ga;ga=f.h===G.userClubId?userRes.ga:userRes.gf;userPlayed=true;}else{const r=quickSimConcacaf(f.h,f.a);gh=r.gh;ga=r.ga;}const gr=c.groups.find(x=>x.name===f.group);applyCupTabla(gr,f.h,f.a,gh,ga);rows.push(`Grupo ${f.group}: ${concacafTeamName(f.h)} ${gh}-${ga} ${concacafTeamName(f.a)}`);});c.history.unshift({temp:G.temporada,campania:G.campania,week:c.current.week,name:c.current.name,rows});c.playedWeeks.push(c.current.week);c.round++;if(userPlayed){G.concacafStats={season:G.temporada,campania:G.campania,played:(G.concacafStats?.played||0)+1,advanced:G.concacafStats?.advanced||0};const prize=Math.round(650000*intlRoundMult(c));G.budget+=prize;fin('CONCACAF','ingreso',prize,'Participación continental');pushNews(`🌐 Premio CONCACAF: ${money(prize)}.`, 'bueno','regional');}if(c.round>=3)buildConcacafKnockout();}
+  else{const winners=[];c.current.fixtures.forEach(f=>{let gh,ga,w,pen='';if(userRes&&(f.h===G.userClubId||f.a===G.userClubId)){gh=f.h===G.userClubId?userRes.gf:userRes.ga;ga=f.h===G.userClubId?userRes.ga:userRes.gf;userPlayed=true;}else{const r=quickSimConcacaf(f.h,f.a);gh=r.gh;ga=r.ga;}if(gh===ga){if(userRes&&userRes.penWinner&&(f.h===G.userClubId||f.a===G.userClubId)){w=userRes.penWinner;pen=` (penales ${userRes.penText})`;}else{const ph=penaltyScore(concacafTeam(f.h)),pa=penaltyScore(concacafTeam(f.a));w=ph>=pa?f.h:f.a;pen=` (penales ${Math.round(ph)}-${Math.round(pa)})`;}}else w=gh>ga?f.h:f.a;winners.push(w);if(w===G.userClubId)userAdvanced=true;rows.push(`${concacafTeamName(f.h)} ${gh}-${ga} ${concacafTeamName(f.a)}${pen}`);});c.history.unshift({temp:G.temporada,campania:G.campania,week:c.current.week,name:c.current.name,rows,alive:winners.slice()});c.playedWeeks.push(c.current.week);c.round++;if(userPlayed){G.concacafStats={season:G.temporada,campania:G.campania,played:(G.concacafStats?.played||0)+1,advanced:(G.concacafStats?.advanced||0)+(userAdvanced?1:0)};const prize=Math.round((userAdvanced?1200000:380000)*intlRoundMult(c));G.budget+=prize;fin('CONCACAF','ingreso',prize,userAdvanced?'Premio por avanzar':'Participación eliminatoria');pushNews(`🌐 CONCACAF: ${userAdvanced?'avanzaste':'eliminado'} (+${money(prize)}).`,userAdvanced?'bueno':'malo','regional');}if(winners.length<=1){c.champion=winners[0];try{intlChampBonus('CONCACAF',c.champion,3500000);}catch(e){}c.active=false;addChampionHistory('CONCACAF Champions Cup',concacafTeam(c.champion),'Campeón continental');pushNews(`🌐 ${concacafTeamName(c.champion)} gana la CONCACAF Champions Cup.`, 'gol','regional');if(c.champion===G.userClubId)unlockAchievement('concacaf_champions','CONCACAF Champions Cup','Ganaste el título continental.');}else{c.knockout=[];for(let i=0;i<winners.length;i+=2)c.knockout.push({h:winners[i],a:winners[i+1],gh:null,ga:null});}}
   c.current=null;G.matchMode='league';autoSave();}
 function finishPlayoffMatch(gf,ga){
   if(!G.playoffStage)return;
@@ -1386,7 +1418,9 @@ function evaluateSeasonObjectives(obj,pos,club){
 function renderObjectivesMini(obj){const arr=(obj&&obj.objetivos)||[];return arr.map(o=>`<div style="font-size:15px;margin:3px 0"><span class="tag ${o.met===true?'green':o.met===false?'red':'amber'}">${esc(o.tipo)}</span> ${esc(o.desc)}</div>`).join('')||`<div class="amber">🎯 ${esc(obj.desc)}</div>`;}
 
 function genSponsorOffers(lvl){
-  return SPONSOR_POOL.map(s=>({id:s.id,nombre:s.nombre,base:s.base[lvl],win:s.win[lvl],up:s.up[lvl],obj:s.obj[lvl],riesgo:s.riesgo}));
+  const pool=SPONSOR_POOL.slice();for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+  const pick5=pool.slice(0,6);['Bajo','Alto'].forEach((r,k)=>{if(!pick5.some(x=>x.riesgo===r)){const c=SPONSOR_POOL.find(x=>x.riesgo===r);if(c)pick5[pick5.length-1-k]=c;}});
+  return pick5.map(s=>({id:s.id,nombre:s.nombre,base:s.base[lvl],win:s.win[lvl],up:s.up[lvl],obj:s.obj[lvl],riesgo:s.riesgo}));
 }
 function fin(t,tipo,monto,detalle){if(!G.finanzas)G.finanzas=[];G.finanzas.unshift({temp:G.temporada,j:G.jornadaActual,tipo,monto,detalle});if(G.finanzas.length>80)G.finanzas.length=80;}
 function applyRealRosterUpdates(){if(G.realRosterV4)return;['ALI','FAS','AGU','FIR','INT'].forEach(id=>{if(G.clubes[id]){G.clubes[id].plantilla=clubSquad(id,G.clubes[id].tier);}});G.realRosterV4=true;if(G.clubes[G.userClubId])G.tactics.alineacion=bestXI(userClub().plantilla,G.tactics.formacion||'4-4-2').map(p=>p.id);}
@@ -1401,7 +1435,7 @@ function migrateState(){
   if(!G||!G.clubes)return;repairState();
   applyRealRosterUpdates();
   Object.values(G.clubes).forEach(c=>{if(!c.estadio)c.estadio=initStadium(c.id,c.nivel,c.estadioPropio,c.ciudad);c.plantilla.forEach(p=>{if(p.moral==null)p.moral=60+rnd(31);if(p.contrato==null)p.contrato=1+rnd(3);if(p.quiereIrse==null)p.quiereIrse=false;if(p.yellowCards==null)p.yellowCards=0;if(p.suspended==null)p.suspended=0;if(!p.nacionalidad)p.nacionalidad='El Salvador';if(!p.equipoOrigen)p.equipoOrigen=c.nombre||'Libre';if(!p.personalidad)p.personalidad=pick(PERSONALIDADES);if(!p.potencial||p.potencial<p.media)p.potencial=calcPotential(p);if(p.scouted==null)p.scouted=true;if(!p.stats)p.stats={goles:0,asistencias:0,atajadas:0,pj:0};});});
-  if(!G.sponsorOffers)G.sponsorOffers=genSponsorOffers(userClub().nivel);
+  if(!G.sponsorOffers||(!G.sponsor&&G.sponsorOffers.length<=4))G.sponsorOffers=genSponsorOffers(userClub().nivel);
   if(!G.objetivo||!G.objetivo.tipo||/Liguilla|Top 4|Pelear ascenso/i.test(G.objetivo.desc||''))G.objetivo=setObjectiveFor(userClub(),G.divisiones);
   if(G.sponsor&&G.sponsor.base==null){G.sponsor=null;G.sponsorOffers=genSponsorOffers(userClub().nivel);}
   if(!G.dtContract)G.dtContract={campaignsLeft:4,lastRaise:0};if(G.dtContract.campaignsLeft==null)G.dtContract.campaignsLeft=2;if(!G.careerId)G.careerId=uid()+Date.now().toString(36);if(G.managerWallet==null)G.managerWallet=0;if(!G.avatar)G.avatar={items:[]};if(!G.achievements)G.achievements=[];if(!G.championHistory)G.championHistory=[];if(!G.hall)G.hall={};if(!G.campania)G.campania='Apertura';if(!G.supercopas)G.supercopas=[];if(!G.champions)G.champions={};if(!G.training)G.training={intensidad:'Normal',enfoque:'Equilibrado'};if(!G.agentOffers)G.agentOffers=genAgentOffers(userClub().nivel);if(!G.inboxOffers)G.inboxOffers=[];if(!G.device)G.device=localStorage.getItem('rfm_device')||'pc';applyDevice(G.device);
@@ -1648,7 +1682,7 @@ function recordPlayerStats(gf,ga){const u=userClub();const xi=G.tactics.alineaci
 }
 function topPlayerStat(key){const all=Object.values(G.clubes).flatMap(c=>c.plantilla.map(p=>({p,club:c})));return all.sort((a,b)=>((b.p.stats&&b.p.stats[key])||0)-((a.p.stats&&a.p.stats[key])||0))[0];}
 function sponsorIncome(win){return G.sponsor?(G.sponsor.base+(win?G.sponsor.win:0)):0;}
-function tvIncome(lvl){return{1:18000,2:7000,3:2500}[lvl]||2500;}
+function tvIncome(lvl){return{1:14000,2:5500,3:2000}[lvl]||2000;}
 function stadiumCost(u){const e=u.estadio||initStadium(u.id,u.nivel,u.estadioPropio,u.ciudad);let c=e.propio?Math.round(e.aforo*(0.42+(e.nivel||1)*0.05)):e.alquiler;if(e.construccion&&e.construccion.weeks>0)c+=Math.round((e.alquiler||12000)*0.85);return c;}
 function stadiumFair(lvl){return{1:8,2:5,3:3.5}[lvl]||4;}
 function stadiumMaxPrice(lvl){return{1:30,2:20,3:12}[lvl]||12;}
@@ -1665,15 +1699,15 @@ function stadiumDemand(e,u,opp,isHome){
   const mkt=(G.eco&&G.eco.mkt&&G.eco.mkt.gate>0)?1+G.eco.mkt.boost:1;
   const racha=(u.stats&&u.stats.racha)?clamp(u.stats.racha,-5,5)*0.012:0;
   const pg=e.precio>fair?clamp(1-((e.precio-fair)/(fair*1.4))*0.62,0.22,1):1+(fair-e.precio)/fair*0.12;
-  const occG=clamp((0.40+appeal*0.27)*pg*quality*fan*mkt+racha,0.08,1);
+  const occG=clamp((0.40+appeal*0.27)*pg*quality*fan*mkt*EMBX('fans')+racha,0.08,1);
   const fairP=fair*4.2*(1+(e.nivel-1)*0.06);
   const pp=e.precioPalco>fairP?clamp(1-((e.precioPalco-fairP)/(fairP*1.2))*0.7,0.12,1):1+(fairP-e.precioPalco)/fairP*0.08;
-  const occP=clamp((0.35+appeal*0.3)*pp*fan*mkt*(1+(e.palcosNivel||0)*0.04)+racha,0.05,1);
+  const occP=clamp((0.35+appeal*0.3)*pp*fan*mkt*EMBX('fans')*(1+(e.palcosNivel||0)*0.04)+racha,0.05,1);
   return{occG,occP,pg,pp,fair,fairP};
 }
 function stadiumBreakdown(isHome,u,opp){
   const e=u.estadio||(u.estadio=initStadium(u.id,u.nivel,u.estadioPropio,u.ciudad));const d=stadiumDemand(e,u,opp,isHome);const lvl=u.nivel;
-  const k=isHome?1:0.25,mult=lvl===1?3.4:lvl===2?2.6:2.1;
+  const k=isHome?1:0.25,mult=lvl===1?2.4:lvl===2?1.9:1.6;
   const seatsG=Math.max(0,e.aforo-e.palcosN),seatsP=e.palcosN;
   const aG=Math.round(seatsG*k*d.occG),aP=Math.round(seatsP*k*d.occP);
   const gG=Math.round(aG*e.precio*mult),gP=Math.round(aP*e.precioPalco*mult);
@@ -1688,7 +1722,7 @@ function stadiumRevenue(isHome,u,opp){
   return b.gG+b.gP+b.merch;
 }
 
-function resultBonus(gf,ga,lvl){if(gf>ga)return{1:18000,2:9000,3:4500}[lvl];if(gf===ga)return{1:7000,2:3500,3:1800}[lvl];return{1:2500,2:1200,3:700}[lvl];}
+function resultBonus(gf,ga,lvl){if(gf>ga)return{1:12000,2:6500,3:3500}[lvl];if(gf===ga)return{1:5000,2:2800,3:1500}[lvl];return{1:1800,2:1000,3:600}[lvl];}
 function estimateMatchBalance(roundOffset){const u=userClub();const lvl=u.nivel;const idx=(G.jornadaActual-1)+(roundOffset||0);const j=G.calendarios[lvl]&&G.calendarios[lvl][idx];
   if(!j)return{income:0,wage:weeklyWage(),cost:stadiumCost(u),net:-weeklyWage()-stadiumCost(u),detail:'Sin fecha'};
   const m=j.find(x=>x.h===G.userClubId||x.a===G.userClubId);if(!m)return{income:0,wage:weeklyWage(),cost:0,net:-weeklyWage(),detail:'Libre'};
@@ -1758,7 +1792,7 @@ function finishJornada(userGF,userGA,matchLogs){
   u.plantilla.forEach(p=>{if(p.lesionado){p.lesionJor--;if(p.lesionJor<=0){p.lesionado=false;p.lesionJor=0;}}if(p.suspended>0)p.suspended--;p.energia=clamp(p.energia+(p.lesionado?3:7),0,100);});
   const carded=[];
   const starters=G.tactics.alineacion.map(id=>u.plantilla.find(p=>p.id===id)).filter(Boolean);
-  starters.forEach(p=>{if(!p.lesionado){const use=((PRESIONES[G.tactics.presion||'Media'].energy+RITMOS[G.tactics.ritmo||'Normal'].energy)/2);const drain=Math.round((12+rnd(12))*use);p.energia=clamp(p.energia-drain,0,100);if(Math.random()<(window.PRES?PRES.injuryChance():0.025)){p.lesionado=true;p.lesionJor=1+rnd(3);}const yChance=(G.tactics.presion==='Alta'?0.13:0.08)+(p.energia<35?0.03:0);if(Math.random()<yChance){p.yellowCards=(p.yellowCards||0)+1;carded.push('🟨 '+p.nombre.split(' ').slice(-1)[0]);if(p.yellowCards>=3){p.yellowCards=0;p.suspended=Math.max(p.suspended||0,1);carded.push('suspensión '+p.nombre.split(' ').slice(-1)[0]);}}if(Math.random()<(G.tactics.presion==='Alta'?0.018:0.010)){p.suspended=Math.max(p.suspended||0,1);carded.push('🟥 '+p.nombre.split(' ').slice(-1)[0]);}}});
+  starters.forEach(p=>{if(!p.lesionado){const use=((PRESIONES[G.tactics.presion||'Media'].energy+RITMOS[G.tactics.ritmo||'Normal'].energy)/2);const drain=Math.round((12+rnd(12))*use);p.energia=clamp(p.energia-drain,0,100);if(Math.random()<(window.PRES?PRES.injuryChance():0.025)*EMBX('inj')){p.lesionado=true;p.lesionJor=1+rnd(3);}const yChance=(G.tactics.presion==='Alta'?0.13:0.08)+(p.energia<35?0.03:0);if(Math.random()<yChance){p.yellowCards=(p.yellowCards||0)+1;carded.push('🟨 '+p.nombre.split(' ').slice(-1)[0]);if(p.yellowCards>=3){p.yellowCards=0;p.suspended=Math.max(p.suspended||0,1);carded.push('suspensión '+p.nombre.split(' ').slice(-1)[0]);}}if(Math.random()<(G.tactics.presion==='Alta'?0.018:0.010)){p.suspended=Math.max(p.suspended||0,1);carded.push('🟥 '+p.nombre.split(' ').slice(-1)[0]);}}});
   if(carded.length)pushNews(`🟨 Disciplina: ${carded.slice(0,5).join(', ')}.`, carded.some(x=>x.includes('🟥')||x.includes('suspensión'))?'malo':'info');eliteUpkeepAfterMatch();
   // noticias
   const oppName=(()=>{const m=G.calendarios[lvl][jor-1].find(x=>x.h===G.userClubId||x.a===G.userClubId);const oid=m.h===G.userClubId?m.a:m.h;return G.clubes[oid].nombre;})();
@@ -1895,6 +1929,48 @@ function normalizeBudget(reason){return;const cap=budgetSoftCap(userClub().nivel
 function withdrawReserve(pct){if(blockIfLive('retirar reserva'))return;const r=G.clubReserve||0;if(r<=0){toast('No hay reserva para retirar');return;}const cap=budgetSoftCap(userClub().nivel);const room=Math.max(0,cap-G.budget);const amt=Math.min(Math.round(r*pct/100),room);if(amt<=0){toast('Tu presupuesto está en el tope ('+money(cap)+'). Gastá primero para retirar reserva.');return;}G.budget+=amt;G.clubReserve=r-amt;fin('Directiva','ingreso',amt,'Retiro de la reserva del club');pushNews(`🏦 Retiraste ${money(amt)} de la reserva del club.`,'info');autoSave();renderAll();toast('Retiraste '+money(amt));}
 function unlockAchievement(id,name,desc){G.achievements=G.achievements||[];if(G.achievements.some(a=>a.id===id))return;G.achievements.unshift({id,name,desc,temp:G.temporada,campania:G.campania});pushNews(`🏅 Logro desbloqueado: ${name}.`,'gol');}
 function buyAvatarItem(id,name,cost){G.avatar=G.avatar||{items:[]};G.managerWallet=G.managerWallet||0;if(G.avatar.items.includes(id)){toast('Ya comprado');return;}if(G.managerWallet<cost){toast('No alcanza sueldo DT');return;}G.managerWallet-=cost;G.avatar.items.push(id);unlockAchievement('style_'+id,'Estilo DT: '+name,'Compraste un elemento cosmético');autoSave();renderAll();toast('Compra personal realizada');}
+
+/* ---------- LOGROS: catálogo completo ---------- */
+const LOGROS=[
+ ['Campeonatos',[
+  ['champ_1_','🏆','Campeón de Primera','Gana un torneo de Primera División (Apertura o Clausura).'],
+  ['champ_2_','🥈','Campeón de Segunda','Gana un torneo de Segunda División.'],
+  ['champ_3_','🥉','Campeón de Tercera','Gana un torneo de Tercera División.'],
+  ['champ_liguilla_','🔥','Campeón de liguilla','Gana la liguilla de Primera.'],
+  ['campeon_campeones','👑','Campeón de Campeones','Gana Apertura y Clausura en la misma temporada.'],
+  ['supercopa_','🏅','Supercopa','Gana la Supercopa de Campeones.'],
+  ['copa_presidente','🏆','Copa Presidente','Gana la Copa Presidente.'],
+  ['dinastia3','🏛','Coleccionista','Suma 3 títulos de liga con tu club.',g=>titulos()>=3],
+  ['dinastia10','🏰','Dinastía','Suma 10 títulos de liga con tu club.',g=>titulos()>=10]]],
+ ['Internacional',[
+  ['copa_centroamericana','🌎','Rey de Centroamérica','Gana la Copa Centroamericana.'],
+  ['concacaf_champions','🌍','Campeón de CONCACAF','Gana la CONCACAF Champions Cup.'],
+  ['sel_on','🇸🇻','Seleccionador','Sé nombrado seleccionador de El Salvador.',g=>!!(g.sel&&(g.sel.on||(g.sel.hist||[]).some(h=>h.on)))],
+  ['sel_mundial','⚽','A un Mundial','Clasifica a El Salvador al Mundial.',g=>!!(g.sel&&(g.sel.hist||[]).some(h=>h.on&&/Clasific/.test(h.res||'')&&!/No clasific/.test(h.res||'')))],
+  ['sel_campeon','🌟','Campeón con la Selecta','Gana la Liga de Naciones, Copa Oro o Mundial con El Salvador.',g=>!!(g.sel&&(g.sel.hist||[]).some(h=>h.on&&/^Campe/.test(h.res||'')))]]],
+ ['Carrera',[
+  ['prom_','⬆','Ascenso conseguido','Sube de categoría.'],
+  ['rep70','⭐','Entrenador respetado','Alcanza reputación 70.',g=>(g.reputacion||0)>=70],
+  ['rep90','🌠','Leyenda','Alcanza reputación 90.',g=>(g.reputacion||0)>=90],
+  ['decada','📅','Una década','Sigue en el juego 10 temporadas.',g=>g.temporada>=2036],
+  ['elite_signing','💎','Fichaje de élite','Ficha a un jugador de reputación internacional.'],
+  ['cantera_debut','🌱','De la cantera','Sube un juvenil de la cantera al primer equipo.',g=>(g.achievements||[]).some(a=>a.id==='cantera_debut')],
+  ['embajador','🎁','Embajador','Comparte el juego y reclama la insignia en 🎁 Embajador.',g=>!!(window.EMB&&EMB.badge())],
+  ['patro','🤝','Primer patrocinador','Firma un contrato de patrocinio.',g=>!!g.sponsor]]],
+ ['Gestión',[
+  ['presidente','🏛','Presidente electo','Gana las elecciones del club.'],
+  ['desde_cero','🌱','Del barrio a Tercera','Funda un club y asciende a Tercera División.'],
+  ['millon','💰','Caja fuerte','Junta $5 millones en caja.',g=>(g.budget||0)>=5e6],
+  ['estilo','🕶','Con estilo','Compra un elemento cosmético para tu DT.',g=>(g.achievements||[]).some(a=>/^style_/.test(a.id))]]]
+];
+function titulos(){return (G.championHistory||[]).filter(h=>h.id===G.userClubId&&/Primera|Segunda|Tercera|Apertura|Clausura|Liga/i.test(h.comp||'')&&!/Copa|Supercopa|Liguilla/i.test(h.comp||'')).length;}
+function logroHecho(l){const ach=G.achievements||[];if(l[4])return !!l[4](G);return ach.some(a=>a.id===l[0]||a.id.startsWith(l[0])&&l[0].endsWith('_'));}
+function checkLogros(){if(!G)return;try{LOGROS.forEach(c=>c[1].forEach(l=>{if(l[4]&&!(G.achievements||[]).some(a=>a.id===l[0])&&l[4](G))unlockAchievement(l[0],l[2],l[3]);}));}catch(e){}}
+function renderLogros(){const h=$('logros-panel');if(!h)return;checkLogros();let tot=0,ok=0;
+  const body=LOGROS.map(c=>{const rows=c[1].map(l=>{const d=logroHecho(l);tot++;if(d)ok++;const a=(G.achievements||[]).find(x=>x.id===l[0]||(l[0].endsWith('_')&&x.id.startsWith(l[0])));
+    return`<div class="offer" style="${d?'':'opacity:.6'}"><div style="display:flex;gap:10px;align-items:center"><span style="font-size:26px">${d?l[1]:'🔒'}</span><div><b class="${d?'gold':'muted'}">${esc(l[2])}</b><br><small class="muted">${esc(l[3])}</small>${d&&a?`<br><small class="green">✔ ${a.temp} ${a.campania||''}</small>`:''}</div></div></div>`;}).join('');
+    return`<div class="panel-title" style="margin-top:12px">${c[0]}</div>${rows}`;}).join('');
+  h.innerHTML=`<div class="panel-title">🏅 Logros · ${ok}/${tot}</div><div class="bar" style="margin:6px 0"><i style="width:${Math.round(ok/tot*100)}%"></i></div><p class="muted" style="font-size:15px">Los logros son de tu carrera actual. Tu avatar y decoraciones siguen en ⭐ Carrera.</p>${body}`;}
 function renderAchievements(){const a=G.achievements||[];const owned=(G.avatar&&G.avatar.items)||[];
   const face=owned.includes('lentes')?'😎':owned.includes('gorra')?'🧢':owned.includes('traje')?'🤵':'🧑‍💼';
   const list=a.length?a.map(x=>`<div class="offer"><b class="gold">${esc(x.name)}</b><br><span class="muted">${esc(x.desc)} · ${x.temp} ${x.campania||''}</span></div>`).join(''):'<p class="muted">Sin logros aún.</p>';
@@ -2008,7 +2084,9 @@ function helpHTML(){return`<div class="modal-title">📘 Manual rápido</div><di
   <div class="center"><button class="btn btn-p" onclick="closeModal();startTutorial(true)">Ver tutorial paso a paso</button> <button class="btn btn-a" onclick="downloadOfflineMusic()">🎵 Guardar música offline</button> <button class="btn" onclick="openMusicSelector()">🎧 Elegir música</button> <button class="btn btn-a" onclick="sendFeedback()">📧 Enviar feedback</button> <button class="btn" onclick="repairGame(true)">🔧 Reparar partida</button> <button class="btn" onclick="closeModal()">Cerrar</button></div>`;}
 function openHelpCenter(){openModal(helpHTML());}
 
-function leaguePrize(lvl,pos){const base={1:170000,2:65000,3:26000}[lvl];const min={1:28000,2:12000,3:5000}[lvl];const ratio=(12-pos)/11;return Math.round(min+(base-min)*Math.max(0,ratio));}
+function intlRoundMult(c){return 1+0.28*Math.min(4,Math.max(0,(c&&c.round||1)-1));}
+function intlChampBonus(comp,champ,amt){if(champ!==G.userClubId)return;const v=Math.round(amt*(G.eco&&G.eco.mkt?1:1));G.budget+=v;fin(comp,'ingreso',v,'Premio de campeón');pushNews(`🏆 Premio de campeón de ${comp}: +${money(v)}.`,'gol','regional');G.reputacion=Math.min(100,(G.reputacion||50)+4);}
+function leaguePrize(lvl,pos){const base={1:130000,2:52000,3:22000}[lvl];const min={1:28000,2:12000,3:5000}[lvl];const ratio=(12-pos)/11;return Math.round(min+(base-min)*Math.max(0,ratio));}
 function playSupercopa(ap,cl){if(!ap||!cl||!G.clubes[ap]||!G.clubes[cl])return null;const r=simKnockoutPair(G.clubes[ap],G.clubes[cl]);const res={temp:G.temporada,apertura:ap,clausura:cl,champion:r.w,score:`${G.clubes[r.a].nombre} ${r.ga}-${r.gb} ${G.clubes[r.b].nombre}${r.pen?` (pen. ${r.pa}-${r.pb})`:''}`};G.supercopas=G.supercopas||[];G.supercopas.unshift(res);addChampionHistory('Supercopa de Campeones',G.clubes[res.champion],res.score);pushNews(`🏅 Supercopa de Campeones: ${res.score}. Campeón: ${G.clubes[res.champion].nombre}.`,'gol');return res;}
 function advanceCampaign(){
   if((G.campania||'Apertura')==='Apertura'){G.campania='Clausura';}
@@ -2229,6 +2307,22 @@ function autoResolveNonUserStages(){
 }
 // ============================================================
 
+
+function dtCanteraIntake(){
+  if(G.rol==='presidente'||(window.PRES&&PRES.isPres&&PRES.isPres()))return;
+  const u=userClub(),lvl=divisionLevel(G.userClubId);const n=(lvl===1?3:2)+(window.EMB?EMB.canteraBonus():0);const nuevos=[];
+  const cap=26-u.plantilla.length;if(cap<=0){pushNews('🌱 Cantera: había juveniles listos, pero la plantilla está llena (26). Libera cupos para que suban.','info','club');return;}
+  for(let i=0;i<Math.min(n,cap);i++){
+    const pos=pick(['POR','DEF','DEF','MED','MED','DEL','DEL']);const pot=clamp(Math.round((lvl===1?66:lvl===2?60:56)+rnd(14)+rnd(10)-4),45,86);
+    const med0=clamp(pot-24-rnd(12),28,54);const f=v=>clamp(Math.round(v+rnd(7)-3),8,90);
+    const a={ataque:f(med0),defensa:f(med0),fisico:f(med0-3),porteria:f(med0*0.4)};
+    if(pos==='POR'){a.porteria=f(med0+12);a.ataque=f(med0*0.2);}else if(pos==='DEF')a.defensa=f(med0+8);else if(pos==='DEL')a.ataque=f(med0+8);
+    const p={id:uid(),nombre:uniqueName(),posicion:pos,edad:16+rnd(3),atributos:a,energia:100,moral:75,contrato:3,quiereIrse:false,lesionado:false,lesionJor:0,yellowCards:0,suspended:0,nacionalidad:'El Salvador',equipoOrigen:'Cantera '+u.nombre,stats:{goles:0,asistencias:0,atajadas:0,pj:0},personalidad:'Promesa'};
+    p.media=calcMedia(p);p.potencial=Math.max(pot,p.media);p.salario=Math.round(p.media*p.media*0.3/10)*10;p.valorMercado=Math.round(p.media*p.media*40*ageFactor(p.edad));
+    u.plantilla.push(p);nuevos.push(p);
+  }
+  if(nuevos.length){pushNews(`🌱 Cantera: suben al primer equipo ${nuevos.map(p=>`${p.nombre} (${p.posicion}, ${p.edad}a, ${p.media}/${p.potencial})`).join(', ')}.`,'bueno','club');unlockAchievement('cantera_debut','De la cantera','Subiste un juvenil de la cantera al primer equipo');}
+}
 function endSeason(){
   // FIX 4: si hay playoff o supercopa sin usuario, resolverlos antes
   autoResolveNonUserStages();
@@ -2391,6 +2485,7 @@ function endSeason(){
   // 5) capturar resultado de la temporada (antes de pisar el objetivo) + nuevo objetivo
   const seasonRes={pos,lvl,met,titulo,promoted,relegated,desc:G.objetivo.desc,season:endedSeason,campania:endedCampania,objCompleted:evalObj.completed,objTotal:evalObj.total,club:G.clubes[G.userClubId].nombre,playoff:primeraPlayoff?{champion:G.clubes[primeraPlayoff.champion].nombre,rows:primeraPlayoff.rows}:null,repechaje:G.repechajes&&G.repechajes[0]?G.repechajes[0].rows:null};
   G.objetivo=setObjectiveFor(userClub(),G.divisiones);
+  try{dtCanteraIntake();}catch(e){console.error('cantera DT',e);}
   // 6) ¿despido?
   const fired=G.confianza<=0;
   if(fired){G.confianza=40;G.avisos++;}
@@ -2652,9 +2747,31 @@ function renderCarrera(){
   if(window.PRES)PRES.afterCarrera();
 }
 
-function renderSquad(){const u=userClub();const XI=new Set(G.tactics.alineacion);
-  $('pl-info').textContent=`${u.plantilla.length} jugadores · Nómina ${money(weeklyWage())}/fecha`;
-  $('squad-body').innerHTML=u.plantilla.slice().sort((a,b)=>posOrd(a.posicion)-posOrd(b.posicion)||b.media-a.media).map(p=>{const a=p.atributos;
+const SQF={q:'',pos:'',sort:'pos',desc:true,amin:'',amax:'',mmin:'',est:''};
+const SQ_SORTS=[['pos','Posición'],['media','Media'],['edad','Edad'],['ataque','Ataque'],['defensa','Defensa'],['fisico','Físico'],['porteria','Portería'],['potencial','Potencial'],['contrato','Contrato'],['moral','Moral'],['energia','Energía'],['salario','Salario'],['valor','Valor']];
+function sqfVal(p,k){const a=p.atributos||{};switch(k){case'media':return p.media;case'edad':return p.edad;case'ataque':return a.ataque;case'defensa':return a.defensa;case'fisico':return a.fisico;case'porteria':return a.porteria;case'potencial':return p.potencial||p.media;case'contrato':return p.contrato||0;case'moral':return p.moral==null?60:p.moral;case'energia':return p.energia;case'salario':return p.salario||0;case'valor':return p.valorMercado||0;}return p.media;}
+function squadList(u){const XI=new Set(G.tactics.alineacion),f=SQF;let l=u.plantilla.slice();
+  if(f.q){const q=f.q.toLowerCase();l=l.filter(p=>p.nombre.toLowerCase().includes(q));}
+  if(f.pos)l=l.filter(p=>p.posicion===f.pos);
+  if(f.amin!=='')l=l.filter(p=>p.edad>=+f.amin);if(f.amax!=='')l=l.filter(p=>p.edad<=+f.amax);if(f.mmin!=='')l=l.filter(p=>p.media>=+f.mmin);
+  if(f.est==='tit')l=l.filter(p=>XI.has(p.id));else if(f.est==='res')l=l.filter(p=>!XI.has(p.id));else if(f.est==='les')l=l.filter(p=>p.lesionado||p.suspended>0);else if(f.est==='c1')l=l.filter(p=>(p.contrato||0)<=1);else if(f.est==='out')l=l.filter(p=>p.quiereIrse);else if(f.est==='can')l=l.filter(p=>/Cantera/.test(p.equipoOrigen||''));else if(f.est==='jov')l=l.filter(p=>p.edad<=21);
+  if(f.sort==='pos')l.sort((a,b)=>posOrd(a.posicion)-posOrd(b.posicion)||b.media-a.media);
+  else l.sort((a,b)=>(f.desc?sqfVal(b,f.sort)-sqfVal(a,f.sort):sqfVal(a,f.sort)-sqfVal(b,f.sort))||b.media-a.media);
+  return l;}
+function sqfSet(k,v){SQF[k]=v;if(k==='sort'&&v!=='pos')SQF.desc=true;renderSquad(true);}
+function sqfReset(){Object.assign(SQF,{q:'',pos:'',sort:'pos',desc:true,amin:'',amax:'',mmin:'',est:''});renderSquad();}
+function renderSqFilter(){const h=$('sq-filter');if(!h)return;const f=SQF;const o=(arr,cur)=>arr.map(x=>`<option value="${x[0]}" ${x[0]===cur?'selected':''}>${x[1]}</option>`).join('');
+  h.innerHTML=`<div class="sq-row"><input id="sqf-q" placeholder="🔎 Nombre" value="${esc(f.q)}" oninput="sqfSet('q',this.value)">
+  <select onchange="sqfSet('pos',this.value)">${o([['','Todas las pos.'],['POR','POR'],['DEF','DEF'],['MED','MED'],['DEL','DEL']],f.pos)}</select>
+  <select onchange="sqfSet('est',this.value)">${o([['','Todos'],['tit','Titulares'],['res','Suplentes'],['les','Lesionados/susp.'],['c1','Contrato ≤1 año'],['out','Quieren salir'],['jov','Jóvenes ≤21'],['can','De cantera']],f.est)}</select>
+  <select onchange="sqfSet('sort',this.value)">${o(SQ_SORTS,f.sort)}</select>
+  <button class="btn btn-sm" onclick="SQF.desc=!SQF.desc;renderSquad(true)" title="Invertir orden">${f.desc?'↓':'↑'}</button></div>
+  <div class="sq-row"><label>Edad <input type="number" min="14" max="45" value="${esc(f.amin)}" placeholder="mín" onchange="sqfSet('amin',this.value)"> – <input type="number" min="14" max="45" value="${esc(f.amax)}" placeholder="máx" onchange="sqfSet('amax',this.value)"></label>
+  <label>Media ≥ <input type="number" min="1" max="99" value="${esc(f.mmin)}" onchange="sqfSet('mmin',this.value)"></label><button class="btn btn-sm" onclick="sqfReset()">✖ Limpiar</button></div>`;}
+function renderSquad(keep){const u=userClub();const XI=new Set(G.tactics.alineacion);
+  if(!keep||!$('sqf-q'))renderSqFilter();else{const b=document.querySelector('#sq-filter .sq-row button');if(b)b.textContent=SQF.desc?'↓':'↑';}
+  const lst=squadList(u);$('pl-info').textContent=`${lst.length===u.plantilla.length?u.plantilla.length:lst.length+' de '+u.plantilla.length} jugadores · Nómina ${money(weeklyWage())}/fecha`;
+  $('squad-body').innerHTML=lst.map(p=>{const a=p.atributos;
     const baseSt=p.lesionado?`<span class="tag red">🩹${p.lesionJor}f</span>`:(XI.has(p.id)?`<span class="tag green">TIT</span>`:'');
     const st=baseSt+' '+`<span class="tag ${(p.contrato||0)<=1?'red':'amber'}">C${p.contrato||0}a</span>`+(p.yellowCards?` <span class="tag amber">🟨${p.yellowCards}</span>`:'')+(p.suspended>0?` <span class="tag red">SUSP ${p.suspended}</span>`:'')+(p.quiereIrse?' <span class="tag red">SALIR</span>':'');
     const moral=p.moral==null?60:p.moral;
@@ -2958,10 +3075,10 @@ function playQuick(){if(window.PRES)PRES.beforePlay();if(!prepComplete()){toast(
 function switchView(v){if(window.PRES)v=PRES.redirect(v);if(isLiveRunning()&&isCriticalView(v)){toast(v==='tactica'?'Táctica solo en el descanso':'Esta sección está bloqueada durante el partido en vivo');return;}if(!SIM)abortSim();CUR=v;document.querySelectorAll('.view').forEach(s=>s.classList.add('hidden'));
   const sec=$('view-'+v);if(sec)sec.classList.remove('hidden');
   document.querySelectorAll('.tab').forEach(t=>{t.classList.toggle('active',t.dataset.v===v);});
-  if(v==='dashboard')renderDashboard();if(v==='carrera')renderCarrera();if(v==='plantilla')renderSquad();if(v==='tactica')renderTactics();if(v==='mercado')renderMarket();if(v==='finanzas')renderFinanzas();if(v==='entreno')renderEntreno();if(v==='calendario')renderCalendario();if(v==='copa')renderCopa();if(v==='centro')renderCentro();if(v==='concacaf')renderConcacaf();if(v==='stats')renderStats();if(v==='noticias'){syncOnlineNow(true);renderNoticias();}if(v==='clasificacion'){VIEW_DIV=userClub().nivel;renderTable();}if(v==='partido')renderMatch();if(v==='novedades')renderNovedades();
-  if(window.PRES)PRES.onSwitch(v);if(window.SEL)SEL.onSwitch(v);
+  if(v==='dashboard')renderDashboard();if(v==='carrera')renderCarrera();if(v==='plantilla')renderSquad();if(v==='tactica')renderTactics();if(v==='mercado')renderMarket();if(v==='finanzas')renderFinanzas();if(v==='entreno')renderEntreno();if(v==='calendario')renderCalendario();if(v==='copa')renderCopa();if(v==='centro')renderCentro();if(v==='concacaf')renderConcacaf();if(v==='stats')renderStats();if(v==='noticias'){syncOnlineNow(true);renderNoticias();}if(v==='clasificacion'){VIEW_DIV=userClub().nivel;renderTable();}if(v==='partido')renderMatch();if(v==='novedades')renderNovedades();if(v==='logros')renderLogros();
+  if(window.PRES)PRES.onSwitch(v);if(window.SEL)SEL.onSwitch(v);if(window.EMB)EMB.onSwitch(v);
   document.querySelector('main').scrollTop=0;renderLiveMini();}
-function renderAll(){if(window.PRES)PRES.chrome();if(window.SEL)SEL.chrome();if(window.RETOS)RETOS.chrome();renderTopbar();switchView(CUR);renderLiveMini();updateNovDot();}
+function renderAll(){if(window.PRES)PRES.chrome();if(window.SEL)SEL.chrome();if(window.EMB)EMB.chrome();if(window.RETOS)RETOS.chrome();renderTopbar();switchView(CUR);renderLiveMini();updateNovDot();}
 
 function emergencyResetLive(){try{if(SIM){clearInterval(SIM);SIM=null;}if(LIVE&&LIVE.phase!=='halftime'){LIVE=null;}G.matchMode=G.matchMode||'league';}catch(e){}}
 function installErrorGuard(){if(window._rfmErr)return;window._rfmErr=true;window.addEventListener('error',e=>{console.error(e.error||e.message);emergencyResetLive();try{toast('Error controlado: se reinició el estado del partido');renderAll();}catch(_){};});window.addEventListener('unhandledrejection',e=>{console.error(e.reason);emergencyResetLive();try{toast('Error de proceso controlado');renderAll();}catch(_){};});}
@@ -3014,7 +3131,7 @@ function openPhoneMenu(){
       ${b('🎵 Música ON/OFF','toggleMusic()')}${b('⏭ Siguiente canción','nextMusicTrack(true)')}
       ${b('🎬 Ver intro','playIntroManually()')}${b('🖥 Efecto CRT','toggleCRT()')}
       ${b('❓ Ayuda','openHelpCenter()')}${b('🆕 Novedades',"switchView('novedades')")}
-      ${b('🔧 Reparar partida','repairGame(true)')}${b('⬇ Exportar partida','exportSave()')}${window.PRES?b('🎨 Cambiar tema (Retro / Palco)','PRES.toggleSkin()'):''}
+      ${b('🔧 Reparar partida','repairGame(true)')}${b('⬇ Exportar partida','exportSave()')}${b('🎨 Temas y estilo','openThemes()')}
       <label class="btn" style="width:100%;min-height:44px;display:flex;align-items:center">⬆ Cargar partida<input type="file" accept=".json,application/json" hidden onchange="importSave(event);closeModal()"></label>
       <button class="btn btn-d" style="width:100%;min-height:44px" onclick="closeModal();confirmNewGame()">⟳ Nueva partida</button>
     </div>
@@ -3026,6 +3143,15 @@ function toggleZB(){try{localStorage.setItem('rfm_zb_collapsed',zbCollapsed()?'0
 
 /* ---------- NOVEDADES / CHANGELOG ---------- */
 const CHANGELOG=[
+ {v:'2.3',fecha:'8 oct 2026',titulo:'Temporada 1 · Temas, logros y filtros',items:[
+  ['🔎','Filtro de plantilla','Busca por nombre y filtra por posición, edad, media y estado (titulares, lesionados, contrato, cantera). Ordena por ataque, defensa, físico, potencial, salario y más.'],
+  ['🤝','Más patrocinadores','12 marcas con perfiles de riesgo distintos; cada vez se ofrecen 6.'],
+  ['🎨','Temas y estilo','8 temas (ámbar, océano, celeste y blanco, rojo, neón, grafito, papel…), 3 tipos de letra y bordes suaves. Menú ☰ → Temas y estilo.'],
+  ['🏅','Pestaña Logros','Lista completa de logros, cuáles tienes y cuáles faltan.'],
+  ['🌱','Cantera también para el DT','Al cerrar la campaña suben juveniles al primer equipo según la categoría del club.'],
+  ['🇸🇻','Selección arreglada','Ya no aparece vacía la primera vez que entras.'],
+  ['🎁','Programa Embajador','Compartí el juego o el portafolio (o invitá amigos con tu enlace) y desbloqueá ventajas permanentes: entrenamiento +10%, beca de cantera, menos lesiones, más asistencia, tema Dorado y más. Sin dinero.'],
+  ['💰','Economía rebalanceada','La taquilla, TV y premios de liga bajan; la Copa Centroamericana y la CONCACAF pagan mucho más (premio por ronda y bono de campeón).']]},
  {v:'2.2',fecha:'7 oct 2026',titulo:'Liguilla, CONCACAF y Selección',items:[
   ['🏆','Liguilla corregida','Los 2 primeros pasan directo a semifinales; del 3° al 6° juegan repechaje, luego semifinal y final.'],
   ['🌎','CONCACAF sin invitados','Los 16 cupos salen de Copa Centroamericana, Copa del Caribe, Leagues Cup, México, EE.UU. y Canadá.'],
@@ -3093,14 +3219,14 @@ function renderNovedades(){
     <div class="center" style="margin-top:10px"><button class="btn btn-p" onclick="startTutorial(true)">📘 Ver tutorial</button> <button class="btn btn-a" onclick="sendFeedback()">📧 Enviar opinión</button> <button class="btn" onclick="exportSave()">⬇ Exportar mi partida</button></div>`;
 }
 function showUpdateModal(){
-  const key='rfm_update_v2_2_seen';
+  const key='rfm_update_v2_3_seen';
   try{if(localStorage.getItem(key)==='1')return false;localStorage.setItem(key,'1');}catch(e){return false;}
-  openModal(`<div class="modal-title">🆕 Actualización v${GAME_VERSION}</div><p><b class="green">Nuevo: liguilla corregida, CONCACAF y Selección con presidente.</b></p>
-    <div class="offer"><b class="gold">🏆 Liguilla y CONCACAF corregidas</b><br><small>2 directos a semifinal, repechaje 3°-6°, y cupos reales por país.</small></div><div class="offer"><b class="gold">🇸🇻 Selección con parones FIFA</b><br><small>También como presidente: tus estrellas salvadoreñas son convocadas.</small></div>
+  openModal(`<div class="modal-title">🆕 Actualización v${GAME_VERSION}</div><p><b class="green">Temporada 1: temas, logros, filtros y cantera.</b></p>
+    <div class="offer"><b class="gold">🎨 Temas, logros y filtro de plantilla</b><br><small>8 temas, pestaña Logros y 12 patrocinadores.</small></div><div class="offer"><b class="gold">🌱 Cantera para DT y 🇸🇻 Selección</b><br><small>Juveniles suben solos; Selección con parones FIFA también como presidente.</small></div>
     <div class="offer"><b class="gold">🎯 Retos cortos</b><br><small>Salva al club del descenso y más. Botón 🎯 arriba. Reto del día con racha.</small></div>
     <div class="offer"><b class="gold">🏛 Presidente, 🌱 fundar club y 👔 probador 3D</b><br><small>Novedades de la v1.9 siguen disponibles.</small></div>
     <div class="center"><button class="btn btn-p" onclick="closeModal();switchView('novedades')">🆕 Ver novedades</button> <button class="btn" onclick="closeModal()">▶ Seguir mi carrera</button></div>`);
-  if(G)pushNews(`🆕 Actualización v${GAME_VERSION}: liguilla, CONCACAF y selección.`,'info','club');
+  if(G)pushNews(`🆕 Actualización v${GAME_VERSION}: temas, logros, filtros y cantera.`,'info','club');
   return true;
 }
 function showLaunchModal(kind){
@@ -3196,7 +3322,23 @@ F.set(pRef,onlineProfile()).then(()=>{RFM_LAST_PRESENCE_OK=Date.now();console.lo
 function renderOnlineRanking(){purgarRankingInactivo(15,false);const rows=(RFM_RANKING||[]).slice(0,50).map((r,i)=>`<tr><td class="center">${i+1}</td><td>${esc(r.managerName||'DT')} ${r.valid===false?'<span class="tag amber">REV</span>':''}</td><td>${esc(r.club||'—')}<br><small>${esc(r.division||'')} · ${r.season||''} ${esc(r.campaign||'')}</small></td><td class="center amber">${r.score||0}</td><td class="center">${r.titles||0}</td></tr>`).join('')||'<tr><td colspan="5" class="muted center">Ranking online sin datos por ahora.</td></tr>';return`<div class="panel-title">🌐 Ranking online de DTs · ${rankSeasonLabel()}</div><table class="tbl"><thead><tr><th>#</th><th>DT</th><th>Club</th><th class="center">Puntos</th><th class="center">Títulos</th></tr></thead><tbody>${rows}</tbody></table>`;}
 
 /* ---------- VISUAL PREFERENCES ---------- */
-function applyVisualPrefs(){try{document.body.classList.toggle('no-crt',localStorage.getItem('rfm_crt_off')==='1');}catch(e){}}
+
+const THEMES=[['retro','Retro verde',['#050805','#3fd12a','#ffcc33','#3fd0ff']],['ambar','Fósforo ámbar',['#0a0700','#ffb000','#ffdf9e','#ffd36b']],['oceano','Océano',['#03080f','#38d6ff','#ffd166','#7fe8c8']],['cuscatlan','Celeste y blanco',['#030b1c','#5ec2ff','#ffffff','#ffe27a']],['rojo','Rojo clásico',['#0a0303','#ff5a4d','#f6d4d4','#ffb36b']],['neon','Neón violeta',['#07020f','#c45cff','#38f0ff','#ff4fd8']],['grafito','Grafito',['#0e0f11','#6ee7a8','#e6e9ee','#7cc4ff']],['papel','Papel (claro)',['#f1ead8','#1d7a2b','#a86800','#0b6b92']],['dorado','🎖 Dorado (Embajador)',['#0b0803','#ffd24a','#fff1c2','#e8c766'],'emb']];
+function themePref(){let t={};try{t=JSON.parse(localStorage.getItem('rfm_theme')||'{}')||{};}catch(e){}return t;}
+function saveThemePref(t){try{localStorage.setItem('rfm_theme',JSON.stringify(t));}catch(e){}}
+function applyTheme(){const t=themePref(),b=document.body;const palco=b.classList.contains('skin-palco');
+  if(t.theme&&t.theme!=='retro'&&!palco)b.dataset.theme=t.theme;else delete b.dataset.theme;
+  if(t.font&&t.font!=='retro')b.dataset.font=t.font;else delete b.dataset.font;
+  if(t.round)b.dataset.round='1';else delete b.dataset.round;
+  try{const m=document.querySelector('meta[name=theme-color]');if(m){const c=getComputedStyle(b).getPropertyValue('--bg').trim();if(c)m.content=c;}}catch(e){}}
+function setTheme(k,v){const t=themePref();if(k==='theme'&&window.PRES&&document.body.classList.contains('skin-palco'))PRES.toggleSkin();t[k]=v;saveThemePref(t);applyTheme();openThemes();}
+function openThemes(){const t=themePref(),cur=t.theme||'retro';
+  openModal(`<div class="modal-title">🎨 Temas y estilo</div><div class="th-grid">${THEMES.map(x=>`<div class="th-card ${cur===x[0]?'on':''}" onclick="${x[3]&&!(window.EMB&&EMB.badge())?`toast('Desbloquealo en 🎁 Embajador')`:`setTheme('theme','${x[0]}')`}"><div class="th-sw">${x[2].map(c=>`<i style="background:${c}"></i>`).join('')}</div><small>${x[1]}</small></div>`).join('')}</div>
+  <div class="lab muted">Letra</div><div class="av-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${[['retro','Pixel retro'],['moderna','Moderna'],['mono','Monoespaciada']].map(f=>`<button class="btn btn-sm ${(t.font||'retro')===f[0]?'btn-p':''}" onclick="setTheme('font','${f[0]}')">${f[1]}</button>`).join('')}</div>
+  <div class="lab muted">Bordes</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"><button class="btn btn-sm ${!t.round?'btn-p':''}" onclick="setTheme('round',0)">Cuadrados</button><button class="btn btn-sm ${t.round?'btn-p':''}" onclick="setTheme('round',1)">Suaves</button></div>
+  ${window.PRES?`<div class="lab muted">Estilo especial</div><button class="btn btn-sm ${document.body.classList.contains('skin-palco')?'btn-p':''}" onclick="PRES.toggleSkin();setTimeout(()=>{applyTheme();openThemes();},60)">🏛 Palco (azul, cristal)</button>`:''}
+  <div class="center" style="margin-top:10px"><button class="btn" onclick="toggleCRT();openThemes()">🖥 Efecto CRT</button> <button class="btn btn-p" onclick="closeModal()">Listo</button></div>`);}
+function applyVisualPrefs(){try{document.body.classList.toggle('no-crt',localStorage.getItem('rfm_crt_off')==='1');}catch(e){}applyTheme();}
 function toggleCRT(){const off=localStorage.getItem('rfm_crt_off')==='1';localStorage.setItem('rfm_crt_off',off?'0':'1');applyVisualPrefs();toast(off?'CRT activado':'CRT desactivado: texto más nítido');}
 
 /* ---------- TUTORIAL + MÚSICA ---------- */
@@ -3638,7 +3780,7 @@ function promptDT(){if(window.PRES&&PRES.mode()==='fund'){PRES.openFoundation();
   openModal(`<div class="modal-title">🎽 Nombre del ${(window.PRES&&PRES.mode()==='pres')?'Presidente':'Director Técnico'}</div><p class="muted">Así aparecerás en noticias y en el ranking.</p><input id="dt-name-input" maxlength="20" value="DT" style="width:100%;margin:10px 0" onkeydown="if(event.key==='Enter')confirmDT()"><div class="center"><button class="btn btn-p" onclick="confirmDT()">▶ Empezar</button> <button class="btn" onclick="closeModal()">Cancelar</button></div>`);
   setTimeout(()=>{const i=$('dt-name-input');if(i){i.focus();i.select();}},60);}
 function confirmDT(){const i=$('dt-name-input');const nm=((i&&i.value)||'').trim().replace(/\s+/g,' ').slice(0,20)||'DT';closeModal();startGame(PICK_CLUB,nm,window.PRES?PRES.mode():null);}
-function startGame(clubId,nm,gmode){touchLocalActivity();try{localStorage.setItem('rfm_update_v2_2_seen','1');localStorage.setItem('rfm_novedades_seen',GAME_VERSION);}catch(e){}applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);G.device=PICK_DEVICE;if(window.PRES)PRES.newGameHook(gmode);if(window.SEL)SEL.migrate();pushNews(gmode==='fund'?`🌱 ${nm} funda ${userClub().nombre}.`:gmode==='pres'?`🏛 ${nm} asume la presidencia de ${userClub().nombre}.`:`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(window.PRES&&PRES.welcome())return;if(!showLaunchModal('new'))startTutorial(false);},400);tryResumeMusic();startOnlineServices();updatePresence();submitRanking();}
+function startGame(clubId,nm,gmode){touchLocalActivity();try{localStorage.setItem('rfm_update_v2_3_seen','1');localStorage.setItem('rfm_novedades_seen',GAME_VERSION);}catch(e){}applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);G.device=PICK_DEVICE;if(window.PRES)PRES.newGameHook(gmode);if(window.SEL)SEL.migrate();pushNews(gmode==='fund'?`🌱 ${nm} funda ${userClub().nombre}.`:gmode==='pres'?`🏛 ${nm} asume la presidencia de ${userClub().nombre}.`:`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(window.PRES&&PRES.welcome())return;if(!showLaunchModal('new'))startTutorial(false);},400);tryResumeMusic();startOnlineServices();updatePresence();submitRanking();}
 
 function boot(){
   touchLocalActivity();applyVisualPrefs();
@@ -3742,5 +3884,6 @@ boot();
 // forzamos el estado "offline visual" para que el indicador no quede en "---".
 setTimeout(()=>{try{if(!firebaseDBReady()&&typeof renderTopbar==='function'&&G){RFM_ONLINE_COUNT=0;renderTopbar();}}catch(e){}},6000);
 </script>
+<script>try{window.EMB&&EMB.onLoad();}catch(e){}</script>
 </body>
 </html>

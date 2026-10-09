@@ -376,7 +376,7 @@ function mkProspect() {
   return p;
 }
 function newCamada() {
-  const c = S().cantera, jc = lvl('jefeCantera'); const n = 3 + Math.floor(c.nivel / 2) + Math.floor(jc / 2);
+  const c = S().cantera, jc = lvl('jefeCantera'); const n = 3 + Math.floor(c.nivel / 2) + Math.floor(jc / 2) + (root.EMB ? root.EMB.canteraBonus() : 0);
   const nuevos = []; for (let i = 0; i < n; i++) nuevos.push(mkProspect());
   c.jugadores = (c.jugadores || []).concat(nuevos).slice(-14); c.ult = G.temporada; return nuevos;
 }
@@ -695,7 +695,7 @@ const SECT_PRO = [
   { id: 'mercado', ico: '💼', n: 'Fichajes', subs: [['mercado', 'Mercado']] },
   { id: 'liga', ico: '🏆', n: 'Torneos', subs: [['calendario', 'Calendario'], ['clasificacion', 'Tabla'], ['copa', 'Copa'], ['centro', 'Centroamérica'], ['concacaf', 'CONCACAF'], ['stats', 'Estadísticas']] },
   { id: 'finanzas', ico: '💰', n: 'Finanzas', subs: [['finanzas', 'Finanzas'], ['inversiones', 'Inversiones']] },
-  { id: 'prensa', ico: '📰', n: 'Prensa', subs: [['noticias', 'Noticias'], ['novedades', 'Novedades']] }
+  { id: 'prensa', ico: '📰', n: 'Prensa', subs: [['noticias', 'Noticias'], ['logros', 'Logros'], ['embajador', 'Embajador'], ['novedades', 'Novedades']] }
 ];
 function sections() {
   if (!isFund()) return SECT_PRO;
@@ -719,6 +719,7 @@ let ORIGNAV = null;
 function chrome() {
   const body = document.body; if (!body) return;
   body.classList.toggle('skin-palco', skinOn()); body.classList.toggle('rol-presidente', isPres());
+  try { root.applyTheme && root.applyTheme(); } catch (e) { }
   const nav = $('nav'); if (!nav) return;
   if (isPres()) {
     ensureViews(); if (ORIGNAV == null) ORIGNAV = nav.innerHTML;
