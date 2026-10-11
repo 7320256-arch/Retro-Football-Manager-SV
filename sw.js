@@ -1,6 +1,6 @@
-/* Retro Football Manager SV — Service Worker v14 (anti-caché rancia: valida que la navegación cacheada sea el juego) */
-const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v14';
-const RUNTIME_CACHE = 'rfm-runtime-v1';
+/* Retro Football Manager SV — Service Worker v15 (ícono/manifest siempre frescos; limpia caché de imágenes vieja) */
+const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v15';
+const RUNTIME_CACHE = 'rfm-runtime-v2';
 const MUSIC_CACHE = 'rfm-music-offline-v4';
 const INTRO_CACHE = 'rfm-intro-offline-v1';
 const AVATAR_CACHE = 'rfm-avatar-3d-v1';
@@ -252,6 +252,15 @@ self.addEventListener('fetch', event => {
     event.respondWith(handleAvatar(request));
     return;
   }
+
+  // v15: ícono y manifest van red-primero (antes el PNG quedaba pegado en caché para siempre)
+  try {
+    const iu = new URL(request.url);
+    if (iu.origin === self.location.origin && /\/(icon-[^/]*\.png|manifest\.json|favicon[^/]*)$/i.test(iu.pathname)) {
+      event.respondWith(networkFirst(request));
+      return;
+    }
+  } catch (e) {}
 
   if (isCdnRequest(request) || isImageRequest(request)) {
     event.respondWith(cacheFirstRuntime(request));
