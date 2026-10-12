@@ -13,10 +13,10 @@
   "categories": ["games", "sports", "simulation"],
   "icons": [
     {
-      "src": "/Retro-Football-Manager-SV/icon-512.png",
+      "src": "/Retro-Football-Manager-SV/icon-v3-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

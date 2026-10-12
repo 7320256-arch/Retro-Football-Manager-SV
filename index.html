@@ -9,8 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="FM El Salvador">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="application-name" content="Retro Football Manager SV">
-<link rel="icon" type="image/png" sizes="512x512" href="/Retro-Football-Manager-SV/icon-512.png">
-<link rel="apple-touch-icon" href="/Retro-Football-Manager-SV/icon-512.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/Retro-Football-Manager-SV/icon-v3-512.png">
+<link rel="apple-touch-icon" href="/Retro-Football-Manager-SV/icon-v3-512.png">
 <title>⚽ Retro Football Manager SV — Modo Carrera</title>
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1149,6 +1149,24 @@ function initCentroCup(teams){const shuffled=shuffle(teams),groups=[];for(let g=
 function centroRoundName(){if(!G.centroCup)return'Copa Centroamericana';if(G.centroCup.stage==='groups')return`Grupos · Fecha ${G.centroCup.round+1}/3`;return ['Cuartos de final','Semifinal','Final'][G.centroCup.round]||'Eliminatoria';}
 function sortedCentroGroup(gr){return gr.ids.map(id=>({id,t:gr.tabla[id]})).sort((x,y)=>y.t.pts-x.t.pts||y.t.dg-x.t.dg||y.t.gf-x.t.gf);}
 function buildCentroKnockout(){const g=G.centroCup.groups.map(sortedCentroGroup);const q=[g[0][0].id,g[1][1].id,g[1][0].id,g[0][1].id,g[2][0].id,g[3][1].id,g[3][0].id,g[2][1].id];G.centroCup.stage='knockout';G.centroCup.round=0;G.centroCup.knockout=[];for(let i=0;i<q.length;i+=2)G.centroCup.knockout.push({h:q[i],a:q[i+1],gh:null,ga:null});pushRegionalNews('Copa Centroamericana: terminó fase de grupos; ya están los 8 clasificados.');}
+// Prepara el siguiente evento de torneo de la semana (CONCACAF -> Centroamericana -> Copa Presidente).
+// Antes sólo se preparaba UNO por semana: si coincidían (p. ej. semana 4 = CONCACAF + Copa) la copa quedaba
+// con un 'current' huérfano, bloqueaba maybePrepareCupEvent() y el torneo se congelaba en la fecha 1.
+function cleanStaleCompEvents(){
+  if(!G)return;
+  try{
+    if(G.concacafCup&&G.concacafCup.current&&G.concacafCup.current.week!==G.jornadaActual)simulateConcacafRound(null);
+    if(G.centroCup&&G.centroCup.current&&G.centroCup.current.week!==G.jornadaActual)simulateCentroRound(null);
+    if(G.copa&&G.copa.current&&G.copa.current.week!==G.jornadaActual)simulateCupRound(null);
+  }catch(e){console.warn('limpieza torneos',e);}
+}
+function prepareNextCompEvent(){
+  cleanStaleCompEvents();
+  if(maybePrepareConcacafEvent())return true;
+  if(maybePrepareCentroEvent())return true;
+  maybePrepareCupEvent();
+  return G.matchMode!=='league';
+}
 function maybePrepareCentroEvent(){const c=G.centroCup;if(!c||!c.active||c.champion||c.current)return false;if(!CENTRO_WEEKS.includes(G.jornadaActual)||c.playedWeeks.includes(G.jornadaActual))return false;
   if(c.stage==='groups'){const fixtures=c.groupRounds[c.round]||[];if(!fixtures.length){buildCentroKnockout();return maybePrepareCentroEvent();}c.current={week:G.jornadaActual,stage:'groups',name:centroRoundName(),fixtures};}
   else c.current={week:G.jornadaActual,stage:'knockout',name:centroRoundName(),fixtures:c.knockout.map(x=>Object.assign({},x))};
@@ -1159,7 +1177,7 @@ function applyCentroTabla(gr,h,a,gh,ga){applyCupTabla(gr,h,a,gh,ga);}
 function simulateCentroRound(userRes){const c=G.centroCup;if(!c||!c.current)return;const rows=[];let userPlayed=false,userAdvanced=false;
   if(c.current.stage==='groups'){c.current.fixtures.forEach(f=>{let gh,ga;if(userRes&&(f.h===G.userClubId||f.a===G.userClubId)){gh=f.h===G.userClubId?userRes.gf:userRes.ga;ga=f.h===G.userClubId?userRes.ga:userRes.gf;userPlayed=true;}else{const r=quickSimCentro(f.h,f.a);gh=r.gh;ga=r.ga;}const gr=c.groups.find(x=>x.name===f.group);applyCentroTabla(gr,f.h,f.a,gh,ga);rows.push(`Grupo ${f.group}: ${centroTeamName(f.h)} ${gh}-${ga} ${centroTeamName(f.a)}`);});c.history.unshift({temp:G.temporada,campania:G.campania,week:c.current.week,name:c.current.name,rows});c.playedWeeks.push(c.current.week);c.round++;if(userPlayed){const prize=Math.round(230000*intlRoundMult(c));G.budget+=prize;fin('Copa Centroamericana','ingreso',prize,'Participación regional');pushNews(`🌎 Premio Copa Centroamericana: ${money(prize)}.`, 'bueno','regional');}if(c.round>=3)buildCentroKnockout();}
   else{const winners=[];c.current.fixtures.forEach(f=>{let gh,ga,w,pen='';if(userRes&&(f.h===G.userClubId||f.a===G.userClubId)){gh=f.h===G.userClubId?userRes.gf:userRes.ga;ga=f.h===G.userClubId?userRes.ga:userRes.gf;userPlayed=true;}else{const r=quickSimCentro(f.h,f.a);gh=r.gh;ga=r.ga;}if(gh===ga){if(userRes&&userRes.penWinner&&(f.h===G.userClubId||f.a===G.userClubId)){w=userRes.penWinner;pen=` (penales ${userRes.penText})`;}else{const ph=penaltyScore(centroTeam(f.h)),pa=penaltyScore(centroTeam(f.a));w=ph>=pa?f.h:f.a;pen=` (penales ${Math.round(ph)}-${Math.round(pa)})`;}}else w=gh>ga?f.h:f.a;winners.push(w);if(w===G.userClubId)userAdvanced=true;rows.push(`${centroTeamName(f.h)} ${gh}-${ga} ${centroTeamName(f.a)}${pen}`);});c.history.unshift({temp:G.temporada,campania:G.campania,week:c.current.week,name:c.current.name,rows,alive:winners.slice()});c.playedWeeks.push(c.current.week);c.round++;if(userPlayed){const prize=Math.round((userAdvanced?480000:140000)*intlRoundMult(c));G.budget+=prize;fin('Copa Centroamericana','ingreso',prize,userAdvanced?'Premio por avanzar':'Participación eliminatoria');pushNews(`🌎 Copa Centroamericana: ${userAdvanced?'avanzaste':'eliminado'} (+${money(prize)}).`,userAdvanced?'bueno':'malo','regional');}if(winners.length<=1){c.champion=winners[0];try{intlChampBonus('Copa Centroamericana',c.champion,1100000);}catch(e){}const finalFix=c.current.fixtures[0]||{};const runner=(finalFix.h===winners[0]?finalFix.a:finalFix.h);{const third=centroThird(c,winners[0],runner),info={};[winners[0],runner,third].forEach(id=>{const t=id&&centroTeam(id);if(t)info[id]={nombre:t.nombre,country:t.country,rating:Math.round(t.rating||teamRating(t)),color:t.color,sv:!!(G.clubes&&G.clubes[id])};});G.nextConcacafSeeds={champion:winners[0],runner,third,info};}c.active=false;addChampionHistory('Copa Centroamericana',centroTeam(c.champion),'Campeón regional');pushRegionalNews(`Copa Centroamericana: ${centroTeamName(c.champion)} campeón regional. Clasifica a CONCACAF Champions Cup.`);if(c.champion===G.userClubId)unlockAchievement('copa_centroamericana','Copa Centroamericana','Ganaste el título regional más importante.');}else{c.knockout=[];for(let i=0;i<winners.length;i+=2)c.knockout.push({h:winners[i],a:winners[i+1],gh:null,ga:null});}}
-  c.current=null;G.matchMode='league';autoSave();}
+  c.current=null;G.matchMode='league';if(userRes)prepareNextCompEvent();autoSave();}
 function startPenaltyShootout(comp,gf,ga){
   const f=comp==='centro'?userCentroFixture():userCupFixture();if(!f)return false;const oppId=f.h===G.userClubId?f.a:f.h;
   PEN={comp,gf,ga,oppId,kick:1,shotsU:0,shotsR:0,scoreU:0,scoreR:0,log:[]};renderPenaltyModal();return true;
@@ -1228,7 +1246,7 @@ function quickSimConcacaf(a,b){return quickSim(concacafTeam(a),concacafTeam(b));
 function simulateConcacafRound(userRes){const c=G.concacafCup;if(!c||!c.current)return;const rows=[];let userPlayed=false,userAdvanced=false;
   if(c.current.stage==='groups'){c.current.fixtures.forEach(f=>{let gh,ga;if(userRes&&(f.h===G.userClubId||f.a===G.userClubId)){gh=f.h===G.userClubId?userRes.gf:userRes.ga;ga=f.h===G.userClubId?userRes.ga:userRes.gf;userPlayed=true;}else{const r=quickSimConcacaf(f.h,f.a);gh=r.gh;ga=r.ga;}const gr=c.groups.find(x=>x.name===f.group);applyCupTabla(gr,f.h,f.a,gh,ga);rows.push(`Grupo ${f.group}: ${concacafTeamName(f.h)} ${gh}-${ga} ${concacafTeamName(f.a)}`);});c.history.unshift({temp:G.temporada,campania:G.campania,week:c.current.week,name:c.current.name,rows});c.playedWeeks.push(c.current.week);c.round++;if(userPlayed){G.concacafStats={season:G.temporada,campania:G.campania,played:(G.concacafStats?.played||0)+1,advanced:G.concacafStats?.advanced||0};const prize=Math.round(650000*intlRoundMult(c));G.budget+=prize;fin('CONCACAF','ingreso',prize,'Participación continental');pushNews(`🌐 Premio CONCACAF: ${money(prize)}.`, 'bueno','regional');}if(c.round>=3)buildConcacafKnockout();}
   else{const winners=[];c.current.fixtures.forEach(f=>{let gh,ga,w,pen='';if(userRes&&(f.h===G.userClubId||f.a===G.userClubId)){gh=f.h===G.userClubId?userRes.gf:userRes.ga;ga=f.h===G.userClubId?userRes.ga:userRes.gf;userPlayed=true;}else{const r=quickSimConcacaf(f.h,f.a);gh=r.gh;ga=r.ga;}if(gh===ga){if(userRes&&userRes.penWinner&&(f.h===G.userClubId||f.a===G.userClubId)){w=userRes.penWinner;pen=` (penales ${userRes.penText})`;}else{const ph=penaltyScore(concacafTeam(f.h)),pa=penaltyScore(concacafTeam(f.a));w=ph>=pa?f.h:f.a;pen=` (penales ${Math.round(ph)}-${Math.round(pa)})`;}}else w=gh>ga?f.h:f.a;winners.push(w);if(w===G.userClubId)userAdvanced=true;rows.push(`${concacafTeamName(f.h)} ${gh}-${ga} ${concacafTeamName(f.a)}${pen}`);});c.history.unshift({temp:G.temporada,campania:G.campania,week:c.current.week,name:c.current.name,rows,alive:winners.slice()});c.playedWeeks.push(c.current.week);c.round++;if(userPlayed){G.concacafStats={season:G.temporada,campania:G.campania,played:(G.concacafStats?.played||0)+1,advanced:(G.concacafStats?.advanced||0)+(userAdvanced?1:0)};const prize=Math.round((userAdvanced?1200000:380000)*intlRoundMult(c));G.budget+=prize;fin('CONCACAF','ingreso',prize,userAdvanced?'Premio por avanzar':'Participación eliminatoria');pushNews(`🌐 CONCACAF: ${userAdvanced?'avanzaste':'eliminado'} (+${money(prize)}).`,userAdvanced?'bueno':'malo','regional');}if(winners.length<=1){c.champion=winners[0];try{intlChampBonus('CONCACAF',c.champion,3500000);}catch(e){}c.active=false;addChampionHistory('CONCACAF Champions Cup',concacafTeam(c.champion),'Campeón continental');pushNews(`🌐 ${concacafTeamName(c.champion)} gana la CONCACAF Champions Cup.`, 'gol','regional');if(c.champion===G.userClubId)unlockAchievement('concacaf_champions','CONCACAF Champions Cup','Ganaste el título continental.');}else{c.knockout=[];for(let i=0;i<winners.length;i+=2)c.knockout.push({h:winners[i],a:winners[i+1],gh:null,ga:null});}}
-  c.current=null;G.matchMode='league';autoSave();}
+  c.current=null;G.matchMode='league';if(userRes)prepareNextCompEvent();autoSave();}
 function finishPlayoffMatch(gf,ga){
   if(!G.playoffStage)return;
   recordPlayerStats(gf,ga);
@@ -1821,7 +1839,7 @@ function finishJornada(userGF,userGA,matchLogs){
         }
       }
       // Si después de simular quedó algo pendiente del usuario en la misma jornada, lo marcamos
-      if(G.concacafCup.current&&G.concacafCup.current.week===wk)remaining=true;
+      if(G.concacafCup.current&&G.concacafCup.current.week===wk)simulateConcacafRound(null);
     }
     // 2) Copa Centroamericana
     if(G.centroCup&&G.centroCup.active&&!G.centroCup.champion){
@@ -1832,7 +1850,7 @@ function finishJornada(userGF,userGA,matchLogs){
           if(typeof simulateCentroRound==='function')simulateCentroRound(null);
         }
       }
-      if(G.centroCup.current&&G.centroCup.current.week===wk)remaining=true;
+      if(G.centroCup.current&&G.centroCup.current.week===wk)simulateCentroRound(null);
     }
     // 3) Copa Presidente
     if(G.copa&&G.copa.active&&!G.copa.champion){
@@ -1841,7 +1859,7 @@ function finishJornada(userGF,userGA,matchLogs){
       }else if(CUP_WEEKS.includes(wk)&&!G.copa.playedWeeks.includes(wk)){
         if(typeof maybePrepareCupEvent==='function')maybePrepareCupEvent();
       }
-      if(G.copa.current&&G.copa.current.week===wk)remaining=true;
+      if(G.copa.current&&G.copa.current.week===wk)simulateCupRound(null);
     }
     return remaining;
   }
@@ -1855,7 +1873,7 @@ function finishJornada(userGF,userGA,matchLogs){
     G.matchMode='league';
     renderAll();endSeason();
   }
-  else{maybeGenerateRivalOffer();checkPlayerUnrest();G.jornadaActual++;resetWeekPrep();if(!maybePrepareConcacafEvent()&&!maybePrepareCentroEvent())maybePrepareCupEvent();autoSave();renderAll();showJornadaSummary(jor,userGF,userGA,net);}
+  else{maybeGenerateRivalOffer();checkPlayerUnrest();G.jornadaActual++;resetWeekPrep();prepareNextCompEvent();autoSave();renderAll();showJornadaSummary(jor,userGF,userGA,net);}
 }
 
 function penaltyScore(team){const xi=bestXI(team.plantilla,'4-4-2');const gk=xi.find(p=>p.posicion==='POR');const shooters=xi.filter(p=>p.posicion!=='POR').sort((a,b)=>b.atributos.ataque-a.atributos.ataque).slice(0,5);const atk=shooters.reduce((s,p)=>s+p.atributos.ataque+(p.moral||60)*0.12,0)/Math.max(1,shooters.length);return atk+(gk?gk.atributos.porteria*0.18:10)+Math.random()*18;}
@@ -2644,7 +2662,7 @@ function simulateCupRound(userRes){
     if(winners.length<=1){c.champion=winners[0];c.active=false;addChampionHistory('Copa Presidente',G.clubes[c.champion],'Campeón copa nacional');pushNews(`🏆 ${G.clubes[c.champion].nombre} gana la Copa Presidente ${G.temporada} ${G.campania||''}.`,'gol');}
     else{c.knockout=[];for(let i=0;i<winners.length;i+=2)c.knockout.push({h:winners[i],a:winners[i+1],gh:null,ga:null});}
   }
-  c.current=null;G.matchMode='league';autoSave();
+  c.current=null;G.matchMode='league';if(userRes)prepareNextCompEvent();autoSave();
 }
 function applyNonLeagueMatchWear(label){
   const u=userClub(),carded=[];
@@ -3795,7 +3813,7 @@ function boot(){
     const s=loadSave();
     if(s&&s.clubes&&s.userClubId&&s.meta&&(s.meta.v===2||s.meta.v===3||s.meta.v===4)){
       G=s;migrateState();if(window.PRES)PRES.onLoad();autoSave();
-      if(!maybePrepareConcacafEvent()&&!maybePrepareCentroEvent())maybePrepareCupEvent();
+      prepareNextCompEvent();
       $('intro').classList.add('hidden');
       $('app').classList.remove('hidden');
       renderAll();switchView('dashboard');

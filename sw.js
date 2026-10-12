@@ -1,5 +1,5 @@
-/* Retro Football Manager SV — Service Worker v15 (ícono/manifest siempre frescos; limpia caché de imágenes vieja) */
-const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v15';
+/* Retro Football Manager SV — Service Worker v16 (ícono/manifest siempre frescos; limpia caché de imágenes vieja) */
+const CACHE_VERSION = 'rfm-sv-pwabuilder-safe-v16';
 const RUNTIME_CACHE = 'rfm-runtime-v2';
 const MUSIC_CACHE = 'rfm-music-offline-v4';
 const INTRO_CACHE = 'rfm-intro-offline-v1';
@@ -12,7 +12,7 @@ const APP_SHELL = [
   SCOPE_PATH,
   SCOPE_PATH + 'index.html',
   SCOPE_PATH + 'manifest.json',
-  SCOPE_PATH + 'icon-512.png'
+  SCOPE_PATH + 'icon-v3-512.png'
 ];
 const CDN_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'ajax.googleapis.com', 'www.gstatic.com'];
 
