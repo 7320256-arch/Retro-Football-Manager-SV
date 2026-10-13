@@ -691,7 +691,7 @@ function foundGo() {
 let MODE = 'dt', TEC_TAB = 'equipo', STAFF_PICK = 'fisio';
 const LASTSUB = {};
 const SECT_PRO = [
-  { id: 'despacho', ico: '🏛', n: 'Despacho', subs: [['despacho', 'Inicio'], ['probador', 'Probador 3D']] },
+  { id: 'despacho', ico: '🏛', n: 'Despacho', subs: [['despacho', 'Inicio'], ['palmares', 'Palmarés'], ['probador', 'Probador 3D']] },
   { id: 'club', ico: '⚽', n: 'Club', subs: [['plantilla', 'Plantel'], ['tecnico', 'Cuerpo técnico'], ['cantera', 'Cantera']] },
   { id: 'mercado', ico: '💼', n: 'Fichajes', subs: [['mercado', 'Mercado']] },
   { id: 'liga', ico: '🏆', n: 'Torneos', subs: [['calendario', 'Calendario'], ['clasificacion', 'Tabla'], ['copa', 'Copa'], ['centro', 'Centroamérica'], ['concacaf', 'CONCACAF'], ['stats', 'Estadísticas']] },

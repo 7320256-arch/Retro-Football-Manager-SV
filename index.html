@@ -434,6 +434,7 @@ body.device-phone .tab.go{order:-1;left:0;right:auto;margin-left:0;margin-right:
   <nav class="nav" id="nav">
     <button class="tab active" data-v="dashboard" onclick="switchView('dashboard')">▣ Casa</button>
     <button class="tab" data-v="carrera" onclick="switchView('carrera')">⭐ Carrera</button>
+    <button class="tab" data-v="palmares" onclick="switchView('palmares')">🏆 Palmarés</button>
     <button class="tab" data-v="logros" onclick="switchView('logros')">🏅 Logros</button>
     <button class="tab" data-v="plantilla" onclick="switchView('plantilla')">👥 Plantilla</button>
     <button class="tab" data-v="tactica" onclick="switchView('tactica')">🧠 Táctica</button>
@@ -466,6 +467,7 @@ body.device-phone .tab.go{order:-1;left:0;right:auto;margin-left:0;margin-right:
     </section>
 
     <section id="view-carrera" class="view hidden"><div class="panel" id="carrera-panel"></div></section>
+    <section id="view-palmares" class="view hidden"><div class="panel" id="palmares-panel"></div></section>
     <section id="view-plantilla" class="view hidden"><div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px"><div class="panel-title" style="margin:0">👥 Plantilla</div><div id="pl-info" class="muted"></div></div><div class="sq-filter" id="sq-filter"></div><div class="scroll" style="max-height:70vh"><table class="tbl"><thead><tr><th>Pos</th><th>Jugador</th><th class="center">Edad</th><th class="center">Atq</th><th class="center">Def</th><th class="center">Fís</th><th class="center">Prt</th><th class="center">Med</th><th class="center">Pot</th><th>Personalidad</th><th>Energía</th><th class="center">Moral</th><th class="center">Salario</th><th class="center">Estado</th><th class="right">Valor</th><th class="center">Acción</th></tr></thead><tbody id="squad-body"></tbody></table></div></div></section>
 
     <section id="view-tactica" class="view hidden">
@@ -1482,7 +1484,7 @@ function repairState(){
   ['mercado','agentOffers'].forEach(k=>{(G[k]||[]).forEach(p=>{if(!p.id)p.id=uid();if(p.comision==null)p.comision=Math.round((p.precio||p.valorMercado||10000)*0.08);if(!p.nacionalidad)p.nacionalidad=HOME();if(!p.equipoOrigen)p.equipoOrigen=p.libre?'Libre':'Mercado';if(!p.personalidad)p.personalidad=pick(PERSONALIDADES);if(!p.potencial||p.potencial<p.media)p.potencial=calcPotential(p);if(p.scouted==null)p.scouted=false;});});
 }
 function migrateState(){
-  if(!G||!G.clubes)return;if(!G.pais)G.pais='SV';applyCountry(G.pais);repairState();
+  if(!G||!G.clubes)return;if(!G.pais)G.pais='SV';applyCountry(G.pais);if(!G.palmares){G.palmares=(G.championHistory||[]).filter(x=>x.id&&x.id===G.userClubId).map(x=>({temp:x.temp,campania:x.campania||'',comp:x.comp,club:x.champion,clubId:x.id,rol:'—'}));}repairState();
   applyRealRosterUpdates();
   Object.values(G.clubes).forEach(c=>{if(!c.estadio)c.estadio=initStadium(c.id,c.nivel,c.estadioPropio,c.ciudad);c.plantilla.forEach(p=>{if(p.moral==null)p.moral=60+rnd(31);if(p.contrato==null)p.contrato=1+rnd(3);if(p.quiereIrse==null)p.quiereIrse=false;if(p.yellowCards==null)p.yellowCards=0;if(p.suspended==null)p.suspended=0;if(!p.nacionalidad)p.nacionalidad='El Salvador';if(!p.equipoOrigen)p.equipoOrigen=c.nombre||'Libre';if(!p.personalidad)p.personalidad=pick(PERSONALIDADES);if(!p.potencial||p.potencial<p.media)p.potencial=calcPotential(p);if(p.scouted==null)p.scouted=true;if(!p.stats)p.stats={goles:0,asistencias:0,atajadas:0,pj:0};});});
   if(!G.sponsorOffers||(!G.sponsor&&G.sponsorOffers.length<=4))G.sponsorOffers=genSponsorOffers(userClub().nivel);
@@ -2049,12 +2051,15 @@ function renderAchievements(){const a=G.achievements||[];const owned=(G.avatar&&
   if(window.PRES&&PRES.avatarInCarrera()&&G.rol!=='presidente')return`<div class="panel-title">🎖 Logros y estilo del DT</div><div id="av-host"></div><hr class="sep"><div class="scroll" style="max-height:260px">${list}</div>`;
   return`<div class="panel-title">🎖 Logros y avatar del DT</div><div class="offer avatar-card"><div class="avatar-face">${face}</div><div><b class="green">${esc(G.managerName)}</b><br>Billetera personal: <b class="amber">${money(G.managerWallet||0)}</b><br><small>Decoraciones: ${owned.length?owned.map(esc).join(', '):'ninguna'}</small></div></div><div class="decor-grid">${buttons}</div><hr class="sep"><div class="scroll" style="max-height:260px">${list}</div>`;}
 
+function roleLabel(){return G&&G.rol==='presidente'?((G.pres&&G.pres.fund)?'Fundador':'Presidente'):'DT';}
 function addChampionHistory(comp,champion,extra){
   G.championHistory=G.championHistory||[];
   const name=typeof champion==='string'?champion:(champion&&champion.nombre)||'—';
   const id=champion&&champion.id?champion.id:null;
   G.championHistory.unshift({temp:G.temporada,campania:G.campania,comp,champion:name,id,extra:extra||''});
   if(G.championHistory.length>120)G.championHistory.length=120;
+  // v2.6: palmarés propio y persistente (sirve para DT, Presidente y Fundador; no se pierde al rotar el historial)
+  if(id&&id===G.userClubId){G.palmares=G.palmares||[];G.palmares.unshift({temp:G.temporada,campania:G.campania||'',comp,club:name,clubId:id,rol:roleLabel()});if(G.palmares.length>400)G.palmares.length=400;}
 }
 function recordDomesticChampions(primeraChampion){
   addChampionHistory('Primera División',primeraChampion,'Campeón por liguilla');
@@ -2137,6 +2142,25 @@ function renderHallOfFame(){
     </div>
     ${t.campeonCampeones?`<div class="grid g2" style="margin-top:7px"><div class="offer" style="text-align:center;border-color:var(--green)"><div style="font-size:22px">⭐</div><div class="pxl" style="font-size:18px;color:var(--green)">${t.campeonCampeones}</div><div class="muted" style="font-size:13px;margin-top:4px">Campeón de Campeones</div></div></div>`:'<p class="muted" style="font-size:14px;margin-top:7px">⭐ <b>Campeón de Campeones</b>: se desbloquea al ganar Apertura y Clausura de la misma temporada con tu club.</p>'}`;
 }
+function palmaresRows(){const seen=new Set(),out=[];(G.palmares||[]).forEach(p=>{const c=p.comp||'';let k=c;if(/Liguilla|Primera/.test(c)&&!/Copa|Supercopa|Campe/.test(c))k='L1';else if(/^Segunda/.test(c))k='L2';else if(/^Tercera/.test(c))k='L3';const key=p.temp+'|'+(p.campania||'')+'|'+k+'|'+(p.clubId||'');if(seen.has(key))return;seen.add(key);out.push(Object.assign({},p,{k}));});return out;}
+function renderPalmares(){const el=$('palmares-panel');if(!el)return;
+  const rows=palmaresRows(),by=k=>rows.filter(r=>r.k===k).length;
+  const T=[['🏆','Liga de Primera','L1','var(--gold)'],['🥈','Segunda División','L2','var(--amber)'],['🥉','Tercera División','L3','var(--amber)'],['🏆',LG().cup.replace(/^Copa Presidente de /,'Copa Presidente · '),'Copa Presidente','var(--amber)'],['🌎','Copa Centroamericana','Copa Centroamericana','var(--cyan)'],['🌐','CONCACAF Champions Cup','CONCACAF Champions Cup','var(--green)'],['⚡','Supercopa','Supercopa de Campeones','var(--gold)'],['👑','Campeón de Campeones','Campeón de Campeones','var(--gold)']];
+  const cards=T.map(t=>{const n=by(t[2]);return`<div class="offer" style="text-align:center;padding:9px 6px;${n?'':'opacity:.55'}"><div style="font-size:22px">${t[0]}</div><div class="pxl" style="font-size:18px;color:${t[3]}">${n}</div><div class="muted" style="font-size:13px;margin-top:4px">${esc(t[1])}</div></div>`;}).join('');
+  const h=hallStats(),rol=roleLabel();
+  const roles={};rows.forEach(r=>{roles[r.rol||'—']=(roles[r.rol||'—']||0)+1;});
+  const roleTxt=Object.keys(roles).map(k=>`${k}: <b>${roles[k]}</b>`).join(' · ');
+  const clubs={};rows.forEach(r=>{(clubs[r.club]=clubs[r.club]||[]).push(r);});
+  const clubRows=Object.keys(clubs).map(c=>`<tr><td>${esc(c)}</td><td class="center gold">${clubs[c].length}</td></tr>`).join('')||'<tr><td colspan="2" class="muted">Todavía sin títulos.</td></tr>';
+  const list=rows.slice(0,60).map(r=>`<tr><td class="center">${r.temp}${r.campania?' '+esc(r.campania.slice(0,3)):''}</td><td>${esc(r.comp)}</td><td>${esc(r.club)}</td><td class="center muted">${esc(r.rol||'—')}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Cuando ganes un torneo aparecerá aquí.</td></tr>';
+  const camp=(G.historia||[]).slice(0,40).map(x=>`<tr><td class="center">${x.t} ${esc((x.campania||'').slice(0,3))}</td><td>${esc(x.club)}</td><td class="center">${esc(DIV_NAMES[x.nivel]||'')}</td><td class="center">${x.pos}°</td><td class="center">${x.titulo?'🏆':''}${x.promoted?'⬆':''}${x.relegated?'⬇':''}</td><td class="center muted">${esc(x.rol||'—')}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">Aún no hay campañas.</td></tr>';
+  el.innerHTML=`<div class="panel-title">🏆 Palmarés de ${esc(G.managerName)} · ahora: ${rol}</div>
+    <p class="muted" style="font-size:15px">Reúne todo lo que has ganado, sea como DT, Presidente o Fundador.${roleTxt?'<br>Títulos por rol: '+roleTxt+'.':''}</p>
+    <div class="grid g3"><div class="offer"><b class="gold">${rows.length}</b><br>Títulos totales</div><div class="offer"><b class="cyan">${h.campaigns}</b><br>Campañas</div><div class="offer"><b class="green">${h.promotions}</b><br>Ascensos</div></div>
+    <hr class="sep"><div class="panel-title" style="font-size:10px">TROFEOS</div><div class="grid g2">${cards}</div>
+    <hr class="sep"><div class="panel-title" style="font-size:10px">POR CLUB</div><table class="tbl"><thead><tr><th>Club</th><th class="center">Títulos</th></tr></thead><tbody>${clubRows}</tbody></table>
+    <hr class="sep"><div class="panel-title" style="font-size:10px">TÍTULOS GANADOS</div><div class="scroll" style="max-height:300px"><table class="tbl"><thead><tr><th>Temp</th><th>Torneo</th><th>Club</th><th>Rol</th></tr></thead><tbody>${list}</tbody></table></div>
+    <hr class="sep"><div class="panel-title" style="font-size:10px">CAMPAÑAS</div><div class="scroll" style="max-height:300px"><table class="tbl"><thead><tr><th>Temp</th><th>Club</th><th>División</th><th>Pos</th><th></th><th>Rol</th></tr></thead><tbody>${camp}</tbody></table></div>`;}
 function renderChampionHistory(){const rows=(G.championHistory||[]).slice(0,30).map(x=>`<tr><td>${x.temp} ${esc(x.campania||'')}</td><td>${esc(x.comp)}</td><td class="gold">${esc(x.champion)}</td><td class="muted">${esc(x.extra||'')}</td></tr>`).join('')||'<tr><td colspan="4" class="muted center">Sin campeones registrados todavía.</td></tr>';return`<div class="panel-title">🏆 Historial de campeones</div><div class="scroll" style="max-height:300px"><table class="tbl"><thead><tr><th>Campaña</th><th>Competición</th><th>Campeón</th><th>Detalle</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
 function repairGame(show){
   try{
@@ -2490,7 +2514,7 @@ function endSeason(){
     G.divisiones[mv.de]=G.divisiones[mv.de].filter(x=>x!==mv.id);if(!G.divisiones[mv.a].includes(mv.id))G.divisiones[mv.a].push(mv.id);G.clubes[mv.id].nivel=mv.a;});
   const newUserLevel=divisionLevel(G.userClubId),promoted=newUserLevel<oldUserLevel,relegated=newUserLevel>oldUserLevel;
   if(promoted){G.reputacion=Math.min(100,G.reputacion+10);unlockAchievement('prom_'+lvl+'_'+G.temporada,'Ascenso conseguido','Subiste de categoría');}
-  G.historia.unshift({t:G.temporada,campania:(G.campania||'Apertura'),club:G.clubes[G.userClubId].nombre,nivel:lvl,pos,met,objCompleted:evalObj.completed,objTotal:evalObj.total,titulo,promoted,relegated});
+  G.historia.unshift({rol:roleLabel(),t:G.temporada,campania:(G.campania||'Apertura'),club:G.clubes[G.userClubId].nombre,nivel:lvl,pos,met,objCompleted:evalObj.completed,objTotal:evalObj.total,titulo,promoted,relegated});
   if(window.ACH)ACH.onCampaignEnd({promoted,relegated,lvl:newUserLevel});
   // 3) envejecer + progresión + reset tablas
   const YEAR_END=(G.campania||'Apertura')==='Clausura'; // v2.4: la edad sube UNA vez por año futbolístico
@@ -3147,7 +3171,7 @@ function playQuick(){if(window.PRES)PRES.beforePlay();if(!prepComplete()){toast(
 function switchView(v){if(window.PRES)v=PRES.redirect(v);if(isLiveRunning()&&isCriticalView(v)){toast(v==='tactica'?'Táctica solo en el descanso':'Esta sección está bloqueada durante el partido en vivo');return;}if(!SIM)abortSim();CUR=v;document.querySelectorAll('.view').forEach(s=>s.classList.add('hidden'));
   const sec=$('view-'+v);if(sec)sec.classList.remove('hidden');
   document.querySelectorAll('.tab').forEach(t=>{t.classList.toggle('active',t.dataset.v===v);});
-  if(v==='dashboard')renderDashboard();if(v==='carrera')renderCarrera();if(v==='plantilla')renderSquad();if(v==='tactica')renderTactics();if(v==='mercado')renderMarket();if(v==='finanzas')renderFinanzas();if(v==='entreno')renderEntreno();if(v==='calendario')renderCalendario();if(v==='copa')renderCopa();if(v==='centro')renderCentro();if(v==='concacaf')renderConcacaf();if(v==='stats')renderStats();if(v==='noticias'){syncOnlineNow(true);renderNoticias();}if(v==='clasificacion'){VIEW_DIV=userClub().nivel;renderTable();}if(v==='partido')renderMatch();if(v==='novedades')renderNovedades();if(v==='logros')renderLogros();
+  if(v==='dashboard')renderDashboard();if(v==='carrera')renderCarrera();if(v==='plantilla')renderSquad();if(v==='tactica')renderTactics();if(v==='mercado')renderMarket();if(v==='finanzas')renderFinanzas();if(v==='entreno')renderEntreno();if(v==='calendario')renderCalendario();if(v==='copa')renderCopa();if(v==='centro')renderCentro();if(v==='concacaf')renderConcacaf();if(v==='stats')renderStats();if(v==='noticias'){syncOnlineNow(true);renderNoticias();}if(v==='clasificacion'){VIEW_DIV=userClub().nivel;renderTable();}if(v==='partido')renderMatch();if(v==='novedades')renderNovedades();if(v==='logros')renderLogros();if(v==='palmares')renderPalmares();
   if(window.PRES)PRES.onSwitch(v);if(window.SEL)SEL.onSwitch(v);if(window.EMB)EMB.onSwitch(v);
   document.querySelector('main').scrollTop=0;renderLiveMini();}
 function renderAll(){if(window.PRES)PRES.chrome();if(window.SEL)SEL.chrome();if(window.EMB)EMB.chrome();if(window.RETOS)RETOS.chrome();renderTopbar();switchView(CUR);renderLiveMini();updateNovDot();}
