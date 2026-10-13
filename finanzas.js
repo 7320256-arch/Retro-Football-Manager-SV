@@ -57,7 +57,7 @@
   }
 
   // ---- estado ----
-  function active() { const g = gg(); return !!(g && g.clubes && g.userClubId && !g.reto && g.rol !== 'presidente' && !(g.pres && g.pres.on)); }
+  function active() { const g = gg(); return !!(g && g.clubes && g.userClubId && !g.reto); }
   function led() {
     const g = gg(); if (!g.ledger) g.ledger = { v: 1, seq: 0, years: {}, order: [], rows: [], keys: {} };
     const L = g.ledger; L.years = L.years || {}; L.order = L.order || []; L.rows = L.rows || []; L.keys = L.keys || {}; return L;
@@ -214,7 +214,8 @@ ${Math.abs(s.residual) > 0 ? '± No clasificado                 ' + signed(s.res
       <button class="btn btn-p" onclick="FIN.cont()">▶ Continuar</button></div>`);
   }
   function tab(k, t) { showReport(k, t); }
-  function cont() { closeModal(); const n = NEXT; NEXT = null; if (typeof n === 'function') setTimeout(n, 60); }
+  function flush() { const n = NEXT; NEXT = null; if (typeof n === 'function') setTimeout(n, 60); }
+  function cont() { closeModal(); flush(); }
   function showPending(next) {
     const L = led(), k = L.pending;
     if (!k || !L.years[k]) { if (typeof next === 'function') next(); return false; }
@@ -249,10 +250,15 @@ ${Math.abs(s.residual) > 0 ? '± No clasificado                 ' + signed(s.res
   }
   function panelHTML() {
     if (!active()) return '';
-    const y = year(), s = sums(y), st = status(y, s);
-    return `<div class="panel-title" style="margin-top:12px">📒 Libro mayor ${y.temp}</div>
-      <div class="offer"><small>Estado: ${badge(st.est)} · ${esc(st.why)}<br>Ingresos ${signed(s.inc)} · pagos ${signed(s.exp)} · variación de caja ${signed(s.net)}</small>
-      <div style="margin-top:6px"><button class="btn btn-sm btn-p" onclick="FIN.openLedger()">📒 Abrir libro mayor</button> <button class="btn btn-sm" onclick="FIN.compare()">📈 Informes anuales</button></div></div>`;
+    const y = year(), s = sums(y), st = status(y, s), L = led();
+    const last = L.order.map(k => L.years[k]).filter(v => v && v.rep).slice(-1)[0];
+    const col = st.est === 'estable' ? '#35d07f' : st.est === 'atención' ? '#ffb300' : '#ff5470';
+    return `<div class="offer" style="border:2px solid ${col};background:linear-gradient(135deg,rgba(255,212,71,.12),rgba(80,40,160,.18));margin:10px 0 14px">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center"><div><b class="gold" style="font-size:20px">📒 Libro mayor ${y.temp}</b><br><span class="muted" style="font-size:14px">${esc(y.club)} · caja inicial ${money(y.open)}</span></div>
+      <div style="text-align:right"><span style="font-size:13px" class="muted">Estado financiero</span><br><span style="font-size:20px">${badge(st.est)}</span></div></div>
+      <div class="grid g3" style="margin:10px 0;gap:8px"><div class="offer"><small class="muted">Ingresos</small><br><b class="green">${signed(s.inc)}</b></div><div class="offer"><small class="muted">Pagos</small><br><b class="red">${signed(s.exp)}</b></div><div class="offer"><small class="muted">Variación de caja</small><br><b class="${s.net >= 0 ? 'green' : 'red'}">${signed(s.net)}</b></div></div>
+      <small class="muted">${esc(st.why)}${last ? ' · Último informe cerrado: ' + last.temp : ' · El informe anual completo llega al cerrar el Clausura.'}</small>
+      <div class="center" style="margin-top:10px"><button class="btn btn-p" onclick="FIN.showReport('${y.k}','res')">📊 Informe del año</button> <button class="btn" onclick="FIN.openLedger()">📒 Libro mayor</button> <button class="btn" onclick="FIN.compare()">📈 Comparar temporadas</button></div></div>`;
   }
 
   // ---- migración: partidas v2.3.1/2.4 entran con una línea de apertura (no se inventa historial) ----
@@ -264,5 +270,5 @@ ${Math.abs(s.residual) > 0 ? '± No clasificado                 ' + signed(s.res
     } catch (e) { console.warn('FIN.migrate', e); }
   }
 
-  root.FIN = { CATS, classify, record, once, openYear, reopen, closeCampaign, showPending, showReport, tab, cont, compare, exportYear, openLedger, panelHTML, migrate, active, sums, year };
+  root.FIN = { flush, CATS, classify, record, once, openYear, reopen, closeCampaign, showPending, showReport, tab, cont, compare, exportYear, openLedger, panelHTML, migrate, active, sums, year };
 })(typeof window !== 'undefined' ? window : globalThis);

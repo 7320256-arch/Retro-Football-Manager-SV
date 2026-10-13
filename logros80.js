@@ -112,7 +112,7 @@
   const byN = n => ALL.find(x => x.n === n);
 
   // ---- estado ----
-  function active() { const g = gg(); return !!(g && g.clubes && g.userClubId && !g.reto && g.rol !== 'presidente'); }
+  function active() { const g = gg(); return !!(g && g.clubes && g.userClubId && !g.reto); }
   function S() {
     const g = gg(); if (!g.ach80) g.ach80 = {};
     const a = g.ach80; a.u = a.u || {}; a.cer = a.cer || []; a.pend = a.pend || [];
