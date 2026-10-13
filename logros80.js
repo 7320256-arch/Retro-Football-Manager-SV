@@ -15,7 +15,8 @@
   const gg = () => (typeof G !== 'undefined' ? G : null);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const MEDIA = '/Retro-Football-Manager-SV/media/campeon-de-campeones.mp4';
-  const BIG = ['ALI', 'FAS', 'AGU', 'FIR', 'INT']; // clásicos entre grandes
+  const BIG = ['ALI', 'FAS', 'AGU', 'FIR', 'INT']; // clásicos entre grandes (El Salvador; otros países: liga-xx.js → big)
+  const bigIds = () => { try { return (typeof LG === 'function' && LG().big) || BIG; } catch (e) { return BIG; } };
 
   // st: 'i' implementado · 'd:<id>' enlazado a logro existente · 'v26' Modo Regional · 'v27' cuatro planteles · 'saga' Legado Cuscatleco
   const CAT = [
@@ -163,7 +164,7 @@
       if (c.unb >= 5) unlock(7);
       if (c.csStr >= 5) unlock(8);
       if (win && (m.ratingDiff | 0) >= 15) unlock(9);
-      if (win && m.oppId && BIG.indexOf(g.userClubId) >= 0 && BIG.indexOf(m.oppId) >= 0) unlock(10);
+      if (win && m.oppId && bigIds().indexOf(g.userClubId) >= 0 && bigIds().indexOf(m.oppId) >= 0) unlock(10);
       if (win && live.formChanged) unlock(75);
       if (c.w >= 100) unlock(71);
       if (c.gf >= 100) unlock(72);

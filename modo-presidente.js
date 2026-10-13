@@ -32,7 +32,7 @@ function absCamp() { return (G.temporada - 2026) * 2 + ((G.campania || 'Apertura
 /* ----- personas ----- */
 function mkPerson() {
   const ap2 = Math.random() < 0.3 ? ' ' + pick(APELLIDOS) : '';
-  return { id: uid(), nombre: pick(NOMBRES) + ' ' + pick(APELLIDOS) + ap2, nac: pick(NACS) };
+  return { id: uid(), nombre: pick(NOMBRES) + ' ' + pick(APELLIDOS) + ap2, nac: pick(NACS).replace('El Salvador', (typeof HOMEC === 'function' ? HOMEC() : 'El Salvador')) };
 }
 function dtOvr(d) { return Math.round(d.tactico * 0.4 + d.motivador * 0.25 + d.disciplina * 0.15 + d.cantera * 0.2); }
 function dtWage(d, level) { const L = ovrStars(dtOvr(d)); return Math.round(2600 * (0.5 + 0.35 * L) * LVF[level || lvlN()] / 10) * 10; }
@@ -553,16 +553,17 @@ function electionIfDue(res, fired) {
 }
 /* ===================== PARTE 5 · club desde cero + liga amateur ===================== */
 const AM_NAMES = ['Deportivo Los Pinos', 'Atlético Cuscatlán', 'Juventud Izalqueña', 'Real Santa Lucía', 'Sporting Las Palmas', 'Unión Chalateca', 'Deportivo La Ceiba', 'Estrella Roja FC', 'Racing San Rafael', 'Halcones de Apopa', 'Fénix de Soyapango', 'Tigres de Ilopango', 'Pumas de Sonsonate', 'Cañeros del Sur', 'Lobos de Cojutepeque', 'Gallos de Jiquilisco', 'Mineros del Norte', 'Barrio Nuevo FC', 'Deportivo Las Flores', 'Atlético San Marcos'];
-const CIUDADES = ['San Salvador', 'Santa Ana', 'San Miguel', 'Soyapango', 'Santa Tecla', 'Apopa', 'Sonsonate', 'Usulután', 'Ahuachapán', 'Zacatecoluca', 'Cojutepeque', 'La Unión', 'Chalatenango', 'San Vicente', 'Cabañas', 'Ilobasco', 'Nahuizalco', 'Metapán'];
+const CIUDADES_SV = ['San Salvador', 'Santa Ana', 'San Miguel', 'Soyapango', 'Santa Tecla', 'Apopa', 'Sonsonate', 'Usulután', 'Ahuachapán', 'Zacatecoluca', 'Cojutepeque', 'La Unión', 'Chalatenango', 'San Vicente', 'Cabañas', 'Ilobasco', 'Nahuizalco', 'Metapán'];
 const COLORES = ['#d62828', '#0b6b8f', '#1d8a3a', '#f2a900', '#6a1b9a', '#111827', '#e85d04', '#0077b6', '#9d0208', '#2a9d8f', '#ff5ec7', '#7a4a2b'];
 const AM_TOTAL = 14;
-let FORM = { nombre: '', ciudad: 'San Salvador', abrev: '', color: '#0b6b8f', modo: 'normal' };
+function ciudades() { try { const l = (typeof LG === 'function') ? LG() : null; return (l && l.cities) || CIUDADES_SV; } catch (e) { return CIUDADES_SV; } }
+let FORM = { nombre: '', ciudad: '', abrev: '', color: '#0b6b8f', modo: 'normal' };
 const MODOS = { austero: { n: 'Austero', b: 40000, d: 'Menos caja, más mérito.' }, normal: { n: 'Normal', b: 60000, d: 'Lo justo para empezar.' }, fuerte: { n: 'Respaldado', b: 90000, d: 'Un empresario amigo pone capital.' } };
 
 function mkAmPlayer(pos, boost) {
   const p = genPlayer(pos, 5);
   if (boost) { ['ataque', 'defensa', 'fisico'].forEach(k => p.atributos[k] = clamp(p.atributos[k] + boost, 1, 70)); if (pos === 'POR') p.atributos.porteria = clamp(p.atributos.porteria + boost, 1, 70); }
-  p.media = calcMedia(p); p.potencial = Math.max(p.potencial, p.media); p.scouted = true; p.equipoOrigen = 'Liga amateur'; p.nacionalidad = 'El Salvador';
+  p.media = calcMedia(p); p.potencial = Math.max(p.potencial, p.media); p.scouted = true; p.equipoOrigen = 'Liga amateur'; p.nacionalidad = (typeof HOMEC === 'function' ? HOMEC() : 'El Salvador');
   p.salario = Math.round(p.media * p.media * 0.42 / 10) * 10; p.valorMercado = Math.round(p.media * p.media * 40 * ageFactor(p.edad)); p.contrato = 2;
   return p;
 }
@@ -578,7 +579,7 @@ function foundHook() {
   const nombre = (f.nombre || '').trim().slice(0, 28) || 'C.D. Nuevo Amanecer';
   let id = (slug(f.abrev) || slug(nombre).replace(/^(CD|FC|CF|DEPORTIVO|CLUB)/, '')).slice(0, 3) || 'NUE'; id = id.padEnd(3, 'X');
   let k = 0; while (G.clubes[id]) { id = id.slice(0, 2) + String.fromCharCode(65 + (k++ % 26)); }
-  const city = f.ciudad || 'San Salvador'; const modo = MODOS[f.modo] || MODOS.normal;
+  const city = f.ciudad || ciudades()[0]; const modo = MODOS[f.modo] || MODOS.normal;
   const club = { id, nombre, ciudad: city, color: f.color, tier: 5, nivel: 3, estadioPropio: false, plantilla: withNamePool(() => mkAmSquad(3)), tabla: emptyTabla(), forma: [], budget: modo.b, amateur: true };
   club.estadio = initStadium(id, 3, false, city); club.estadio.aforo = 1500; club.estadio.alquiler = 1200; club.estadio.nombre = 'Cancha municipal de ' + city; club.estadio.fans = 12;
   G.clubes[id] = club; G.userClubId = id; G.budget = modo.b; G.estadio = club.estadio; G.sponsor = null; G.sponsorOffers = genSponsorOffers(3);
@@ -586,7 +587,7 @@ function foundHook() {
   G.reputacion = 40; G.confianza = 60; G.mercado = withNamePool(() => amMarket(12)); G.agentOffers = withNamePool(() => amMarket(6)).map(p => { p.ofrecido = true; return p; });
   newPres('fund');
   const names = shuffle(AM_NAMES.slice()).slice(0, 7), rivals = {};
-  names.forEach((n, i) => { const rid = 'AM' + (i + 1); rivals[rid] = { id: rid, nombre: n, ciudad: pick(CIUDADES), color: pick(COLORES), tier: 5, nivel: 3, plantilla: withNamePool(() => mkAmSquad(rnd(5))), tabla: emptyTabla(), forma: [] }; });
+  names.forEach((n, i) => { const rid = 'AM' + (i + 1); rivals[rid] = { id: rid, nombre: n, ciudad: pick(ciudades()), color: pick(COLORES), tier: 5, nivel: 3, plantilla: withNamePool(() => mkAmSquad(rnd(5))), tabla: emptyTabla(), forma: [] }; });
   const ids = [id].concat(Object.keys(rivals));
   G.pres.fund = { fase: 'amateur', temporada: 1, jor: 1, ids, rivals, cal: roundRobinFull(ids), hist: [], last: null, sig: null };
   G.pres.dt = interimDT(); G.pres.dt.sueldoSem = Math.round(G.pres.dt.sueldoSem * 0.6 / 10) * 10; G.pres.dt.contrato = 2;
@@ -663,7 +664,7 @@ function openFoundation() {
   openModal(`<div class="modal-title">🌱 Fundar un club</div>
   <div class="pr-form">
     <label>Nombre del club<input id="fd-nom" maxlength="28" placeholder="C.D. Nuevo Amanecer" value="${esc(f.nombre)}" oninput="PRES.formSet('nombre',this.value);PRES.formPreview()"></label>
-    <div class="row2"><label>Ciudad<select id="fd-ciu" onchange="PRES.formSet('ciudad',this.value)">${CIUDADES.map(c => `<option ${c === f.ciudad ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
+    <div class="row2"><label>Ciudad<select id="fd-ciu" onchange="PRES.formSet('ciudad',this.value)">${ciudades().map((c, i) => `<option ${c === f.ciudad || (!f.ciudad && i === 0) ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
     <label>Siglas (3)<input id="fd-abr" maxlength="3" placeholder="NAM" value="${esc(f.abrev)}" style="text-transform:uppercase" oninput="PRES.formSet('abrev',this.value);PRES.formPreview()"></label></div>
     <div class="lab">Color del club</div><div class="av-sw">${COLORES.map(c => `<button class="${f.color === c ? 'on' : ''}" style="background:${c}" aria-label="Color" onclick="PRES.formSet('color','${c}');PRES.openFoundation()"></button>`).join('')}</div>
     <div class="lab">Capital inicial</div><div class="av-chips">${Object.keys(MODOS).map(k => `<button class="${f.modo === k ? 'on' : ''}" onclick="PRES.formSet('modo','${k}');PRES.openFoundation()">${MODOS[k].n} · ${money(MODOS[k].b)}</button>`).join('')}</div><small class="muted">${MODOS[f.modo].d}</small>

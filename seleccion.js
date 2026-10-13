@@ -56,7 +56,7 @@ function newSel() {
 }
 function S() { if (!G.sel) G.sel = newSel(); return G.sel; }
 function isPres() { return !!(root.PRES && PRES.isPres && PRES.isPres()); }
-function usable() { return !!(typeof G !== 'undefined' && G && G.clubes && !G.reto); }
+function usable() { return !!(typeof G !== 'undefined' && G && G.clubes && !G.reto && (!G.pais || G.pais === 'SV')); }
 function owner() { return !isPres() && !(root.PRES && PRES.isFund && PRES.isFund()); }
 function hum() { return !!(G && G.sel && G.sel.on && owner()); }
 
