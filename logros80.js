@@ -195,7 +195,7 @@
     try {
       if (!active()) return;
       const g = gg(), a = S(), c = a.c, U = g.userClubId;
-      const mine = (g.championHistory || []).filter(h => h.id === U);
+      const mine = (g.championHistory || []).filter(h => h.id === U && !/Sub-\d|Reservas/.test(h.comp || ''));
       mine.forEach(h => { const k = h.temp + '|' + (h.campania || '') + '|' + h.comp; if (!c.tk[k]) c.tk[k] = U; });
       const tkN = Object.keys(c.tk).length;
       if (tkN >= 5) unlock(20); if (tkN >= 10) unlock(74);

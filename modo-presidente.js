@@ -394,18 +394,19 @@ function canteraSeasonEnd(res) {
   if (res && res.campania === 'Clausura') {
     // vencen: con 19 años o más hay que decidir
     const u = userClub();
-    const vence = c.jugadores.filter(p => p.edad >= 19);
+    const vence = root.PL && PL.active() ? [] : c.jugadores.filter(p => p.edad >= 19);   // v2.7: con Planteles, quien se pasa de edad sube a Sub-20 solo
     vence.forEach(p => {
       if (u.plantilla.length < 26 && p.media >= 45) { promote(p.id, true); msgs.push(`🌱 ${p.nombre} (${p.edad}) sube al primer equipo (${p.media}/${p.potencial}).`); }
       else { c.jugadores = c.jugadores.filter(x => x.id !== p.id); msgs.push(`🌱 ${p.nombre} sale de la academia (sin lugar en el plantel).`); }
     });
-    if (s.dt && s.dt.cantera >= 70) {
+    if (s.dt && s.dt.cantera >= 70 && !(root.PL && PL.active())) {
       const best = c.jugadores.filter(p => p.edad >= 17).sort((a, b) => b.media - a.media)[0];
       if (best && u.plantilla.length < 26) { promote(best.id, true); msgs.push(`🧑‍🏫 ${s.dt.nombre.split(' ').slice(-1)[0]} lanza a ${best.nombre} al primer equipo.`); }
     }
     const nuevos = newCamada(); msgs.push(`🌱 Llegó una camada de ${nuevos.length} canteranos${nuevos.some(p => p.potencial >= 80) ? ' — ¡con un diamante!' : ''}.`);
     c.hist.unshift({ t: G.temporada, n: nuevos.length, mejor: Math.max.apply(null, nuevos.map(p => p.potencial)) }); c.hist = c.hist.slice(0, 8);
     s.alertas.push({ t: 'cantera', x: 'Nueva camada en la academia.' });
+    if (root.PL) PL.normalize();
   }
   return msgs;
 }
@@ -692,7 +693,7 @@ let MODE = 'dt', TEC_TAB = 'equipo', STAFF_PICK = 'fisio';
 const LASTSUB = {};
 const SECT_PRO = [
   { id: 'despacho', ico: '🏛', n: 'Despacho', subs: [['despacho', 'Inicio'], ['palmares', 'Palmarés'], ['probador', 'Probador 3D']] },
-  { id: 'club', ico: '⚽', n: 'Club', subs: [['plantilla', 'Plantel'], ['tecnico', 'Cuerpo técnico'], ['cantera', 'Cantera']] },
+  { id: 'club', ico: '⚽', n: 'Club', subs: [['plantilla', 'Plantel'], ['planteles', 'Planteles'], ['tecnico', 'Cuerpo técnico'], ['cantera', 'Cantera']] },
   { id: 'mercado', ico: '💼', n: 'Fichajes', subs: [['mercado', 'Mercado']] },
   { id: 'liga', ico: '🏆', n: 'Torneos', subs: [['calendario', 'Calendario'], ['clasificacion', 'Tabla'], ['copa', 'Copa'], ['centro', 'Centroamérica'], ['concacaf', 'CONCACAF'], ['stats', 'Estadísticas']] },
   { id: 'finanzas', ico: '💰', n: 'Finanzas', subs: [['finanzas', 'Finanzas'], ['inversiones', 'Inversiones']] },
