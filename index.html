@@ -440,6 +440,7 @@ body.device-phone .tab.go{order:-1;left:0;right:auto;margin-left:0;margin-right:
     <button class="tab" data-v="planteles" onclick="switchView('planteles')">🧒 Planteles</button>
     <button class="tab" data-v="tactica" onclick="switchView('tactica')">🧠 Táctica</button>
     <button class="tab" data-v="mercado" onclick="switchView('mercado')">🛒 Mercado</button>
+    <button class="tab" data-v="region" onclick="switchView('region')">🌎 Región</button>
     <button class="tab" data-v="finanzas" onclick="switchView('finanzas')">💰 Finanzas</button>
     <button class="tab" data-v="entreno" onclick="switchView('entreno')">🏋 Entreno</button>
     <button class="tab" data-v="calendario" onclick="switchView('calendario')">📅 Calendario</button>
@@ -470,6 +471,7 @@ body.device-phone .tab.go{order:-1;left:0;right:auto;margin-left:0;margin-right:
     <section id="view-carrera" class="view hidden"><div class="panel" id="carrera-panel"></div></section>
     <section id="view-palmares" class="view hidden"><div class="panel" id="palmares-panel"></div></section>
     <section id="view-planteles" class="view hidden"><div class="panel" id="planteles-panel"></div></section>
+    <section id="view-region" class="view hidden"><div class="panel" id="region-panel"></div></section>
     <section id="view-plantilla" class="view hidden"><div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px"><div class="panel-title" style="margin:0">👥 Plantilla</div><div id="pl-info" class="muted"></div></div><div class="sq-filter" id="sq-filter"></div><div class="scroll" style="max-height:70vh"><table class="tbl"><thead><tr><th>Pos</th><th>Jugador</th><th class="center">Edad</th><th class="center">Atq</th><th class="center">Def</th><th class="center">Fís</th><th class="center">Prt</th><th class="center">Med</th><th class="center">Pot</th><th>Personalidad</th><th>Energía</th><th class="center">Moral</th><th class="center">Salario</th><th class="center">Estado</th><th class="right">Valor</th><th class="center">Acción</th></tr></thead><tbody id="squad-body"></tbody></table></div></div></section>
 
     <section id="view-tactica" class="view hidden">
@@ -589,6 +591,7 @@ body.device-phone .tab.go{order:-1;left:0;right:auto;margin-left:0;margin-right:
 <script src="finanzas.js"></script>
 <script src="logros80.js"></script>
 <script src="planteles.js"></script>
+<script src="regional.js"></script>
 <script src="liga-gt.js"></script>
 <script src="liga-hn.js"></script>
 <script src="liga-cr.js"></script>
@@ -1083,7 +1086,7 @@ const TOTAL_JORNADAS=22;
 /* ---------- ESTADO ---------- */
 let G=null;
 const SAVE_KEY='rfm_sv_save_v2';
-const GAME_VERSION='2.7';
+const GAME_VERSION='2.8';
 const BUILD_ID='2.4-fundacion'
 const FORMACIONES={'Libre':{def:0,med:0,del:0,l:'XI Libre (sin esquema)'},'4-4-2':{def:4,med:4,del:2,l:'4-4-2 Equilibrada'},'4-3-3':{def:4,med:3,del:3,l:'4-3-3 Ofensiva'},'3-5-2':{def:3,med:5,del:2,l:'3-5-2 Control'},'5-3-2':{def:5,med:3,del:2,l:'5-3-2 Muralla'},'4-2-3-1':{def:4,med:5,del:1,l:'4-2-3-1 Moderna'}};
 const MENTALIDADES={'Defensiva':{atk:0.80,def:1.20},'Contraataque':{atk:1.05,def:1.05},'Equilibrada':{atk:1.0,def:1.0},'Ofensiva':{atk:1.20,def:0.85}};
@@ -1352,6 +1355,7 @@ function finishConcacafMatch(gf,ga){recordPlayerStats(gf,ga);applyNonLeagueMatch
 function pushRegionalNews(t){G.regionalNews=G.regionalNews||[];G.regionalNews.unshift({j:G.jornadaActual,t});if(G.regionalNews.length>80)G.regionalNews.length=80;pushNews('🌎 '+t,'info','regional');}
 
 
+window.RFM_newWorld=function(code,clubId,name){const prev=NAME_POOL;NAME_POOL=realNameSet();LG_FORCE=code;applyCountry(code);try{return newGameStateRaw(clubId,name);}finally{NAME_POOL=prev;LG_FORCE=null;}};
 function newGameState(a,b){const prev=NAME_POOL;NAME_POOL=realNameSet();LG_FORCE=PICK_COUNTRY;try{return newGameStateRaw(a,b);}finally{NAME_POOL=prev;LG_FORCE=null;}}
 function newGameStateRaw(userClubId,managerName){
   const clubes={};const divs={1:[],2:[],3:[]};
@@ -1503,7 +1507,7 @@ function migrateState(){
     // v2.4: esquema versionado. Migración NO destructiva: sólo añade campos, nunca borra ni recalcula historial.
     const from=G.meta.schema||4;
     if(from<SAVE_SCHEMA){G.meta.migratedFrom=from;G.meta.migratedAt=Date.now();G.meta.schema=SAVE_SCHEMA;G.ageRule='clausura';}
-    if(window.FIN)FIN.migrate();if(window.ACH)ACH.migrate();if(window.PL)PL.migrate();
+    if(window.FIN)FIN.migrate();if(window.ACH)ACH.migrate();if(window.PL)PL.migrate();if(window.REG)REG.migrate();
   }
   validateGameState(false);
 }
@@ -2039,6 +2043,10 @@ const LOGROS=[
   ['juv_u17','🌱','Campeón Sub-17','Gana el campeonato Sub-17 con tu club.',g=>(g.palmares||[]).some(x=>x.comp==='Campeonato Sub-17')],
   ['juv_u20','🎓','Campeón Sub-20','Gana el campeonato Sub-20 con tu club.',g=>(g.palmares||[]).some(x=>x.comp==='Campeonato Sub-20')],
   ['juv_res','🛡','Campeón de Reservas','Gana el campeonato de Reservas con tu club.',g=>(g.palmares||[]).some(x=>x.comp==='Campeonato Reservas')],
+  ['reg_viaje','🌎','Legionario','Acepta un cargo en el extranjero.',g=>((g.reg||{}).moves||0)>=1],
+  ['reg_3','🧳','Trotamundos','Trabaja en 3 países distintos.',g=>!!(g.reg&&new Set(g.reg.tray.map(e=>e.pais)).size>=3)],
+  ['reg_6','🗺','Maestro de la región','Trabaja en los 6 países de la región.',g=>!!(g.reg&&new Set(g.reg.tray.map(e=>e.pais)).size>=6)],
+  ['reg_tit','🏆','Campeón en el extranjero','Gana un título de liga o copa fuera de tu país de origen.',g=>!!(g.reg&&g.reg.tray[0]&&(g.palmares||[]).some(x=>x.pais&&x.pais!==g.reg.tray[0].pais&&!/Sub-|Reservas/.test(x.comp||'')))],
   ['juv_promos','⭐','Cantera de oro','Sube 10 juveniles al primer equipo.',g=>((g.plStats||{}).promos||0)>=10],
   ['millon','💰','Caja fuerte','Junta $5 millones en caja.',g=>(g.budget||0)>=5e6],
   ['estilo','🕶','Con estilo','Compra un elemento cosmético para tu DT.',g=>(g.achievements||[]).some(a=>/^style_/.test(a.id))]]]
@@ -2067,7 +2075,7 @@ function addChampionHistory(comp,champion,extra){
   G.championHistory.unshift({temp:G.temporada,campania:G.campania,comp,champion:name,id,extra:extra||''});
   if(G.championHistory.length>120)G.championHistory.length=120;
   // v2.6: palmarés propio y persistente (sirve para DT, Presidente y Fundador; no se pierde al rotar el historial)
-  if(id&&id===G.userClubId){G.palmares=G.palmares||[];G.palmares.unshift({temp:G.temporada,campania:G.campania||'',comp,club:name,clubId:id,rol:roleLabel()});if(G.palmares.length>400)G.palmares.length=400;}
+  if(id&&id===G.userClubId){G.palmares=G.palmares||[];G.palmares.unshift({temp:G.temporada,campania:G.campania||'',comp,club:name,clubId:id,pais:G.pais||'SV',rol:roleLabel()});if(G.palmares.length>400)G.palmares.length=400;}
 }
 function recordDomesticChampions(primeraChampion){
   addChampionHistory('Primera División',primeraChampion,'Campeón por liguilla');
@@ -2595,6 +2603,7 @@ function endSeason(){
   // 6) ¿despido?
   const fired=G.confianza<=0;
   if(fired){G.confianza=40;G.avisos++;}
+  if(window.REG)REG.onYearEnd(seasonRes,fired);
   submitRanking();autoSave();renderAll();
   if(window.RETOS&&RETOS.endSeasonHook(seasonRes,fired))return;
   const _go=()=>{if(window.PRES&&PRES.endSeasonHook(seasonRes,fired))return;if(fired)showFiredModal(seasonRes);else showOffersModal(seasonRes);};
@@ -2606,7 +2615,7 @@ function showFiredModal(res){
   openModal(`<div class="modal-title">🚪 ¡ESTÁS DESPEDIDO!</div>
     <p>La directiva de <b>${esc(res.club||userClub().nombre)}</b> rescindió tu contrato tras quedar ${res.pos}° en ${DIV_NAMES[res.lvl]}.</p>
     <p class="muted">Tu reputación te abre puertas en otros clubes. Elegí dónde continuar tu carrera:</p>
-    <div id="offer-list">${offers.map(renderOffer).join('')}</div>`);
+    <div id="offer-list">${offers.map(renderOffer).join('')}</div>${window.REG?REG.block('fired',res):''}`);
 }
 function showOffersModal(res){
   const offers=generateOffers(false);
@@ -2617,6 +2626,7 @@ function showOffersModal(res){
     ${res.repechaje?`<div class="offer"><b class="amber">Ascenso/Descenso</b><br><small>${res.repechaje.map(esc).join('<br>')}</small></div>`:''}
     <hr class="sep"><div class="panel-title">💼 Ofertas de trabajo recibidas</div>
     ${offers.length?offers.map(renderOffer).join(''):'<p class="muted">Sin ofertas esta vez.</p>'}
+    ${window.REG?REG.block('year',res):''}
     <hr class="sep">${stay}`);
 }
 function renderOffer(o){
@@ -2644,12 +2654,13 @@ function generateOffers(fired){
 function acceptOffer(clubId,nivel,sal){
   if(window.ECO)ECO.onClubChange();
   if(G.rol==='presidente'){G.rol='DT';if(G.pres){G.pres.dt=null;G.pres.camp=null;}}
+  try{if(window.FIN&&FIN.active()){const y=FIN.year(false);if(y&&!y.closed){y.closed=true;y.close=Math.round(G.budget||0);}}}catch(e){}
   G.userClubId=clubId;G.budget=G.clubes[clubId].budget;if(window.FIN)FIN.reopen();if(window.PL)PL.reopen();G.salarioDT=sal;
   G.tactics.alineacion=bestXI(G.clubes[clubId].plantilla,G.tactics.formacion).map(p=>p.id);
   G.objetivo=setObjectiveFor(G.clubes[clubId],G.divisiones);
   G.sponsor=null;G.sponsorOffers=genSponsorOffers(G.clubes[clubId].nivel);
   G.confianza=Math.max(G.confianza,55);
-  pushNews(`💼 ${G.managerName} es nuevo DT de ${G.clubes[clubId].nombre} (${DIV_NAMES[nivel]}).`,'info');
+  pushNews(`💼 ${G.managerName} es nuevo DT de ${G.clubes[clubId].nombre} (${DIV_NAMES[nivel]}).`,'info');if(window.REG)REG.sync();
   closeModal();autoSave();renderAll();switchView('dashboard');updatePresence();submitRanking();
 }
 
@@ -3181,7 +3192,7 @@ function playQuick(){if(window.PRES)PRES.beforePlay();if(!prepComplete()){toast(
 function switchView(v){if(window.PRES)v=PRES.redirect(v);if(isLiveRunning()&&isCriticalView(v)){toast(v==='tactica'?'Táctica solo en el descanso':'Esta sección está bloqueada durante el partido en vivo');return;}if(!SIM)abortSim();CUR=v;document.querySelectorAll('.view').forEach(s=>s.classList.add('hidden'));
   const sec=$('view-'+v);if(sec)sec.classList.remove('hidden');
   document.querySelectorAll('.tab').forEach(t=>{t.classList.toggle('active',t.dataset.v===v);});
-  if(v==='dashboard')renderDashboard();if(v==='carrera')renderCarrera();if(v==='plantilla')renderSquad();if(v==='tactica')renderTactics();if(v==='mercado')renderMarket();if(v==='finanzas')renderFinanzas();if(v==='entreno')renderEntreno();if(v==='calendario')renderCalendario();if(v==='copa')renderCopa();if(v==='centro')renderCentro();if(v==='concacaf')renderConcacaf();if(v==='stats')renderStats();if(v==='noticias'){syncOnlineNow(true);renderNoticias();}if(v==='clasificacion'){VIEW_DIV=userClub().nivel;renderTable();}if(v==='partido')renderMatch();if(v==='novedades')renderNovedades();if(v==='logros')renderLogros();if(v==='palmares')renderPalmares();if(v==='planteles'&&window.PL)PL.render();
+  if(v==='dashboard')renderDashboard();if(v==='carrera')renderCarrera();if(v==='plantilla')renderSquad();if(v==='tactica')renderTactics();if(v==='mercado')renderMarket();if(v==='finanzas')renderFinanzas();if(v==='entreno')renderEntreno();if(v==='calendario')renderCalendario();if(v==='copa')renderCopa();if(v==='centro')renderCentro();if(v==='concacaf')renderConcacaf();if(v==='stats')renderStats();if(v==='noticias'){syncOnlineNow(true);renderNoticias();}if(v==='clasificacion'){VIEW_DIV=userClub().nivel;renderTable();}if(v==='partido')renderMatch();if(v==='novedades')renderNovedades();if(v==='logros')renderLogros();if(v==='palmares')renderPalmares();if(v==='planteles'&&window.PL)PL.render();if(v==='region'&&window.REG)REG.render();
   if(window.PRES)PRES.onSwitch(v);if(window.SEL)SEL.onSwitch(v);if(window.EMB)EMB.onSwitch(v);
   document.querySelector('main').scrollTop=0;renderLiveMini();}
 function renderAll(){if(window.PRES)PRES.chrome();if(window.SEL)SEL.chrome();if(window.EMB)EMB.chrome();if(window.RETOS)RETOS.chrome();renderTopbar();switchView(CUR);renderLiveMini();updateNovDot();}
@@ -3249,6 +3260,12 @@ function toggleZB(){try{localStorage.setItem('rfm_zb_collapsed',zbCollapsed()?'0
 
 /* ---------- NOVEDADES / CHANGELOG ---------- */
 const CHANGELOG=[
+ {v:'2.8',fecha:'15 oct 2026',titulo:'Modo Regional conectado',items:[
+  ['🌎','Ofertas del extranjero','Al cerrar el año (o si te echan) te llegan ofertas de clubes de Guatemala, Honduras, Costa Rica, Panamá, Nicaragua o El Salvador, según tu reputación.'],
+  ['🏛','Para DT, Presidente y Fundador','El DT dirige a otro club, el Presidente preside otro club y el Fundador (ya en profesional, con varios años de gestión) puede dejar su club fundado.'],
+  ['🧳','Trayectoria y pestaña Región','Tu recorrido por países con títulos, mapa de ligas, ofertas guardadas y los mejores jugadores de la región con acceso al Buscador.'],
+  ['🤝','Hombres de confianza','Al mudarte de país te llevás hasta 2 jugadores de tu club actual, gratis.'],
+  ['🏅','4 logros nuevos','Legionario, Trotamundos, Maestro de la región y Campeón en el extranjero.']]},
  {v:'2.7',fecha:'14 oct 2026',titulo:'Cuatro planteles y ligas juveniles',items:[
   ['🧒','Cuatro planteles','Primer Equipo, Reservas, Sub-20 y Sub-17 en la pestaña Planteles. Un jugador vive en un solo plantel: sube o baja entre categorías.'],
   ['📅','Ligas juveniles en paralelo','Reservas, Sub-20 y Sub-17 juegan el mismo calendario que tu primer equipo, con tablas y campeones. Todo se simula solo.'],
@@ -3350,14 +3367,14 @@ function renderNovedades(){
     <div class="center" style="margin-top:10px"><button class="btn btn-p" onclick="startTutorial(true)">📘 Ver tutorial</button> <button class="btn btn-a" onclick="sendFeedback()">📧 Enviar opinión</button> <button class="btn" onclick="exportSave()">⬇ Exportar mi partida</button></div>`;
 }
 function showUpdateModal(){
-  const key='rfm_update_v2_7_seen';
+  const key='rfm_update_v2_8_seen';
   try{if(localStorage.getItem(key)==='1')return false;localStorage.setItem(key,'1');}catch(e){return false;}
-  openModal(`<div class="modal-title">🆕 Actualización v${GAME_VERSION}</div><p><b class="green">v2.7: cuatro planteles (Primer Equipo, Reservas, Sub-20 y Sub-17) y ligas juveniles.</b></p>
+  openModal(`<div class="modal-title">🆕 Actualización v${GAME_VERSION}</div><p><b class="green">v2.8: Modo Regional conectado — ofertas de otros países para DT, Presidente y Fundador, trayectoria y pestaña 🌎 Región.</b></p>
     <div class="offer"><b class="gold">🎨 Temas, logros y filtro de plantilla</b><br><small>8 temas, pestaña Logros y 12 patrocinadores.</small></div><div class="offer"><b class="gold">🌱 Cantera para DT y 🇸🇻 Selección</b><br><small>Juveniles suben solos; Selección con parones FIFA también como presidente.</small></div>
     <div class="offer"><b class="gold">🎯 Retos cortos</b><br><small>Salva al club del descenso y más. Botón 🎯 arriba. Reto del día con racha.</small></div>
     <div class="offer"><b class="gold">🏛 Presidente, 🌱 fundar club y 👔 probador 3D</b><br><small>Novedades de la v1.9 siguen disponibles.</small></div>
     <div class="center"><button class="btn btn-p" onclick="closeModal();switchView('novedades')">🆕 Ver novedades</button> <button class="btn" onclick="closeModal()">▶ Seguir mi carrera</button></div>`);
-  if(G)pushNews(`🆕 Actualización v${GAME_VERSION}: cuatro planteles y ligas juveniles.`,'info','club');
+  if(G)pushNews(`🆕 Actualización v${GAME_VERSION}: Modo Regional conectado.`,'info','club');
   return true;
 }
 function showLaunchModal(kind){
@@ -3647,7 +3664,7 @@ const SAVE_BKP1='rfm_sv_save_v2_b1';
 const SAVE_BKP2='rfm_sv_save_v2_b2';
 const SAVE_TEMP='rfm_sv_save_v2_tmp';
 const SAVE_PREMIG='rfm_sv_save_premigrate'; // copia intacta de la partida anterior a migrar de versión
-const SAVE_SCHEMA=8; // v2.7: planteles y ligas juveniles
+const SAVE_SCHEMA=9; // v2.8: Modo Regional conectado
 const ALL_SAVE_KEYS=[SAVE_KEY,SAVE_BKP1,SAVE_BKP2];
 
 // Guarda el estado actual en los 3 slots rotando: bkp2<-bkp1, bkp1<-principal, principal<-nuevo.
@@ -3918,7 +3935,7 @@ function promptDT(){if(window.PRES&&PRES.mode()==='fund'){PRES.openFoundation();
   openModal(`<div class="modal-title">🎽 Nombre del ${(window.PRES&&PRES.mode()==='pres')?'Presidente':'Director Técnico'}</div><p class="muted">Así aparecerás en noticias y en el ranking.</p><input id="dt-name-input" maxlength="20" value="DT" style="width:100%;margin:10px 0" onkeydown="if(event.key==='Enter')confirmDT()"><div class="center"><button class="btn btn-p" onclick="confirmDT()">▶ Empezar</button> <button class="btn" onclick="closeModal()">Cancelar</button></div>`);
   setTimeout(()=>{const i=$('dt-name-input');if(i){i.focus();i.select();}},60);}
 function confirmDT(){const i=$('dt-name-input');const nm=((i&&i.value)||'').trim().replace(/\s+/g,' ').slice(0,20)||'DT';closeModal();startGame(PICK_CLUB,nm,window.PRES?PRES.mode():null);}
-function startGame(clubId,nm,gmode){touchLocalActivity();try{localStorage.setItem('rfm_update_v2_7_seen','1');localStorage.setItem('rfm_novedades_seen',GAME_VERSION);}catch(e){}applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);applyCountry(G.pais);G.device=PICK_DEVICE;if(window.PRES)PRES.newGameHook(gmode);if(window.SEL)SEL.migrate();if(window.FIN){FIN.migrate();FIN.openYear();}if(window.ACH)ACH.migrate();if(window.PL)PL.migrate();pushNews(gmode==='fund'?`🌱 ${nm} funda ${userClub().nombre}.`:gmode==='pres'?`🏛 ${nm} asume la presidencia de ${userClub().nombre}.`:`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(window.PRES&&PRES.welcome())return;if(!showLaunchModal('new'))startTutorial(false);},400);tryResumeMusic();startOnlineServices();updatePresence();submitRanking();}
+function startGame(clubId,nm,gmode){touchLocalActivity();try{localStorage.setItem('rfm_update_v2_8_seen','1');localStorage.setItem('rfm_novedades_seen',GAME_VERSION);}catch(e){}applyDevice(PICK_DEVICE);G=newGameState(clubId,nm);applyCountry(G.pais);G.device=PICK_DEVICE;if(window.PRES)PRES.newGameHook(gmode);if(window.SEL)SEL.migrate();if(window.FIN){FIN.migrate();FIN.openYear();}if(window.ACH)ACH.migrate();if(window.PL)PL.migrate();if(window.REG)REG.migrate();pushNews(gmode==='fund'?`🌱 ${nm} funda ${userClub().nombre}.`:gmode==='pres'?`🏛 ${nm} asume la presidencia de ${userClub().nombre}.`:`👋 ${nm} toma el mando de ${userClub().nombre}.`,'info');autoSave();$('intro').classList.add('hidden');$('app').classList.remove('hidden');renderAll();switchView('dashboard');setTimeout(()=>{if(window.PRES&&PRES.welcome())return;if(!showLaunchModal('new'))startTutorial(false);},400);tryResumeMusic();startOnlineServices();updatePresence();submitRanking();}
 
 function boot(){
   touchLocalActivity();applyVisualPrefs();

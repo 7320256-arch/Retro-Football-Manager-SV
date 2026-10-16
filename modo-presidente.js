@@ -321,6 +321,7 @@ function informeModal(res, msgs) {
     </div>
     ${msgs.length ? '<hr class="sep"><div class="pr-msgs">' + msgs.map(m => '<div>' + esc(m) + '</div>').join('') + '</div>' : ''}
     ${res.playoff ? `<hr class="sep"><div class="offer"><b class="gold">Liguilla Primera</b><br>Campeón: ${esc(res.playoff.champion)}</div>` : ''}
+    ${root.REG ? REG.block('year', res) : ''}
     <div class="center" style="margin-top:12px"><button class="btn btn-p" onclick="closeModal();switchView('despacho')">Ir al Despacho</button> <button class="btn" onclick="closeModal();switchView('tecnico')">🧑‍🏫 Cuerpo técnico</button></div>`);
 }
 function destitucionModal(res) {
@@ -328,7 +329,7 @@ function destitucionModal(res) {
   openModal(`<div class="modal-title">🗳 ¡Los socios te destituyen!</div>
     <p>Tras quedar <b>${res.pos}°</b> en ${DIV_NAMES[res.lvl]}, la asamblea de <b>${esc(res.club || userClub().nombre)}</b> te retiró la presidencia.</p>
     <p class="muted">Tu historial te abre otra puerta: volver al banquillo como director técnico.</p>
-    <div id="offer-list">${offers.map(renderOffer).join('')}</div>`);
+    <div id="offer-list">${offers.map(renderOffer).join('')}</div>${root.REG ? REG.block('fired', res) : ''}`);
 }
 function reeleccion(res, msgs) {
   const s = S();
@@ -343,7 +344,7 @@ function reeleccion(res, msgs) {
   } else {
     let offers = []; try { offers = generateOffers(false); } catch (e) { }
     pushNews('🗳 No fuiste reelegido. Termina tu etapa como presidente.', 'malo', 'club'); autoSave(); renderAll();
-    openModal(`<div class="modal-title">🗳 Asamblea de socios · Reelección</div>${body}<p class="red center"><b>No fuiste reelegido.</b></p><p class="muted">Puedes volver a dirigir como DT en otro club:</p><div id="offer-list">${offers.map(renderOffer).join('') || '<p class="muted">Sin ofertas hoy.</p>'}</div>`);
+    openModal(`<div class="modal-title">🗳 Asamblea de socios · Reelección</div>${body}<p class="red center"><b>No fuiste reelegido.</b></p><p class="muted">Puedes volver a dirigir como DT en otro club:</p><div id="offer-list">${offers.map(renderOffer).join('') || '<p class="muted">Sin ofertas hoy.</p>'}</div>${root.REG ? REG.block('fired', res) : ''}`);
   }
 }
 function refresh() { try { renderAll(); } catch (e) { console.error('PRES.refresh', e); } }
@@ -694,7 +695,7 @@ const LASTSUB = {};
 const SECT_PRO = [
   { id: 'despacho', ico: '🏛', n: 'Despacho', subs: [['despacho', 'Inicio'], ['palmares', 'Palmarés'], ['probador', 'Probador 3D']] },
   { id: 'club', ico: '⚽', n: 'Club', subs: [['plantilla', 'Plantel'], ['planteles', 'Planteles'], ['tecnico', 'Cuerpo técnico'], ['cantera', 'Cantera']] },
-  { id: 'mercado', ico: '💼', n: 'Fichajes', subs: [['mercado', 'Mercado']] },
+  { id: 'mercado', ico: '💼', n: 'Fichajes', subs: [['mercado', 'Mercado'], ['region', 'Región']] },
   { id: 'liga', ico: '🏆', n: 'Torneos', subs: [['calendario', 'Calendario'], ['clasificacion', 'Tabla'], ['copa', 'Copa'], ['centro', 'Centroamérica'], ['concacaf', 'CONCACAF'], ['stats', 'Estadísticas']] },
   { id: 'finanzas', ico: '💰', n: 'Finanzas', subs: [['finanzas', 'Finanzas'], ['inversiones', 'Inversiones']] },
   { id: 'prensa', ico: '📰', n: 'Prensa', subs: [['noticias', 'Noticias'], ['logros', 'Logros'], ['embajador', 'Embajador'], ['novedades', 'Novedades']] }
@@ -928,11 +929,22 @@ function electionCard() {
   const el = eligible(), camp = G.pres && G.pres.camp;
   return `<div class="panel-title">🗳 Camino a la presidencia</div><div class="offer">${camp ? `Estás en campaña en <b>${esc(userClub().nombre)}</b>: intención de voto <b>${Math.round(camp.apoyo)}%</b>. <button class="btn btn-p btn-sm" onclick="PRES.openCampaign()">Abrir campaña</button>` : `Con buena reputación y trayectoria podrás postularte a presidente del club. ${el.ok ? '<b class="green">¡Ya cumples los requisitos!</b>' : '<span class="muted">' + (el.checks || []).map(c => (c[0] ? '✓ ' : '✗ ') + c[1]).join(' · ') + (el.why ? el.why : '') + '</span>'} <button class="btn ${el.ok ? 'btn-p' : ''} btn-sm" onclick="PRES.openElections()">Ver elecciones</button>`}</div><hr class="sep">`;
 }
+/* v2.8: mudanza de país / club nuevo en otro país */
+function relocateHook(role, sal) {
+  const fresh = () => ({ nivel: 1, jugadores: [], hist: [], ult: null, upg: 0 });
+  if (role === 'PRES') {
+    newPres('regional'); const s = G.pres; s.cantera = fresh(); s.promesas = []; s.fund = null; s.camp = null; s.lastLoss = null; s.exDT = false;
+    G.rol = 'presidente'; s.dt = interimDT(); G.salarioDT = dietaValue(); ensureCandidates(true); G.reputacion = Math.max(G.reputacion || 50, 55);
+  } else {
+    G.rol = 'DT';
+    if (G.pres) { G.pres.dt = null; G.pres.camp = null; G.pres.fund = null; G.pres.cantera = fresh(); G.pres.promesas = []; }
+  }
+}
 function menuItems() { return `<button class="btn" onclick="PRES.toggleSkin()">🎨 Tema: ${skinOn() ? 'Palco → Retro' : 'Retro → Palco'}</button>`; }
 function onLoad() { migrate(); ensureViews(); chrome(); }
 const API = { payroll, injuryChance, edgeFor, beforePlay, autoPrepare, liveHook, afterMatchday, endSeasonHook, migrate, onLoad, onSwitch, redirect, introHook, pickMode, mode, newGameHook, welcome, electionCard, menuItems, toggleSkin, chrome, go, play, afterCarrera, avatarInCarrera,
   hireDT, fireDT, renewDT, hireStaff, fireStaff, renewStaff, confirmFireDT, confirmFireStaff, setDieta, _do, setTecTab, setStaffPick, upgradeCantera, promote, releaseProspect, evalProspect,
   startCampaign, campAction, promesaToggle, cancelCampaign, openCampaign, openElections, openMandato, afterElection, openFoundation, formSet, formPreview, foundNext, foundGo, amPlay,
-  isPres, isFund, S, newPres, interimDT, ensureCandidates, dtEdgeValue, dtOvr, dtDecide, eligible, amTable, voteResult, canteraSeasonEnd, newCamada, dietaValue, fundPromote, renderDespacho, renderTecnico, renderCantera, renderLigaAm, renderProbador, ensureViews };
+  isPres, isFund, S, newPres, interimDT, ensureCandidates, dtEdgeValue, dtOvr, dtDecide, eligible, amTable, voteResult, canteraSeasonEnd, newCamada, dietaValue, fundPromote, renderDespacho, renderTecnico, renderCantera, renderLigaAm, renderProbador, ensureViews, relocateHook };
 root.PRES = API;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -14,7 +14,7 @@
   'use strict';
   const gg = () => (typeof G !== 'undefined' ? G : null);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const MEDIA = '/Retro-Football-Manager-SV/media/campeon-de-campeones.mp4';
+  const MEDIA = '/Retro-Football-Manager-SV/media-campeon-de-campeones.mp4';
   const BIG = ['ALI', 'FAS', 'AGU', 'FIR', 'INT']; // clásicos entre grandes (El Salvador; otros países: liga-xx.js → big)
   const bigIds = () => { try { return (typeof LG === 'function' && LG().big) || BIG; } catch (e) { return BIG; } };
 
